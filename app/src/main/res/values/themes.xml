@@ -1,0 +1,6 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="CameraAppTheme" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
