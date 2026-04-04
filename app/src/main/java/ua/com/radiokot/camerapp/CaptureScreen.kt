@@ -2,11 +2,13 @@ package ua.com.radiokot.camerapp
 
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.BasicText
@@ -26,6 +28,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Composable
 fun CaptureScreen(
+    captureUseCase: ImageCapture?,
+    onCaptureClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier
@@ -48,6 +52,7 @@ fun CaptureScreen(
             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
             useCases = arrayOf(
                 previewUseCase,
+                captureUseCase,
             ),
         )
     }
@@ -56,6 +61,9 @@ fun CaptureScreen(
         CameraXViewfinder(
             surfaceRequest = surfaceRequest!!,
             modifier = Modifier
+                .clickable(
+                    onClick = onCaptureClicked,
+                )
                 .fillMaxSize()
         )
     } else {
@@ -76,12 +84,24 @@ fun CaptureScreen(
     }
 }
 
+@Composable
+fun CaptureScreen(
+    viewModel: CaptureScreenViewModel,
+    modifier: Modifier = Modifier,
+) = CaptureScreen(
+    captureUseCase = viewModel.captureUseCase,
+    onCaptureClicked = viewModel::onCaptureClicked,
+    modifier = modifier
+)
+
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 private fun CaptureScreenPreview(
 
 ) {
     CaptureScreen(
+        captureUseCase = null,
+        onCaptureClicked = {},
         modifier = Modifier
             .fillMaxSize()
     )
