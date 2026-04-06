@@ -2,11 +2,11 @@ package ua.com.radiokot.camerapp
 
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
+import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
@@ -37,7 +39,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Composable
 fun CaptureScreen(
-    captureUseCase: ImageCapture?,
+    useCases: Array<UseCase?>,
+    surfaceRequest: SurfaceRequest?,
+    frameImage: ImageBitmap?,
     onCaptureClicked: (Size, Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) = Box(
@@ -46,31 +50,20 @@ fun CaptureScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var surfaceRequest by remember {
-        mutableStateOf<SurfaceRequest?>(null)
-    }
 
-    LaunchedEffect(Unit) {
-        val provider = ProcessCameraProvider.awaitInstance(context)
-        val previewUseCase =
-            Preview.Builder().build().apply {
-                setSurfaceProvider {
-                    surfaceRequest = it
-                }
-            }
-        provider.bindToLifecycle(
-            lifecycleOwner = lifecycleOwner,
-            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-            useCases = arrayOf(
-                previewUseCase,
-                captureUseCase,
-            ),
-        )
+    LaunchedEffect(useCases, lifecycleOwner) {
+        ProcessCameraProvider
+            .awaitInstance(context)
+            .bindToLifecycle(
+                lifecycleOwner = lifecycleOwner,
+                cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
+                useCases = useCases,
+            )
     }
 
     if (surfaceRequest != null) {
         CameraXViewfinder(
-            surfaceRequest = surfaceRequest!!,
+            surfaceRequest = surfaceRequest,
             modifier = Modifier
                 .fillMaxSize()
         )
@@ -112,8 +105,7 @@ fun CaptureScreen(
                             .toSize()
                     val frameRect = frameLayoutCoordinates!!.boundsInParent()
                     println(
-                        "OOLEG clicked ${viewfinderSize}, b ${frameRect}," +
-                                "preview res ${surfaceRequest!!.resolution}"
+                        "OOLEG clicked ${viewfinderSize}, b $frameRect"
                     )
                     onCaptureClicked(viewfinderSize, frameRect)
                 },
@@ -125,18 +117,38 @@ fun CaptureScreen(
             .onPlaced { layoutCoordinates ->
                 frameLayoutCoordinates = layoutCoordinates
             }
-    )
+    ) {
+        if (frameImage != null) {
+            Image(
+                bitmap = frameImage,
+                contentDescription = null,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+            )
+        }
+    }
 }
 
 @Composable
 fun CaptureScreen(
     viewModel: CaptureScreenViewModel,
     modifier: Modifier = Modifier,
-) = CaptureScreen(
-    captureUseCase = viewModel.captureUseCase,
-    onCaptureClicked = viewModel::onCaptureClicked,
-    modifier = modifier
-)
+) {
+    val surfaceRequest by viewModel.surfaceRequest.collectAsState()
+    val frameImage by viewModel.frameImage.collectAsState()
+
+    CaptureScreen(
+        useCases = arrayOf(
+            viewModel.previewUseCase,
+            viewModel.captureUseCase,
+        ),
+        surfaceRequest = surfaceRequest,
+        frameImage = frameImage,
+        onCaptureClicked = viewModel::onCaptureClicked,
+        modifier = modifier
+    )
+}
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
@@ -144,7 +156,9 @@ private fun CaptureScreenPreview(
 
 ) {
     CaptureScreen(
-        captureUseCase = null,
+        useCases = emptyArray(),
+        surfaceRequest = null,
+        frameImage = null,
         onCaptureClicked = { _, _ -> },
         modifier = Modifier
             .fillMaxSize()
