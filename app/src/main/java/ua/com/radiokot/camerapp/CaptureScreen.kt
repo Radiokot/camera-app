@@ -102,7 +102,7 @@ fun CaptureScreen(
 
     Box(
         modifier = Modifier
-            .size(FrameSize)
+            .size(FrameSize * 1.5f)
             .border(
                 width = 2.dp,
                 color = Color.Red,

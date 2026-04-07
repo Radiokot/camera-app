@@ -4,6 +4,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 
 val FrameSize = DpSize(
-    width = 26.dp * 5,
-    height = 37.dp * 5,
+    width = 100.dp,
+    height = 124.dp,
 )

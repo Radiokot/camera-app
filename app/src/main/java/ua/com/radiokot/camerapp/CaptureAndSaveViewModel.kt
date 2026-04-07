@@ -1,10 +1,13 @@
 package ua.com.radiokot.camerapp
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Shader
 import android.os.Build
 import android.os.Environment
 import android.os.Handler
@@ -25,10 +28,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.times
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,7 +51,7 @@ import kotlin.math.min
 
 
 @Immutable
-class CaptureAndSaveViewModel : ViewModel() {
+class CaptureAndSaveViewModel(application: Application) : AndroidViewModel(application) {
 
     val previewUseCase =
         Preview.Builder().build()
@@ -201,20 +207,42 @@ class CaptureAndSaveViewModel : ViewModel() {
         val scaledViewfinderRect = visibleViewfinderRect * frameScale
         val scaledFrameRect = visibleFrameRect * frameScale
 
-        val resultBitmap =
-            createBitmap(
-                width = scaledFrameRect.width().toInt(),
-                height = scaledFrameRect.height().toInt(),
-            ).applyCanvas {
-                drawBitmap(
-                    image,
-                    -(image.width - scaledViewfinderRect.width()) / 2f
-                            - scaledFrameRect.left,
-                    -(image.height - scaledViewfinderRect.height()) / 2f
-                            - scaledFrameRect.top,
-                    Paint(Paint.ANTI_ALIAS_FLAG),
-                )
+        val resultBitmap = createBitmap(
+            width = scaledFrameRect.width().toInt(),
+            height = scaledFrameRect.height().toInt(),
+        )
+
+        val imageShaderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = BitmapShader(
+                image,
+                Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP,
+            ).apply {
+                setLocalMatrix(Matrix().apply {
+                    setTranslate(
+                        -(image.width - scaledViewfinderRect.width()) / 2f
+                                - scaledFrameRect.left,
+                        -(image.height - scaledViewfinderRect.height()) / 2f
+                                - scaledFrameRect.top,
+                    )
+                })
             }
+            isAntiAlias = true
+        }
+        val shapeAlphaBitmap =
+            ContextCompat
+                .getDrawable(application, R.drawable.stamp_a)!!
+                .toBitmap(
+                    resultBitmap.width,
+                    resultBitmap.height,
+                    Bitmap.Config.ALPHA_8
+                )
+
+        resultBitmap.applyCanvas {
+            drawBitmap(shapeAlphaBitmap, 0f, 0f, imageShaderPaint)
+        }
+
+        shapeAlphaBitmap.recycle()
 
         return resultBitmap
     }

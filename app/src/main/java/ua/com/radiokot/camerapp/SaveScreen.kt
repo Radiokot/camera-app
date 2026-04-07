@@ -93,13 +93,12 @@ fun SaveScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .size(FrameSize * 1.5f)
+                    .size(FrameSize * 2f)
                     .dropShadow(
                         shape = RectangleShape,
                         shadow = Shadow(
                             radius = 16.dp,
-                            spread = 8.dp,
-                            color = Color(0x10000000),
+                            color = Color(0x7447525E),
                         )
                     )
             ) {
@@ -128,8 +127,8 @@ fun SaveScreen(
                     shape = buttonShape,
                     shadow = Shadow(
                         radius = 8.dp,
-                        spread = 6.dp,
-                        color = Color(0x20000000),
+                        spread = 2.dp,
+                        color = Color(0x414A6585),
                     )
                 )
                 .clip(buttonShape)

@@ -22,12 +22,5 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-        <provider
-            android:name=".ShareContentProvider"
-            android:authorities="ua.com.radiokot.camerapp.shared"
-            android:enabled="true"
-            android:exported="false"
-            android:grantUriPermissions="true" />
     </application>
 </manifest>
