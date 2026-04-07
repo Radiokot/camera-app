@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,11 +60,28 @@ fun CaptureScreen(
             )
     }
 
+    var frameLayoutCoordinates by remember {
+        mutableStateOf<LayoutCoordinates?>(null)
+    }
+
     if (surfaceRequest != null) {
         CameraXViewfinder(
             surfaceRequest = surfaceRequest,
             modifier = Modifier
                 .fillMaxSize()
+                .clickable(
+                    enabled = frameLayoutCoordinates != null,
+                    onClick = {
+                        val viewfinderSize =
+                            frameLayoutCoordinates!!
+                                .parentLayoutCoordinates!!
+                                .size
+                                .toSize()
+                        val frameRect = frameLayoutCoordinates!!.boundsInParent()
+
+                        onCaptureClicked(viewfinderSize, frameRect)
+                    },
+                )
         )
     } else {
         Box(
@@ -84,32 +100,9 @@ fun CaptureScreen(
         }
     }
 
-    var frameLayoutCoordinates by remember {
-        mutableStateOf<LayoutCoordinates?>(null)
-    }
-
     Box(
         modifier = Modifier
-            .size(
-                width = 26.dp * 5,
-                height = 37.dp * 5,
-            )
-            .clickable(
-                enabled =
-                    surfaceRequest != null && frameLayoutCoordinates != null,
-                onClick = {
-                    val viewfinderSize =
-                        frameLayoutCoordinates!!
-                            .parentLayoutCoordinates!!
-                            .size
-                            .toSize()
-                    val frameRect = frameLayoutCoordinates!!.boundsInParent()
-                    println(
-                        "OOLEG clicked ${viewfinderSize}, b $frameRect"
-                    )
-                    onCaptureClicked(viewfinderSize, frameRect)
-                },
-            )
+            .size(FrameSize)
             .border(
                 width = 2.dp,
                 color = Color.Red,
@@ -128,26 +121,6 @@ fun CaptureScreen(
             )
         }
     }
-}
-
-@Composable
-fun CaptureScreen(
-    viewModel: CaptureScreenViewModel,
-    modifier: Modifier = Modifier,
-) {
-    val surfaceRequest by viewModel.surfaceRequest.collectAsState()
-    val frameImage by viewModel.frameImage.collectAsState()
-
-    CaptureScreen(
-        useCases = arrayOf(
-            viewModel.previewUseCase,
-            viewModel.captureUseCase,
-        ),
-        surfaceRequest = surfaceRequest,
-        frameImage = frameImage,
-        onCaptureClicked = viewModel::onCaptureClicked,
-        modifier = modifier
-    )
 }
 
 @androidx.compose.ui.tooling.preview.Preview

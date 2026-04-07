@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
 import android.view.Surface
+import androidx.activity.OnBackPressedCallback
 import androidx.camera.core.ExperimentalZeroShutterLag
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
@@ -39,7 +40,7 @@ import kotlin.math.min
 
 
 @Immutable
-class CaptureScreenViewModel : ViewModel() {
+class CaptureAndSendViewModel : ViewModel() {
 
     val previewUseCase =
         Preview.Builder().build()
@@ -68,21 +69,41 @@ class CaptureScreenViewModel : ViewModel() {
             )
             .build()
 
-    private val _frameBitmap: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
-    private var previousFrameBitmap: Bitmap? = null
-    val frameImage: StateFlow<ImageBitmap?> =
-        _frameBitmap
+    private val _captureFrameBitmap: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
+    val captureFrameImage: StateFlow<ImageBitmap?> =
+        _captureFrameBitmap
             .map(viewModelScope) { bitmap ->
-                previousFrameBitmap?.recycle()
-                previousFrameBitmap = bitmap
                 bitmap?.asImageBitmap()
             }
+
+    private val _state: MutableStateFlow<State> = MutableStateFlow(State.Capture)
+    val state: StateFlow<State> = _state
+
+    val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            _state.value = State.Capture
+            isEnabled = false
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            state.collect { newState ->
+                backPressedCallback.isEnabled = newState is State.Send
+
+                if (newState is State.Capture) {
+                    _captureFrameBitmap.value?.recycle()
+                    _captureFrameBitmap.value = null
+                }
+            }
+        }
+    }
 
     fun onCaptureClicked(
         visibleViewfinderSize: Size,
         visibleFrameRect: Rect,
     ) {
-        takePicture(
+        capture(
             visibleViewfinderRect =
                 RectF(0f, 0f, visibleViewfinderSize.width, visibleViewfinderSize.height),
             visibleFrameRect =
@@ -95,15 +116,15 @@ class CaptureScreenViewModel : ViewModel() {
         )
     }
 
-    private var takePictureJob: Job? = null
+    private var captureJob: Job? = null
 
     @SuppressLint("RestrictedApi")
-    private fun takePicture(
+    private fun capture(
         visibleViewfinderRect: RectF,
         visibleFrameRect: RectF,
     ) {
-        takePictureJob?.cancel()
-        takePictureJob = viewModelScope.launch(Dispatchers.Default) {
+        captureJob?.cancel()
+        captureJob = viewModelScope.launch(Dispatchers.Default) {
             val resolutionInfo = previewUseCase.resolutionInfo!!
             val previewImageBitmap =
                 createBitmap(
@@ -128,7 +149,7 @@ class CaptureScreenViewModel : ViewModel() {
                             visibleViewfinderRect = visibleViewfinderRect,
                             visibleFrameRect = visibleFrameRect,
                         )
-                    _frameBitmap.value = lqResultBitmap
+                    _captureFrameBitmap.value = lqResultBitmap
 
                     previewImageBitmap.recycle()
                 },
@@ -148,19 +169,18 @@ class CaptureScreenViewModel : ViewModel() {
                 true
             )
 
-            val resultBitmap =
-                frameImage(
-                    image = rotatedImageBitmap,
-                    visibleViewfinderRect = visibleViewfinderRect,
-                    visibleFrameRect = visibleFrameRect,
-                )
-            _frameBitmap.value = resultBitmap
+            _state.value = State.Send(
+                frameImage =
+                    frameImage(
+                        image = rotatedImageBitmap,
+                        visibleViewfinderRect = visibleViewfinderRect,
+                        visibleFrameRect = visibleFrameRect,
+                    ).asImageBitmap(),
+            )
 
             imageProxy.close()
             imageBitmap.recycle()
             rotatedImageBitmap.recycle()
-
-            println("OOLEG done $resultBitmap")
         }
     }
 
@@ -192,5 +212,12 @@ class CaptureScreenViewModel : ViewModel() {
             }
 
         return resultBitmap
+    }
+
+    sealed interface State {
+        object Capture : State
+        class Send(
+            val frameImage: ImageBitmap,
+        ) : State
     }
 }
