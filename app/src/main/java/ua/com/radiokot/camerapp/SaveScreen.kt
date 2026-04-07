@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SendScreen(
+fun SaveScreen(
     frameImage: ImageBitmap?,
-    onSendClicked: () -> Unit,
+    onSaveClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier
@@ -137,11 +137,11 @@ fun SendScreen(
                     color = Color(0xffe5920f),
                 )
                 .clickable(
-                    onClick = onSendClicked,
+                    onClick = onSaveClicked,
                 )
         ) {
             BasicText(
-                text = "Send",
+                text = "Save to Gallery",
                 style = TextStyle(
                     textAlign = TextAlign.Center,
                     fontSize = 22.sp,
@@ -157,12 +157,12 @@ fun SendScreen(
 
 @Preview
 @Composable
-private fun SendScreenPreview(
+private fun SaveScreenPreview(
 
 ) {
-    SendScreen(
+    SaveScreen(
         frameImage = null,
-        onSendClicked = { },
+        onSaveClicked = { },
         modifier = Modifier
             .fillMaxSize()
     )

@@ -6,6 +6,7 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Build
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
@@ -32,19 +33,19 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.min
 
 
 @Immutable
-class CaptureAndSendViewModel : ViewModel() {
+class CaptureAndSaveViewModel : ViewModel() {
 
     val previewUseCase =
         Preview.Builder().build()
@@ -82,8 +83,6 @@ class CaptureAndSendViewModel : ViewModel() {
 
     private val _state: MutableStateFlow<State> = MutableStateFlow(State.Capture)
     val state: StateFlow<State> = _state
-    private val _events: MutableSharedFlow<Event> = eventSharedFlow()
-    val events: MutableSharedFlow<Event> = _events
 
     val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
@@ -95,7 +94,7 @@ class CaptureAndSendViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             state.collect { newState ->
-                backPressedCallback.isEnabled = newState is State.Send
+                backPressedCallback.isEnabled = newState is State.Save
 
                 if (newState is State.Capture) {
                     _captureFrameBitmap.value?.recycle()
@@ -175,7 +174,7 @@ class CaptureAndSendViewModel : ViewModel() {
                 true
             )
 
-            _state.value = State.Send(
+            _state.value = State.Save(
                 frameImage =
                     frameImage(
                         image = rotatedImageBitmap,
@@ -220,10 +219,10 @@ class CaptureAndSendViewModel : ViewModel() {
         return resultBitmap
     }
 
-    fun onSendClicked() {
+    fun onSaveClicked() {
         val state = state.value
-        if (state is State.Send) {
-            sendImage(
+        if (state is State.Save) {
+            saveImage(
                 imageBitmap = state.frameImage.asAndroidBitmap(),
             )
         }
@@ -231,12 +230,28 @@ class CaptureAndSendViewModel : ViewModel() {
 
     private var sendJob: Job? = null
 
-    private fun sendImage(
+    private fun saveImage(
         imageBitmap: Bitmap,
     ) {
         sendJob?.cancel()
         sendJob = viewModelScope.launch(Dispatchers.Default) {
-            val webpBytes = ByteArrayOutputStream().use { stream ->
+            val directory =
+                File(
+                    Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    "Stamps"
+                )
+
+            if (!directory.exists()) {
+                directory.mkdirs()
+            }
+
+            val outputFile = File(
+                directory,
+                "${System.currentTimeMillis()}.webp"
+            )
+
+            FileOutputStream(outputFile).use { stream ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     imageBitmap.compress(
                         Bitmap.CompressFormat.WEBP_LOSSY,
@@ -250,21 +265,16 @@ class CaptureAndSendViewModel : ViewModel() {
                         stream,
                     )
                 }
-                stream.toByteArray()
             }
-            ShareContentProvider.SHARED_WEBP = webpBytes
-            _events.emit(Event.ShareWebp)
+
+            _state.value = State.Capture
         }
     }
 
     sealed interface State {
         object Capture : State
-        class Send(
+        class Save(
             val frameImage: ImageBitmap,
         ) : State
-    }
-
-    sealed interface Event {
-        object ShareWebp : Event
     }
 }

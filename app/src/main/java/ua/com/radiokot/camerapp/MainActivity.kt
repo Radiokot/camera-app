@@ -1,6 +1,5 @@
 package ua.com.radiokot.camerapp
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -20,7 +19,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: CaptureAndSendViewModel by viewModels()
+    private val viewModel: CaptureAndSaveViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -35,7 +34,7 @@ class MainActivity : ComponentActivity() {
                     .fillMaxSize()
             ) { state ->
                 when (state) {
-                    CaptureAndSendViewModel.State.Capture -> {
+                    CaptureAndSaveViewModel.State.Capture -> {
                         val surfaceRequest by viewModel.surfaceRequest.collectAsState()
                         val frameImage by viewModel.captureFrameImage.collectAsState()
 
@@ -52,10 +51,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    is CaptureAndSendViewModel.State.Send -> {
-                        SendScreen(
+                    is CaptureAndSaveViewModel.State.Save -> {
+                        SaveScreen(
                             frameImage = state.frameImage,
-                            onSendClicked = viewModel::onSendClicked,
+                            onSaveClicked = viewModel::onSaveClicked,
                             modifier = Modifier
                                 .fillMaxSize()
                         )
@@ -66,22 +65,14 @@ class MainActivity : ComponentActivity() {
 
         viewModel.state.onEach { state ->
             when (state) {
-                CaptureAndSendViewModel.State.Capture -> {
+                CaptureAndSaveViewModel.State.Capture -> {
                     WindowInsetsControllerCompat(window, window.decorView)
                         .hide(WindowInsetsCompat.Type.statusBars())
                 }
 
-                is CaptureAndSendViewModel.State.Send -> {
+                is CaptureAndSaveViewModel.State.Save -> {
                     WindowInsetsControllerCompat(window, window.decorView)
                         .show(WindowInsetsCompat.Type.statusBars())
-                }
-            }
-        }.launchIn(lifecycleScope)
-
-        viewModel.events.onEach { event ->
-            when (event) {
-                CaptureAndSendViewModel.Event.ShareWebp -> {
-                    shareWebp()
                 }
             }
         }.launchIn(lifecycleScope)
@@ -92,21 +83,5 @@ class MainActivity : ComponentActivity() {
             finish()
         }
         onBackPressedDispatcher.addCallback(viewModel.backPressedCallback)
-    }
-
-    private fun shareWebp() {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            setPackage("org.telegram.messenger.web")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            setDataAndType(
-                ShareContentProvider.WEBP_URI,
-                ShareContentProvider.WEBP_CONTENT_TYPE,
-            )
-            putExtra(
-                Intent.EXTRA_STREAM,
-                ShareContentProvider.WEBP_URI,
-            )
-        }
-        startActivity(intent)
     }
 }
