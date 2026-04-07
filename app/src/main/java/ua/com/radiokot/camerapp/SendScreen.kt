@@ -2,6 +2,7 @@ package ua.com.radiokot.camerapp
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SendScreen(
     frameImage: ImageBitmap?,
+    onSendClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier
@@ -134,6 +136,9 @@ fun SendScreen(
                 .background(
                     color = Color(0xffe5920f),
                 )
+                .clickable(
+                    onClick = onSendClicked,
+                )
         ) {
             BasicText(
                 text = "Send",
@@ -157,6 +162,7 @@ private fun SendScreenPreview(
 ) {
     SendScreen(
         frameImage = null,
+        onSendClicked = { },
         modifier = Modifier
             .fillMaxSize()
     )

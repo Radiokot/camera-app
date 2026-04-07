@@ -20,6 +20,8 @@
 package ua.com.radiokot.camerapp
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -35,3 +37,16 @@ inline fun <T, R> StateFlow<T>.map(
 ): StateFlow<R> =
     map(transform)
         .stateIn(coroutineScope, SharingStarted.Eagerly, transform(value))
+
+/**
+ * @return a buffered [MutableSharedFlow], configured for event publishing.
+ */
+fun <T> eventSharedFlow() =
+    MutableSharedFlow<T>(
+        // Controls the number of buffered (therefore delivered) events fired rapidly.
+        // For example, when you fire ShowToast and then immediately Close,
+        // you want both of them delivered and processed.
+        // Yet, rapidly firing too many events is probably a bug.
+        extraBufferCapacity = 5,
+        onBufferOverflow = BufferOverflow.SUSPEND,
+    )

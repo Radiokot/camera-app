@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
@@ -30,12 +32,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import kotlin.math.min
 
 
@@ -78,6 +82,8 @@ class CaptureAndSendViewModel : ViewModel() {
 
     private val _state: MutableStateFlow<State> = MutableStateFlow(State.Capture)
     val state: StateFlow<State> = _state
+    private val _events: MutableSharedFlow<Event> = eventSharedFlow()
+    val events: MutableSharedFlow<Event> = _events
 
     val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
@@ -214,10 +220,51 @@ class CaptureAndSendViewModel : ViewModel() {
         return resultBitmap
     }
 
+    fun onSendClicked() {
+        val state = state.value
+        if (state is State.Send) {
+            sendImage(
+                imageBitmap = state.frameImage.asAndroidBitmap(),
+            )
+        }
+    }
+
+    private var sendJob: Job? = null
+
+    private fun sendImage(
+        imageBitmap: Bitmap,
+    ) {
+        sendJob?.cancel()
+        sendJob = viewModelScope.launch(Dispatchers.Default) {
+            val webpBytes = ByteArrayOutputStream().use { stream ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    imageBitmap.compress(
+                        Bitmap.CompressFormat.WEBP_LOSSY,
+                        100,
+                        stream,
+                    )
+                } else {
+                    imageBitmap.compress(
+                        Bitmap.CompressFormat.WEBP,
+                        100,
+                        stream,
+                    )
+                }
+                stream.toByteArray()
+            }
+            ShareContentProvider.SHARED_WEBP = webpBytes
+            _events.emit(Event.ShareWebp)
+        }
+    }
+
     sealed interface State {
         object Capture : State
         class Send(
             val frameImage: ImageBitmap,
         ) : State
+    }
+
+    sealed interface Event {
+        object ShareWebp : Event
     }
 }
