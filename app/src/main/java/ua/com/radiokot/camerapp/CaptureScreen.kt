@@ -11,8 +11,6 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInQuad
 import androidx.compose.animation.core.EaseOutQuad
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,9 +20,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,15 +62,20 @@ fun CaptureScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
-    LaunchedEffect(useCases, lifecycleOwner) {
-        ProcessCameraProvider
-            .awaitInstance(context)
-            .bindToLifecycle(
+    val processCameraProvider by produceState<ProcessCameraProvider?>(null) {
+        value = ProcessCameraProvider.awaitInstance(context).also {
+            it.bindToLifecycle(
                 lifecycleOwner = lifecycleOwner,
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
                 useCases = useCases,
             )
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            processCameraProvider?.unbindAll()
+        }
     }
 
     var frameLayoutCoordinates by remember {
@@ -208,7 +213,7 @@ fun CaptureScreen(
                         )
                         scale.animateTo(
                             targetValue = 1f,
-                            animationSpec =  tween(
+                            animationSpec = tween(
                                 durationMillis = 120,
                                 easing = EaseOutQuad,
                             ),
