@@ -6,6 +6,12 @@ import androidx.camera.core.SurfaceRequest
 import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInQuad
+import androidx.compose.animation.core.EaseOutCirc
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,15 +32,20 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @Composable
 fun CaptureScreen(
@@ -103,22 +114,102 @@ fun CaptureScreen(
     Box(
         modifier = Modifier
             .size(FrameSize * 1.5f)
-            .border(
-                width = 2.dp,
-                color = Color.Red,
-            )
             .onPlaced { layoutCoordinates ->
                 frameLayoutCoordinates = layoutCoordinates
             }
     ) {
+        Image(
+            painter = painterResource(
+                if (frameImage == null)
+                    R.drawable.stamp_a_stroke
+                else
+                    R.drawable.stamp_a
+            ),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+        )
+
         if (frameImage != null) {
+            val rotation = remember {
+                Animatable(0f)
+            }
+            val offsetX = remember {
+                Animatable(0f)
+            }
+            val offsetY = remember {
+                Animatable(0f)
+            }
+            val scale = remember {
+                Animatable(1f)
+            }
+
             Image(
                 bitmap = frameImage,
                 contentDescription = null,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        rotationZ = rotation.value
+                        translationX = offsetX.value
+                        translationY = offsetY.value
+                        scaleX = scale.value
+                        scaleY = scale.value
+                    }
             )
+
+            LaunchedEffect(Unit) {
+                coroutineScope {
+                    launch {
+                        rotation.animateTo(
+                            targetValue = Random
+                                .nextInt(-20, 20)
+                                .toFloat(),
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                            ),
+                        )
+                    }
+
+                    launch {
+                        offsetX.animateTo(
+                            targetValue = Random
+                                .nextInt(-200, 200)
+                                .toFloat(),
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                            ),
+                        )
+                    }
+
+                    launch {
+                        offsetY.animateTo(
+                            targetValue = Random
+                                .nextInt(-200, 200)
+                                .toFloat(),
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                            ),
+                        )
+                    }
+
+                    launch {
+                        scale.animateTo(
+                            targetValue = 1.2f,
+                            animationSpec = tween(
+                                durationMillis = 120,
+                                easing = EaseInQuad,
+                            ),
+                        )
+                        scale.animateTo(
+                            targetValue = 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                            ),
+                        )
+                    }
+                }
+            }
         }
     }
 }
