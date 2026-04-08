@@ -1,5 +1,7 @@
 package ua.com.radiokot.camerapp
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +37,8 @@ import androidx.compose.ui.unit.sp
 fun SaveScreen(
     frameImage: ImageBitmap?,
     onSaveClicked: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
     modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier
@@ -108,6 +112,18 @@ fun SaveScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
+                            .run {
+                                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                                    return@run this
+                                }
+
+                                with(sharedTransitionScope) {
+                                    sharedElement(
+                                        sharedContentState = rememberSharedContentState("image"),
+                                        animatedVisibilityScope = animatedVisibilityScope,
+                                    )
+                                }
+                            }
                     )
                 }
             }
@@ -162,6 +178,8 @@ private fun SaveScreenPreview(
     SaveScreen(
         frameImage = null,
         onSaveClicked = { },
+        sharedTransitionScope = null,
+        animatedVisibilityScope = null,
         modifier = Modifier
             .fillMaxSize()
     )

@@ -6,15 +6,16 @@ import androidx.camera.core.SurfaceRequest
 import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInQuad
-import androidx.compose.animation.core.EaseOutCirc
+import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.coroutineScope
@@ -53,6 +53,8 @@ fun CaptureScreen(
     surfaceRequest: SurfaceRequest?,
     frameImage: ImageBitmap?,
     onCaptureClicked: (Size, Rect) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
     modifier: Modifier = Modifier,
 ) = Box(
     contentAlignment = Alignment.Center,
@@ -156,6 +158,18 @@ fun CaptureScreen(
                         scaleX = scale.value
                         scaleY = scale.value
                     }
+                    .run {
+                        if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                            return@run this
+                        }
+
+                        with(sharedTransitionScope) {
+                            sharedElement(
+                                sharedContentState = rememberSharedContentState("image"),
+                                animatedVisibilityScope = animatedVisibilityScope,
+                            )
+                        }
+                    }
             )
 
             LaunchedEffect(Unit) {
@@ -163,11 +177,8 @@ fun CaptureScreen(
                     launch {
                         rotation.animateTo(
                             targetValue = Random
-                                .nextInt(-20, 20)
+                                .nextInt(-10, 10)
                                 .toFloat(),
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                            ),
                         )
                     }
 
@@ -176,9 +187,6 @@ fun CaptureScreen(
                             targetValue = Random
                                 .nextInt(-200, 200)
                                 .toFloat(),
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                            ),
                         )
                     }
 
@@ -187,15 +195,12 @@ fun CaptureScreen(
                             targetValue = Random
                                 .nextInt(-200, 200)
                                 .toFloat(),
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                            ),
                         )
                     }
 
                     launch {
                         scale.animateTo(
-                            targetValue = 1.2f,
+                            targetValue = 1.1f,
                             animationSpec = tween(
                                 durationMillis = 120,
                                 easing = EaseInQuad,
@@ -203,8 +208,9 @@ fun CaptureScreen(
                         )
                         scale.animateTo(
                             targetValue = 1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                            animationSpec =  tween(
+                                durationMillis = 120,
+                                easing = EaseOutQuad,
                             ),
                         )
                     }
@@ -224,6 +230,8 @@ private fun CaptureScreenPreview(
         surfaceRequest = null,
         frameImage = null,
         onCaptureClicked = { _, _ -> },
+        sharedTransitionScope = null,
+        animatedVisibilityScope = null,
         modifier = Modifier
             .fillMaxSize()
     )

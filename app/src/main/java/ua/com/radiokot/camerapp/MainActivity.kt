@@ -8,6 +8,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,38 +30,54 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val state by viewModel.state.collectAsState()
-
-            AnimatedContent(
-                targetState = state,
+            SharedTransitionLayout(
                 modifier = Modifier
                     .fillMaxSize()
-            ) { state ->
-                when (state) {
-                    CaptureAndSaveViewModel.State.Capture -> {
-                        val surfaceRequest by viewModel.surfaceRequest.collectAsState()
-                        val frameImage by viewModel.captureFrameImage.collectAsState()
+            ) {
+                val state by viewModel.state.collectAsState()
 
-                        CaptureScreen(
-                            useCases = arrayOf(
-                                viewModel.previewUseCase,
-                                viewModel.captureUseCase,
-                            ),
-                            surfaceRequest = surfaceRequest,
-                            frameImage = frameImage,
-                            onCaptureClicked = viewModel::onCaptureClicked,
-                            modifier = Modifier
-                                .fillMaxSize()
+                AnimatedContent(
+                    targetState = state,
+                    transitionSpec = {
+                        ContentTransform(
+                            targetContentEnter = fadeIn(),
+                            initialContentExit = ExitTransition.KeepUntilTransitionsFinished,
+                            sizeTransform = null,
                         )
-                    }
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) { state ->
+                    when (state) {
+                        CaptureAndSaveViewModel.State.Capture -> {
+                            val surfaceRequest by viewModel.surfaceRequest.collectAsState()
+                            val frameImage by viewModel.captureFrameImage.collectAsState()
 
-                    is CaptureAndSaveViewModel.State.Save -> {
-                        SaveScreen(
-                            frameImage = state.frameImage,
-                            onSaveClicked = viewModel::onSaveClicked,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
+                            CaptureScreen(
+                                useCases = arrayOf(
+                                    viewModel.previewUseCase,
+                                    viewModel.captureUseCase,
+                                ),
+                                surfaceRequest = surfaceRequest,
+                                frameImage = frameImage,
+                                onCaptureClicked = viewModel::onCaptureClicked,
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                        }
+
+                        is CaptureAndSaveViewModel.State.Save -> {
+                            SaveScreen(
+                                frameImage = state.frameImage,
+                                onSaveClicked = viewModel::onSaveClicked,
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
