@@ -55,6 +55,11 @@ dependencies {
     implementation "androidx.camera:camera-compose:$cameraxVersion"
     implementation "androidx.camera:camera-lifecycle:$cameraxVersion"
 
+    implementation platform("io.insert-koin:koin-bom:4.2.0")
+    implementation "io.insert-koin:koin-android"
+    implementation "io.insert-koin:koin-core"
+    implementation "io.insert-koin:koin-core-viewmodel"
+
     testImplementation "junit:junit:4.13.2"
     androidTestImplementation "androidx.test.ext:junit:1.3.0"
     androidTestImplementation "androidx.test.espresso:espresso-core:3.7.0"

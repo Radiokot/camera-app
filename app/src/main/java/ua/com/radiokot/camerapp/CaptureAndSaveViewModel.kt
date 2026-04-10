@@ -9,7 +9,6 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
@@ -51,7 +50,10 @@ import kotlin.math.min
 
 
 @Immutable
-class CaptureAndSaveViewModel(application: Application) : AndroidViewModel(application) {
+class CaptureAndSaveViewModel(
+    private val stampDirectory: File,
+    application: Application,
+) : AndroidViewModel(application) {
 
     val previewUseCase =
         Preview.Builder().build()
@@ -263,19 +265,8 @@ class CaptureAndSaveViewModel(application: Application) : AndroidViewModel(appli
     ) {
         sendJob?.cancel()
         sendJob = viewModelScope.launch(Dispatchers.Default) {
-            val directory =
-                File(
-                    Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                    "Stamps"
-                )
-
-            if (!directory.exists()) {
-                directory.mkdirs()
-            }
-
             val outputFile = File(
-                directory,
+                stampDirectory,
                 "${System.currentTimeMillis()}.webp"
             )
 
