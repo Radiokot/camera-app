@@ -19,9 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
@@ -42,47 +40,7 @@ fun SaveScreen(
     modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier
-        .drawWithCache {
-            val backgroundColor = Color(0xfffef6eb)
-            val lineColor = Color(0xFFEEEDE6)
-            val gridSize = 20.dp.roundToPx()
-            val gridThickness = 1.dp.toPx()
-
-            onDrawWithContent {
-                drawRect(backgroundColor)
-
-                for (y in ((0 - gridSize / 2)..size.height.toInt() step gridSize)) {
-                    drawLine(
-                        color = lineColor,
-                        start = Offset(
-                            x = 0f,
-                            y = y.toFloat(),
-                        ),
-                        end = Offset(
-                            x = size.width,
-                            y = y.toFloat(),
-                        ),
-                        strokeWidth = gridThickness,
-                    )
-                }
-                for (x in (0..size.width.toInt() step gridSize)) {
-                    drawLine(
-                        color = lineColor,
-                        start = Offset(
-                            x = x.toFloat(),
-                            y = 0f,
-                        ),
-                        end = Offset(
-                            x = x.toFloat(),
-                            y = size.height,
-                        ),
-                        strokeWidth = gridThickness,
-                    )
-                }
-
-                drawContent()
-            }
-        }
+        .paperBackground()
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -97,7 +55,7 @@ fun SaveScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .size(FrameSize * 2f)
+                    .size(StampSize * 2f)
                     .dropShadow(
                         shape = RectangleShape,
                         shadow = Shadow(

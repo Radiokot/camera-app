@@ -120,7 +120,7 @@ fun CaptureScreen(
 
     Box(
         modifier = Modifier
-            .size(FrameSize * 1.5f)
+            .size(StampSize * 1.5f)
             .onPlaced { layoutCoordinates ->
                 frameLayoutCoordinates = layoutCoordinates
             }
