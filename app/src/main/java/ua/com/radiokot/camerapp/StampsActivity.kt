@@ -5,11 +5,13 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -18,6 +20,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.skydoves.landscapist.image.LocalLandscapist
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -29,73 +33,86 @@ class StampsActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
         setContent {
-            SharedTransitionLayout {
-                val navController = rememberNavController()
+            CompositionLocalProvider(
+                LocalLandscapist provides koinInject(),
+            ) {
+                SharedTransitionLayout {
+                    StampsNavHost(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    )
+                }
+            }
+        }
+    }
+}
 
-                NavHost(
-                    navController = navController,
-                    startDestination = StampsDestination,
-                    enterTransition = { fadeIn() },
-                    exitTransition = { fadeOut() },
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    composable(
-                        route = StampsDestination,
-                    ) {
-                        val viewModel: StampsScreenViewModel = koinViewModel()
-                        val stamps = viewModel.stamps.collectAsState()
+@Composable
+private fun SharedTransitionScope.StampsNavHost(
+    modifier: Modifier = Modifier,
+) {
+    val navController = rememberNavController()
 
-                        StampsScreen(
-                            stamps = stamps,
-                            onStampClicked = viewModel::onStampClicked,
-                            sharedTransitionScope = this@SharedTransitionLayout,
-                            animatedVisibilityScope = this@composable,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
+    NavHost(
+        navController = navController,
+        startDestination = StampsDestination,
+        enterTransition = { fadeIn() },
+        exitTransition = { fadeOut() },
+        modifier = modifier
+    ) {
+        composable(
+            route = StampsDestination,
+        ) {
+            val viewModel: StampsScreenViewModel = koinViewModel()
+            val stamps = viewModel.stamps.collectAsState()
 
-                        LaunchedEffect(viewModel) {
-                            viewModel.events.collect { event ->
-                                when (event) {
-                                    is StampsScreenViewModel.Event.ProceedToStamp -> {
-                                        navController.navigate(
-                                            route = "$StampsDestination/${event.stampId}",
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+            StampsScreen(
+                stamps = stamps,
+                onStampClicked = viewModel::onStampClicked,
+                sharedTransitionScope = this@StampsNavHost,
+                animatedVisibilityScope = this@composable,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
 
-                    composable(
-                        route = "$StampsDestination/{stampId}",
-                        arguments = listOf(
-                            navArgument("stampId") {
-                                type = NavType.StringType
-                            }
-                        ),
-                    ) { navEntry ->
-                        val viewModel: StampScreenViewModel = koinViewModel {
-                            parametersOf(
-                                StampScreenViewModel.Parameters(
-                                    stampId = navEntry.arguments?.getString("stampId")
-                                        ?: error("No ID argument passed"),
-                                )
+            LaunchedEffect(viewModel) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is StampsScreenViewModel.Event.ProceedToStamp -> {
+                            navController.navigate(
+                                route = "${StampsDestination}/${event.stampId}",
                             )
                         }
-
-                        StampScreen(
-                            stampId = viewModel.stampId,
-                            thumbnailUrl = viewModel.thumbnailUrl,
-                            sharedTransitionScope = this@SharedTransitionLayout,
-                            animatedVisibilityScope = this@composable,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
                     }
                 }
             }
+        }
+
+        composable(
+            route = "${StampsDestination}/{stampId}",
+            arguments = listOf(
+                navArgument("stampId") {
+                    type = NavType.StringType
+                }
+            ),
+        ) { navEntry ->
+            val viewModel: StampScreenViewModel = koinViewModel {
+                parametersOf(
+                    StampScreenViewModel.Parameters(
+                        stampId = navEntry.arguments?.getString("stampId")
+                            ?: error("No ID argument passed"),
+                    )
+                )
+            }
+
+            StampScreen(
+                stampId = viewModel.stampId,
+                thumbnailUrl = viewModel.thumbnailUrl,
+                sharedTransitionScope = this@StampsNavHost,
+                animatedVisibilityScope = this@composable,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
         }
     }
 }

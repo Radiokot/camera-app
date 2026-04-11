@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.skydoves.landscapist.core.model.CachePolicy
 import com.skydoves.landscapist.image.LandscapistImage
 
 @Composable
@@ -33,9 +32,6 @@ fun StampScreen(
 ) {
     LandscapistImage(
         imageModel = { thumbnailUrl.toUri() },
-        requestBuilder = {
-            diskCachePolicy(CachePolicy.DISABLED)
-        },
         modifier = Modifier
             .size(StampSize * 2f)
             .run {

@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -30,8 +29,6 @@ import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.skydoves.landscapist.core.ImageRequest
-import com.skydoves.landscapist.core.model.CachePolicy
 import com.skydoves.landscapist.image.LandscapistImage
 import kotlin.math.absoluteValue
 
@@ -47,11 +44,6 @@ fun StampsScreen(
 ) {
     val gridState = rememberLazyGridState()
     val spacedBy = Arrangement.spacedBy(24.dp)
-    val imageRequestBuilder = retain {
-        fun ImageRequest.Builder.() {
-            diskCachePolicy(CachePolicy.DISABLED)
-        }
-    }
     val shadowColor = Color(0x7447525E)
     val rotationAngles = arrayOf(4, 3, 2, -2, -3, -4)
 
@@ -84,7 +76,6 @@ fun StampsScreen(
             ) {
                 LandscapistImage(
                     imageModel = { stamp.thumbnailUrl.toUri() },
-                    requestBuilder = imageRequestBuilder,
                     modifier = Modifier
                         .size(StampSize)
                         .run {

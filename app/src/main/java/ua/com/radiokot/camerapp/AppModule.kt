@@ -1,6 +1,9 @@
 package ua.com.radiokot.camerapp
 
 import android.os.Environment
+import com.skydoves.landscapist.core.Landscapist
+import com.skydoves.landscapist.core.LandscapistConfig
+import com.skydoves.landscapist.core.fetcher.AndroidFetchers
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.named
@@ -28,6 +31,17 @@ val appModule = module {
             stampDirectory = get(named(DIRECTORY_STAMPS)),
         )
     } bind StampRepository::class
+
+    single {
+        val config = LandscapistConfig(
+            diskCacheSize = 0L,
+        )
+
+        Landscapist.Builder()
+            .config(config)
+            .fetcher(AndroidFetchers.createDefault(config.networkConfig))
+            .build()
+    }
 
     viewModel {
         CaptureAndSaveViewModel(
