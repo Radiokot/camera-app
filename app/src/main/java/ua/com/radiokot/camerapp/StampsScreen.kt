@@ -18,13 +18,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.model.CachePolicy
 import com.skydoves.landscapist.image.LandscapistImage
+import kotlin.math.absoluteValue
 
 @Composable
 fun StampsScreen(
@@ -35,18 +40,19 @@ fun StampsScreen(
         .paperBackground(),
 ) {
     val gridState = rememberLazyGridState()
-    val spacedBy = Arrangement.spacedBy(16.dp)
+    val spacedBy = Arrangement.spacedBy(24.dp)
     val imageRequestBuilder = retain {
         fun ImageRequest.Builder.() {
             diskCachePolicy(CachePolicy.DISABLED)
         }
     }
+    val shadowColor = Color(0x7447525E)
+    val rotationAngles = arrayOf(4, 3, 2, -2, -3, -4)
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(
-            minSize = StampSize.width,
+            minSize = StampSize.width * 1.05f,
         ),
-        horizontalArrangement = spacedBy,
         verticalArrangement = spacedBy,
         contentPadding = WindowInsets
             .safeContent
@@ -62,20 +68,29 @@ fun StampsScreen(
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                if (stamp.thumbnailUrl.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .size(StampSize)
-                            .background(Color.Yellow)
-                    )
-                    return@Box
-                }
-
                 LandscapistImage(
                     imageModel = { stamp.thumbnailUrl.toUri() },
                     requestBuilder = imageRequestBuilder,
                     modifier = Modifier
                         .size(StampSize)
+                        .rotate(
+                            (rotationAngles[stamp.key.hashCode().absoluteValue % rotationAngles.size])
+                                .toFloat()
+                        )
+                        .dropShadow(
+                            shape = RectangleShape,
+                            shadow = Shadow(
+                                radius = 4.dp,
+                                color = shadowColor,
+                            )
+                        )
+                        .run {
+                            if (stamp.thumbnailUrl.isNotEmpty()) {
+                                return@run this
+                            }
+
+                            background(Color.Yellow)
+                        }
                 )
             }
         }
