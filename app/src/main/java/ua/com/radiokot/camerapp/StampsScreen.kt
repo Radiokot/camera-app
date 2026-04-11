@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -36,8 +37,7 @@ fun StampsScreen(
     modifier: Modifier = Modifier,
     stamps: State<List<StampListItem>>,
 ) = Box(
-    modifier = modifier
-        .paperBackground(),
+    modifier = modifier,
 ) {
     val gridState = rememberLazyGridState()
     val spacedBy = Arrangement.spacedBy(24.dp)
@@ -58,15 +58,23 @@ fun StampsScreen(
             .safeContent
             .asPaddingValues(),
         state = gridState,
+        overscrollEffect = null,
         modifier = Modifier
             .fillMaxSize()
+            .paperBackground(
+                verticalOffset = {
+                    -gridState.firstVisibleItemScrollOffset
+                }
+            )
     ) {
         items(
             items = stamps.value,
             key = StampListItem::key,
         ) { stamp ->
             Box(
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .height(StampSize.height * 1.05f)
             ) {
                 LandscapistImage(
                     imageModel = { stamp.thumbnailUrl.toUri() },

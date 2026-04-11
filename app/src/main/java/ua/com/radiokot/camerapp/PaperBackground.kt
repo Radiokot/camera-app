@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.ranges.step
 
 fun Modifier.paperBackground(
-
+    verticalOffset: (() -> Int)? = null,
 ) = drawWithCache {
 
     val backgroundColor = Color(0xfffef6eb)
@@ -19,7 +19,12 @@ fun Modifier.paperBackground(
     onDrawWithContent {
         drawRect(backgroundColor)
 
-        for (y in ((0 - gridSize / 2)..size.height.toInt() step gridSize)) {
+        var startY = (0 - gridSize / 2)
+        if (verticalOffset != null) {
+            startY += verticalOffset() % gridSize
+        }
+
+        for (y in (startY..size.height.toInt() step gridSize)) {
             drawLine(
                 color = lineColor,
                 start = Offset(
