@@ -10,6 +10,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +53,7 @@ private fun SharedTransitionScope.StampsNavHost(
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
+    val stampGridState = rememberLazyGridState()
 
     NavHost(
         navController = navController,
@@ -59,6 +61,9 @@ private fun SharedTransitionScope.StampsNavHost(
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },
         modifier = modifier
+            .paperBackground(
+                verticalOffset = { -stampGridState.firstVisibleItemScrollOffset }
+            )
     ) {
         composable(
             route = StampsDestination,
@@ -68,6 +73,7 @@ private fun SharedTransitionScope.StampsNavHost(
 
             StampsScreen(
                 stamps = stamps,
+                gridState = stampGridState,
                 onStampClicked = viewModel::onStampClicked,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,

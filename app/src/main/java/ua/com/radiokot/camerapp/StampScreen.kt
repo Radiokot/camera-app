@@ -28,7 +28,6 @@ fun StampScreen(
 ) = Box(
     contentAlignment = Alignment.Center,
     modifier = modifier
-        .paperBackground()
 ) {
     LandscapistImage(
         imageModel = { thumbnailUrl.toUri() },

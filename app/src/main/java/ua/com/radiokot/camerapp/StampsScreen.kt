@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -35,14 +36,12 @@ import kotlin.math.absoluteValue
 @Composable
 fun StampsScreen(
     modifier: Modifier = Modifier,
+    gridState: LazyGridState = rememberLazyGridState(),
     stamps: State<List<StampListItem>>,
     onStampClicked: (StampListItem) -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-) = Box(
-    modifier = modifier,
 ) {
-    val gridState = rememberLazyGridState()
     val spacedBy = Arrangement.spacedBy(24.dp)
     val shadowColor = Color(0x7447525E)
     val rotationAngles = arrayOf(4, 3, 2, -2, -3, -4)
@@ -57,13 +56,7 @@ fun StampsScreen(
             .asPaddingValues(),
         state = gridState,
         overscrollEffect = null,
-        modifier = Modifier
-            .fillMaxSize()
-            .paperBackground(
-                verticalOffset = {
-                    -gridState.firstVisibleItemScrollOffset
-                }
-            )
+        modifier = modifier
     ) {
         items(
             items = stamps.value,
@@ -135,8 +128,8 @@ private fun StampsScreenPreview(
         modifier = Modifier
             .fillMaxSize(),
         stamps = stamps.let(::mutableStateOf),
-        { },
-        null,
-        null
+        onStampClicked = { },
+        sharedTransitionScope = null,
+        animatedVisibilityScope = null
     )
 }
