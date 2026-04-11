@@ -33,11 +33,11 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun SaveScreen(
+    modifier: Modifier = Modifier,
     frameImage: ImageBitmap?,
     onSaveClicked: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-    modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier
         .paperBackground()

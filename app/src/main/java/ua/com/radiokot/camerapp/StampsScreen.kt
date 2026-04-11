@@ -1,6 +1,9 @@
 package ua.com.radiokot.camerapp
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -36,6 +39,9 @@ import kotlin.math.absoluteValue
 fun StampsScreen(
     modifier: Modifier = Modifier,
     stamps: State<List<StampListItem>>,
+    onStampClicked: (StampListItem) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = Box(
     modifier = modifier,
 ) {
@@ -81,6 +87,25 @@ fun StampsScreen(
                     requestBuilder = imageRequestBuilder,
                     modifier = Modifier
                         .size(StampSize)
+                        .run {
+                            if (stamp.thumbnailUrl.isNotEmpty()) {
+                                return@run this
+                            }
+
+                            background(Color.Yellow)
+                        }
+                        .run {
+                            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                                return@run this
+                            }
+
+                            with(sharedTransitionScope) {
+                                sharedElement(
+                                    sharedContentState = rememberSharedContentState(stamp.key),
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                )
+                            }
+                        }
                         .rotate(
                             (rotationAngles[stamp.key.hashCode().absoluteValue % rotationAngles.size])
                                 .toFloat()
@@ -92,13 +117,11 @@ fun StampsScreen(
                                 color = shadowColor,
                             )
                         )
-                        .run {
-                            if (stamp.thumbnailUrl.isNotEmpty()) {
-                                return@run this
+                        .clickable(
+                            onClick = {
+                                onStampClicked(stamp)
                             }
-
-                            background(Color.Yellow)
-                        }
+                        )
                 )
             }
         }
@@ -118,8 +141,11 @@ private fun StampsScreenPreview(
     }
 
     StampsScreen(
-        stamps = stamps.let(::mutableStateOf),
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        stamps = stamps.let(::mutableStateOf),
+        { },
+        null,
+        null
     )
 }

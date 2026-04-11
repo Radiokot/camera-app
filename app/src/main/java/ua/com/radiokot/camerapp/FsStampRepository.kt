@@ -49,6 +49,25 @@ class FsStampRepository(
             }
     }
 
+    override suspend fun getStamp(
+        id: String,
+    ): Stamp? = withContext(Dispatchers.IO) {
+
+        val files =
+            stampDirectory
+                .listFiles { file ->
+                    file.nameWithoutExtension == id
+                            && file.extension.lowercase() in EXTENSIONS
+                }
+                ?: error("Can't access the directory: $stampDirectory")
+
+        if (files.isEmpty()) {
+            return@withContext null
+        }
+
+        return@withContext toStamp(files.first())
+    }
+
     private fun toStamp(file: File): Stamp {
         val path = file.toPath()
         val attributes = Files.readAttributes(path, BasicFileAttributes::class.java)
