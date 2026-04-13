@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
@@ -24,8 +25,10 @@ import androidx.camera.core.takePicture
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asComposeColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.applyCanvas
@@ -42,6 +45,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
@@ -52,6 +57,7 @@ import kotlin.math.min
 @Immutable
 class CaptureAndSaveViewModel(
     private val stampDirectory: File,
+    val imageAdjustmentsControllerViewModel: ImageAdjustmentsControllerViewModel,
     application: Application,
 ) : AndroidViewModel(application) {
 
@@ -88,6 +94,26 @@ class CaptureAndSaveViewModel(
             .map(viewModelScope) { bitmap ->
                 bitmap?.asImageBitmap()
             }
+
+    val capturedFrameColorFilter: StateFlow<ColorFilter?> =
+        combine(
+            imageAdjustmentsControllerViewModel.contrastValue,
+            imageAdjustmentsControllerViewModel.brightnessValue,
+            transform = ::Pair,
+        )
+            .map { (contrastValue, brightnessValue) ->
+                val c = (contrastValue + 100) / 100f
+                val b = (1 - c) * 127.5f + brightnessValue * 255f / 100f
+                ColorMatrixColorFilter(
+                    floatArrayOf(
+                        c, 0f, 0f, 0f, b,
+                        0f, c, 0f, 0f, b,
+                        0f, 0f, c, 0f, b,
+                        0f, 0f, 0f, 1f, 0f,
+                    )
+                ).asComposeColorFilter()
+            }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _state: MutableStateFlow<State> = MutableStateFlow(State.Capture)
     val state: StateFlow<State> = _state

@@ -16,11 +16,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.IntState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.shadow.Shadow
@@ -30,12 +35,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun SaveScreen(
     modifier: Modifier = Modifier,
     frameImage: ImageBitmap?,
+    colorFilterState: State<ColorFilter?>,
     onSaveClicked: () -> Unit,
+    adjustmentsControllerItems: ImmutableList<AdjustmentControllerItem>,
+    currentAdjustmentsControllerItemState: State<AdjustmentControllerItem>,
+    onCurrentAdjustmentsControllerItemChanged: (AdjustmentControllerItem) -> Unit,
+    adjustmentsControllerValueState: IntState,
+    onAdjustmentsControllerValueChanged: (Int) -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = Box(
@@ -67,6 +80,7 @@ fun SaveScreen(
                 if (frameImage != null) {
                     Image(
                         bitmap = frameImage,
+                        colorFilter = colorFilterState.value,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
@@ -86,6 +100,16 @@ fun SaveScreen(
                 }
             }
         }
+
+        AdjustmentsController(
+            items = adjustmentsControllerItems,
+            currentItemState = currentAdjustmentsControllerItemState,
+            onCurrentItemChanged = onCurrentAdjustmentsControllerItemChanged,
+            valueState = adjustmentsControllerValueState,
+            onValueChanged = onAdjustmentsControllerValueChanged,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
 
         val buttonShape = RoundedCornerShape(
             percent = 50,
@@ -133,9 +157,40 @@ fun SaveScreen(
 private fun SaveScreenPreview(
 
 ) {
+    val adjustmentsControllerItems =
+        persistentListOf(
+            AdjustmentControllerItem(
+                title = "Brightness",
+                minValue = -100,
+                maxValue = 100,
+                key = "brightness",
+            ),
+            AdjustmentControllerItem(
+                title = "Contrast",
+                minValue = -100,
+                maxValue = 100,
+                key = "contrast",
+            ),
+            AdjustmentControllerItem(
+                title = "Vibrance",
+                minValue = -100,
+                maxValue = 100,
+                key = "vibrance",
+            ),
+        )
+
     SaveScreen(
         frameImage = null,
+        colorFilterState = null.let(::mutableStateOf),
         onSaveClicked = { },
+        adjustmentsControllerItems = adjustmentsControllerItems,
+        currentAdjustmentsControllerItemState =
+            adjustmentsControllerItems
+                .first()
+                .let(::mutableStateOf),
+        onCurrentAdjustmentsControllerItemChanged = {},
+        onAdjustmentsControllerValueChanged = {},
+        adjustmentsControllerValueState = 0.let(::mutableIntStateOf),
         sharedTransitionScope = null,
         animatedVisibilityScope = null,
         modifier = Modifier

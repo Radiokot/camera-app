@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -25,6 +26,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,11 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
 
 @Composable
 fun AdjustmentsController(
     modifier: Modifier = Modifier,
-    items: List<AdjustmentControllerItem>,
+    items: ImmutableList<AdjustmentControllerItem>,
     currentItemState: State<AdjustmentControllerItem>,
     onCurrentItemChanged: (AdjustmentControllerItem) -> Unit,
     valueState: IntState,
@@ -179,22 +185,22 @@ private fun ValueDial(
     val spacingPx = with(LocalDensity.current) {
         spacingDp.toPx()
     }
-    val (
-        initialFirstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset,
-    ) = remember(minValue, step, spacingPx, valueState) {
-        toIndexAndOffset(
-            minValue = minValue,
-            step = step,
-            itemSpacingPx = spacingPx,
-            value = valueState.value,
-        )
+    val rowState = rememberSaveable(
+        saver = LazyListState.Saver,
+    ) {
+        val (initialFirstVisibleItemIndex, initialFirstVisibleItemScrollOffset) =
+            toIndexAndOffset(
+                minValue = minValue,
+                step = step,
+                itemSpacingPx = spacingPx,
+                value = valueState.value,
+            )
+        LazyListState(initialFirstVisibleItemIndex, initialFirstVisibleItemScrollOffset)
     }
-    val rowState = rememberLazyListState(
-        initialFirstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset,
-    )
-    val valueFlow = remember(rowState) {
+    val internalValueState = remember(rowState) {
+        mutableIntStateOf(valueState.intValue)
+    }
+    val internalValueFlow = remember(rowState) {
         snapshotFlow {
             toValue(
                 minValue = minValue,
@@ -203,15 +209,35 @@ private fun ValueDial(
                 firstVisibleItemIndex = rowState.firstVisibleItemIndex,
                 firstVisibleItemScrollOffset = rowState.firstVisibleItemScrollOffset,
             )
+        }.onEach(internalValueState::intValue::set)
+    }
+    val valueFlow = remember(valueState) {
+        snapshotFlow { valueState.intValue }
+    }
+
+    LaunchedEffect(internalValueFlow) {
+        internalValueFlow.collect { newInternalValue ->
+            if (newInternalValue != valueState.value) {
+                onValueChanged(newInternalValue)
+            }
         }
     }
 
-    LaunchedEffect(valueFlow) {
-        valueFlow.collect { newValue ->
-            if (newValue != valueState.value) {
-                onValueChanged(newValue)
+    LaunchedEffect(valueFlow, minValue) {
+        valueFlow
+            .filter { it != internalValueState.intValue }
+            .collect { valueToSnapTo ->
+                val (
+                    itemIndex,
+                    itemScrollOffset,
+                ) = toIndexAndOffset(
+                    minValue = minValue,
+                    step = step,
+                    itemSpacingPx = spacingPx,
+                    value = valueToSnapTo,
+                )
+                rowState.scrollToItem(itemIndex, itemScrollOffset)
             }
-        }
     }
 
     LazyRow(
@@ -291,7 +317,7 @@ private fun AdjustmentsControllerPreview(
         .fillMaxSize()
         .paperBackground()
 ) {
-    val items = listOf(
+    val items = persistentListOf(
         AdjustmentControllerItem(
             title = "Brightness",
             minValue = -100,
@@ -321,15 +347,9 @@ private fun AdjustmentsControllerPreview(
     AdjustmentsController(
         items = items,
         currentItemState = currentItem,
-        onCurrentItemChanged = { newItem ->
-            println("OOLEG new item $newItem")
-            currentItem.value = newItem
-        },
+        onCurrentItemChanged = currentItem::value::set,
         valueState = currentValue,
-        onValueChanged = { newValue ->
-            println("OOLEG new value $newValue")
-            currentValue.intValue = newValue
-        },
+        onValueChanged = currentValue::intValue::set,
         modifier = Modifier
             .fillMaxWidth()
     )

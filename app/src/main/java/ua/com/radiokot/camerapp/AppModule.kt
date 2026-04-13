@@ -46,8 +46,13 @@ val appModule = module {
     viewModel {
         CaptureAndSaveViewModel(
             stampDirectory = get(named(DIRECTORY_STAMPS)),
+            imageAdjustmentsControllerViewModel = get(),
             application = androidApplication(),
         )
+    }
+
+    viewModel {
+        ImageAdjustmentsControllerViewModel()
     }
 
     viewModel {

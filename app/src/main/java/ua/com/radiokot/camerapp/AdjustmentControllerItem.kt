@@ -8,5 +8,4 @@ data class AdjustmentControllerItem(
     val minValue: Int,
     val maxValue: Int,
     val key: Any,
-) {
-}
+)
