@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.shadow.Shadow
@@ -41,8 +40,7 @@ import kotlinx.collections.immutable.persistentListOf
 @Composable
 fun SaveScreen(
     modifier: Modifier = Modifier,
-    frameImage: ImageBitmap?,
-    colorFilterState: State<ColorFilter?>,
+    frameImageState: State<ImageBitmap?>,
     onSaveClicked: () -> Unit,
     adjustmentsControllerItems: ImmutableList<AdjustmentControllerItem>,
     currentAdjustmentsControllerItemState: State<AdjustmentControllerItem>,
@@ -77,10 +75,9 @@ fun SaveScreen(
                         )
                     )
             ) {
-                if (frameImage != null) {
+                if (frameImageState.value != null) {
                     Image(
-                        bitmap = frameImage,
-                        colorFilter = colorFilterState.value,
+                        bitmap = frameImageState.value!!,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
@@ -180,8 +177,7 @@ private fun SaveScreenPreview(
         )
 
     SaveScreen(
-        frameImage = null,
-        colorFilterState = null.let(::mutableStateOf),
+        frameImageState = null.let(::mutableStateOf),
         onSaveClicked = { },
         adjustmentsControllerItems = adjustmentsControllerItems,
         currentAdjustmentsControllerItemState =

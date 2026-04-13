@@ -22,7 +22,6 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : ComponentActivity() {
     private val viewModel: CaptureAndSaveViewModel by viewModel()
@@ -70,15 +69,14 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        is CaptureAndSaveViewModel.State.Save -> {
+                        CaptureAndSaveViewModel.State.Save -> {
                             val imageAdjustmentsControllerViewModel =
                                 viewModel.imageAdjustmentsControllerViewModel
 
                             SaveScreen(
-                                frameImage = state.frameImage,
-                                colorFilterState =
+                                frameImageState =
                                     viewModel
-                                        .capturedFrameColorFilter
+                                        .saveFrameImage
                                         .collectAsState(),
                                 onSaveClicked = viewModel::onSaveClicked,
                                 adjustmentsControllerItems =
@@ -114,7 +112,7 @@ class MainActivity : ComponentActivity() {
                         .hide(WindowInsetsCompat.Type.statusBars())
                 }
 
-                is CaptureAndSaveViewModel.State.Save -> {
+                CaptureAndSaveViewModel.State.Save -> {
                     WindowInsetsControllerCompat(window, window.decorView)
                         .show(WindowInsetsCompat.Type.statusBars())
                 }

@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
-import android.graphics.ColorMatrixColorFilter
+import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
@@ -15,6 +15,7 @@ import android.os.Looper
 import android.view.PixelCopy
 import android.view.Surface
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.FloatRange
 import androidx.camera.core.ExperimentalZeroShutterLag
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
@@ -25,11 +26,10 @@ import androidx.camera.core.takePicture
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.asComposeColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
@@ -46,12 +46,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.min
+import kotlin.math.round
 
 
 @Immutable
@@ -95,25 +102,42 @@ class CaptureAndSaveViewModel(
                 bitmap?.asImageBitmap()
             }
 
-    val capturedFrameColorFilter: StateFlow<ColorFilter?> =
+    private val _saveFrameBitmap: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
+    val saveFrameImage: StateFlow<ImageBitmap?> =
         combine(
-            imageAdjustmentsControllerViewModel.contrastValue,
-            imageAdjustmentsControllerViewModel.brightnessValue,
-            transform = ::Pair,
+            _saveFrameBitmap.filterNotNull(),
+            combine(
+                imageAdjustmentsControllerViewModel.contrastValue,
+                imageAdjustmentsControllerViewModel.brightnessValue,
+                imageAdjustmentsControllerViewModel.vibranceValue,
+                transform = ::Triple
+            ),
+            transform = ::Pair
         )
-            .map { (contrastValue, brightnessValue) ->
-                val c = (contrastValue + 100) / 100f
-                val b = (1 - c) * 127.5f + brightnessValue * 255f / 100f
-                ColorMatrixColorFilter(
-                    floatArrayOf(
-                        c, 0f, 0f, 0f, b,
-                        0f, c, 0f, 0f, b,
-                        0f, 0f, c, 0f, b,
-                        0f, 0f, 0f, 1f, 0f,
-                    )
-                ).asComposeColorFilter()
+            .map { (originalBitmap, adjustments) ->
+                val width = originalBitmap.width
+                val height = originalBitmap.height
+
+                val pixels = IntArray(width * height)
+                originalBitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+                applyImageAdjustments(
+                    pixels = pixels,
+                    contrast = adjustments.first / 100f,
+                    brightness = adjustments.second / 100f,
+                    vibrance = adjustments.third / 100f,
+                )
+
+                val resultBitmap = createBitmap(
+                    width = width,
+                    height = height,
+                    config = originalBitmap.config!!,
+                )
+                resultBitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+
+                resultBitmap.asImageBitmap()
             }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     private val _state: MutableStateFlow<State> = MutableStateFlow(State.Capture)
     val state: StateFlow<State> = _state
@@ -126,16 +150,26 @@ class CaptureAndSaveViewModel(
     }
 
     init {
-        viewModelScope.launch {
-            state.collect { newState ->
-                backPressedCallback.isEnabled = newState is State.Save
+        state.onEach { newState ->
+            backPressedCallback.isEnabled = newState == State.Save
 
-                if (newState is State.Capture) {
-                    _captureFrameBitmap.value?.recycle()
-                    _captureFrameBitmap.value = null
-                }
+            if (newState == State.Capture) {
+                _captureFrameBitmap.value?.recycle()
+                _captureFrameBitmap.value = null
             }
-        }
+        }.launchIn(viewModelScope)
+
+        var prevSaveFrameBitmap: Bitmap? = null
+        _saveFrameBitmap.onEach {
+            prevSaveFrameBitmap?.recycle()
+            prevSaveFrameBitmap = it
+        }.launchIn(viewModelScope)
+
+        var prevSaveFrameImage: ImageBitmap? = null
+        saveFrameImage.onEach {
+            prevSaveFrameImage?.asAndroidBitmap()?.recycle()
+            prevSaveFrameImage = it
+        }.launchIn(viewModelScope)
     }
 
     fun onCaptureClicked(
@@ -208,14 +242,12 @@ class CaptureAndSaveViewModel(
                 true
             )
 
-            _state.value = State.Save(
-                frameImage =
-                    frameImage(
-                        image = rotatedImageBitmap,
-                        visibleViewfinderRect = visibleViewfinderRect,
-                        visibleFrameRect = visibleFrameRect,
-                    ).asImageBitmap(),
+            _saveFrameBitmap.value = frameImage(
+                image = rotatedImageBitmap,
+                visibleViewfinderRect = visibleViewfinderRect,
+                visibleFrameRect = visibleFrameRect,
             )
+            _state.value = State.Save
 
             imageProxy.close()
             imageBitmap.recycle()
@@ -276,21 +308,22 @@ class CaptureAndSaveViewModel(
     }
 
     fun onSaveClicked() {
-        val state = state.value
-        if (state is State.Save) {
-            saveImage(
-                imageBitmap = state.frameImage.asAndroidBitmap(),
-            )
-        }
+        val imageBitmap =
+            saveFrameImage
+                .value
+                ?.asAndroidBitmap()
+                ?: return
+
+        saveImage(imageBitmap)
     }
 
-    private var sendJob: Job? = null
+    private var saveJob: Job? = null
 
     private fun saveImage(
         imageBitmap: Bitmap,
     ) {
-        sendJob?.cancel()
-        sendJob = viewModelScope.launch(Dispatchers.Default) {
+        saveJob?.cancel()
+        saveJob = viewModelScope.launch(Dispatchers.Default) {
             val outputFile = File(
                 stampDirectory,
                 "${System.currentTimeMillis()}.webp"
@@ -316,10 +349,67 @@ class CaptureAndSaveViewModel(
         }
     }
 
-    sealed interface State {
-        object Capture : State
-        class Save(
-            val frameImage: ImageBitmap,
-        ) : State
+    private fun applyImageAdjustments(
+        pixels: IntArray,
+        @FloatRange(-1.0, 1.0)
+        contrast: Float,
+        @FloatRange(-1.0, 1.0)
+        brightness: Float,
+        @FloatRange(-1.0, 1.0)
+        vibrance: Float,
+    ) {
+        // Contrast:
+        // https://github.com/fabricjs/fabric.js/blob/e4cd1530ce2e684575e8db5d0a299d23c0c258e8/src/filters/Contrast.ts#L51
+        // Brightness:
+        // https://github.com/fabricjs/fabric.js/blob/e4cd1530ce2e684575e8db5d0a299d23c0c258e8/src/filters/Brightness.ts#L48
+        // Vibrance:
+        // https://github.com/fabricjs/fabric.js/blob/e4cd1530ce2e684575e8db5d0a299d23c0c258e8/src/filters/Vibrance.ts#L49
+
+        var contrast = floor(contrast * 255)
+        contrast = (259 * (contrast + 255)) / (255 * (259 - contrast))
+
+        val brightness = round(brightness * 255)
+
+        for (pixelIndex in pixels.indices) {
+            val pixel = pixels[pixelIndex]
+
+            val alpha = Color.alpha(pixel)
+            if (alpha == 0) {
+                continue
+            }
+
+            var red = Color.red(pixel).toFloat()
+            var green = Color.green(pixel).toFloat()
+            var blue = Color.blue(pixel).toFloat()
+
+            val max = maxOf(red, green, blue)
+            val avg = (red + green + blue) / 3
+            val amt = ((abs(max - avg) * 2) / 255) * -vibrance
+
+            red += if (max != red) (max - red) * amt else 0f
+            red = contrast * (red - 128) + 128
+            red += brightness
+
+            green += if (max != green) (max - green) * amt else 0f
+            green = contrast * (green - 128) + 128
+            green += brightness
+
+            blue += if (max != blue) (max - blue) * amt else 0f
+            blue = contrast * (blue - 128) + 128
+            blue += brightness
+
+            pixels[pixelIndex] = Color.argb(
+                alpha,
+                red.toInt().fastCoerceIn(0, 255),
+                green.toInt().fastCoerceIn(0, 255),
+                blue.toInt().fastCoerceIn(0, 255),
+            )
+        }
+    }
+
+    enum class State {
+        Capture,
+        Save,
+        ;
     }
 }
