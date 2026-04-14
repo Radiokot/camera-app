@@ -65,6 +65,13 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
         _currentValue.value = newValue
     }
 
+    fun reset() {
+        _currentItem.value = items.first()
+        _contrastValue.value = 0
+        _brightnessValue.value = 0
+        _vibranceValue.value = 0
+    }
+
     private companion object {
         private const val BRIGHTNESS_KEY = "brightness"
         private const val CONTRAST_KEY = "contrast"

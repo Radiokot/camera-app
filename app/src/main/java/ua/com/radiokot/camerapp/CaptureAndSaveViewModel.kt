@@ -242,6 +242,7 @@ class CaptureAndSaveViewModel(
                 true
             )
 
+            imageAdjustmentsControllerViewModel.reset()
             _saveFrameBitmap.value = frameImage(
                 image = rotatedImageBitmap,
                 visibleViewfinderRect = visibleViewfinderRect,
