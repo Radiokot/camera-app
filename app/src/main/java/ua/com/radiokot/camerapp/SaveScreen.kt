@@ -6,10 +6,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
@@ -59,13 +61,16 @@ fun SaveScreen(
             .fillMaxSize()
             .safeContentPadding()
     ) {
-        Box(
+        BoxWithConstraints(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .weight(1f, true)
         ) {
             Box(
                 modifier = Modifier
+                    .offset(
+                        y = maxHeight / 9,
+                    )
                     .size(StampSize * 2f)
                     .dropShadow(
                         shape = RectangleShape,
