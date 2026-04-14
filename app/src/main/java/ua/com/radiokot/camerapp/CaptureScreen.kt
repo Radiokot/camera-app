@@ -34,10 +34,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -177,7 +179,13 @@ fun CaptureScreen(
                     }
             )
 
+            val hapticFeedback = LocalHapticFeedback.current
+
             LaunchedEffect(Unit) {
+                hapticFeedback.performHapticFeedback(
+                    HapticFeedbackType.Confirm
+                )
+
                 coroutineScope {
                     launch {
                         rotation.animateTo(

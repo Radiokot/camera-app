@@ -3,8 +3,6 @@ package ua.com.radiokot.camerapp
 import android.icu.text.DecimalFormat
 import android.icu.text.NumberFormat
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,7 +40,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -127,6 +127,7 @@ private fun ItemSelector(
     val spacingPx = with(LocalDensity.current) {
         spacingDp.toPx()
     }
+    val hapticFeedback = LocalHapticFeedback.current
 
     val initialFirstVisibleItemIndex = remember(currentItemState) {
         items.indexOf(currentItemState.value)
@@ -146,6 +147,9 @@ private fun ItemSelector(
         itemFlow.collect { newItem ->
             if (newItem != currentItemState.value) {
                 onCurrentItemChanged(newItem)
+                hapticFeedback.performHapticFeedback(
+                    HapticFeedbackType.GestureEnd
+                )
             }
         }
     }
@@ -182,8 +186,13 @@ private fun ItemSelector(
                     )
                     .clickable(
                         onClick = {
-                            if (rowState.firstVisibleItemIndex == index) {
+                            if (rowState.firstVisibleItemIndex == index
+                                && valueState.intValue != 0
+                            ) {
                                 onValueResetClicked()
+                                hapticFeedback.performHapticFeedback(
+                                    HapticFeedbackType.Confirm
+                                )
                             } else {
                                 coroutineScope.launch {
                                     rowState.animateScrollToItem(index)
@@ -298,11 +307,15 @@ private fun ValueDial(
     val valueFlow = remember(valueState) {
         snapshotFlow { valueState.intValue }
     }
+    val hapticFeedback = LocalHapticFeedback.current
 
     LaunchedEffect(internalValueFlow) {
         internalValueFlow.collect { newInternalValue ->
             if (newInternalValue != valueState.value) {
                 onValueChanged(newInternalValue)
+                hapticFeedback.performHapticFeedback(
+                    HapticFeedbackType.GestureEnd
+                )
             }
         }
     }
