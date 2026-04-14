@@ -2,6 +2,7 @@ package ua.com.radiokot.camerapp
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
@@ -26,6 +28,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -41,6 +44,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @Composable
 fun AdjustmentsController(
@@ -67,6 +71,11 @@ fun AdjustmentsController(
             items = items,
             currentItemState = currentItemState,
             onCurrentItemChanged = onCurrentItemChanged,
+            onValueResetClicked = remember {
+                fun() {
+                    onValueChanged(0)
+                }
+            },
             modifier = Modifier
                 .padding(
                     top = 8.dp
@@ -94,6 +103,7 @@ private fun ItemSelector(
     items: List<AdjustmentControllerItem>,
     currentItemState: State<AdjustmentControllerItem>,
     onCurrentItemChanged: (AdjustmentControllerItem) -> Unit,
+    onValueResetClicked: () -> Unit,
 ) = BoxWithConstraints(
     modifier = modifier
 ) {
@@ -127,6 +137,7 @@ private fun ItemSelector(
             }
         }
     }
+    val coroutineScope = rememberCoroutineScope()
 
     LazyRow(
         state = rowState,
@@ -140,10 +151,10 @@ private fun ItemSelector(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        items(
+        itemsIndexed(
             items = items,
-            key = AdjustmentControllerItem::key,
-        ) { item ->
+            key = { _, item -> item.key },
+        ) { index, item ->
             Spacer(
                 modifier = Modifier
                     .size(itemSize)
@@ -152,6 +163,17 @@ private fun ItemSelector(
                         width = 1.dp,
                         color = Color(0xFFB9AC8C),
                         shape = CircleShape,
+                    )
+                    .clickable(
+                        onClick = {
+                            if (rowState.firstVisibleItemIndex == index) {
+                                onValueResetClicked()
+                            } else {
+                                coroutineScope.launch {
+                                    rowState.animateScrollToItem(index)
+                                }
+                            }
+                        }
                     )
             )
         }
