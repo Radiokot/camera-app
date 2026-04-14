@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -324,26 +326,32 @@ private fun ValueDial(
         state = rowState,
         contentPadding =
             PaddingValues(
-                start = maxWidth / 2 - 1.dp,
-                end = maxWidth / 2 - 1.dp,
+                horizontal = (maxWidth - 2.dp) / 2,
             ),
+        verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(spacingDp),
         modifier = Modifier
             .fillMaxWidth()
     ) {
+        val itemCount = (maxValue - minValue) / step + 1
+
         items(
             count = (maxValue - minValue) / step + 1,
         ) { i ->
             Spacer(
                 modifier = Modifier
                     .size(
-                        height = 12.dp,
+                        height =
+                            if (i == itemCount / 2)
+                                15.dp
+                            else
+                                12.dp,
                         width = 1.dp,
                     )
                     .background(
                         color =
                             if (i % step == 0)
-                                Color(0xFFB9AC8C)
+                                Color(0xFF9A8E72)
                             else
                                 Color(0x99B9AC8C),
                     )
