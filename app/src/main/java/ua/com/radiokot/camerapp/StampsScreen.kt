@@ -31,13 +31,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.skydoves.landscapist.image.LandscapistImage
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlin.math.absoluteValue
 
 @Composable
 fun StampsScreen(
     modifier: Modifier = Modifier,
     gridState: LazyGridState = rememberLazyGridState(),
-    stamps: State<List<StampListItem>>,
+    stamps: State<ImmutableList<StampListItem>>,
     onStampClicked: (StampListItem) -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
@@ -117,12 +119,14 @@ fun StampsScreen(
 private fun StampsScreenPreview(
 
 ) {
-    val stamps = (1..5).map { i ->
-        StampListItem(
-            thumbnailUrl = "",
-            key = i.toString(),
-        )
-    }
+    val stamps = (1..5)
+        .map { i ->
+            StampListItem(
+                thumbnailUrl = "",
+                key = i.toString(),
+            )
+        }
+        .toPersistentList()
 
     StampsScreen(
         modifier = Modifier
