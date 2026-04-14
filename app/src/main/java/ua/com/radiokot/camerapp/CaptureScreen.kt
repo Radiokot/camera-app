@@ -1,11 +1,15 @@
 package ua.com.radiokot.camerapp
 
 import androidx.camera.compose.CameraXViewfinder
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.SurfaceOrientedMeteringPointFactory
 import androidx.camera.core.SurfaceRequest
 import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
+import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
@@ -14,7 +18,7 @@ import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -35,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
@@ -47,6 +52,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 @Composable
@@ -64,9 +70,12 @@ fun CaptureScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var camera by remember {
+        mutableStateOf<Camera?>(null)
+    }
     val processCameraProvider by produceState<ProcessCameraProvider?>(null) {
         value = ProcessCameraProvider.awaitInstance(context).also {
-            it.bindToLifecycle(
+            camera = it.bindToLifecycle(
                 lifecycleOwner = lifecycleOwner,
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
                 useCases = useCases,
@@ -83,25 +92,59 @@ fun CaptureScreen(
     var frameLayoutCoordinates by remember {
         mutableStateOf<LayoutCoordinates?>(null)
     }
+    val coordinateTransformer = remember {
+        MutableCoordinateTransformer()
+    }
 
     if (surfaceRequest != null) {
         CameraXViewfinder(
             surfaceRequest = surfaceRequest,
+            coordinateTransformer = coordinateTransformer,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable(
-                    enabled = frameLayoutCoordinates != null,
-                    onClick = {
-                        val viewfinderSize =
-                            frameLayoutCoordinates!!
-                                .parentLayoutCoordinates!!
-                                .size
-                                .toSize()
-                        val frameRect = frameLayoutCoordinates!!.boundsInParent()
+                .pointerInput(camera, surfaceRequest) {
+                    detectTapGestures(
+                        onTap = { tapOffset ->
+                            val camera = camera
+                                ?: return@detectTapGestures
 
-                        onCaptureClicked(viewfinderSize, frameRect)
-                    },
-                )
+                            val surfacePoint =
+                                coordinateTransformer
+                                    .transformMatrix
+                                    .map(tapOffset)
+
+                            val meteringFactory = SurfaceOrientedMeteringPointFactory(
+                                surfaceRequest.resolution.width.toFloat(),
+                                surfaceRequest.resolution.height.toFloat()
+                            )
+
+                            val focusPoint = meteringFactory.createPoint(
+                                surfacePoint.x,
+                                surfacePoint.y
+                            )
+
+                            val focusAction =
+                                FocusMeteringAction.Builder(focusPoint)
+                                    .setAutoCancelDuration(3, TimeUnit.SECONDS)
+                                    .build()
+
+                            camera.cameraControl.startFocusAndMetering(focusAction)
+                        },
+                        onLongPress = {
+                            val frameLayoutCoordinates = frameLayoutCoordinates
+                                ?: return@detectTapGestures
+
+                            val viewfinderSize =
+                                frameLayoutCoordinates
+                                    .parentLayoutCoordinates!!
+                                    .size
+                                    .toSize()
+                            val frameRect = frameLayoutCoordinates.boundsInParent()
+
+                            onCaptureClicked(viewfinderSize, frameRect)
+                        },
+                    )
+                }
         )
     } else {
         Box(
