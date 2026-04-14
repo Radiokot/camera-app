@@ -3,13 +3,14 @@ package ua.com.radiokot.camerapp
 import android.icu.text.DecimalFormat
 import android.icu.text.NumberFormat
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,9 +19,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -154,7 +153,10 @@ private fun ItemSelector(
 
     LazyRow(
         state = rowState,
-        flingBehavior = rememberSnapFlingBehavior(rowState),
+        flingBehavior = rememberSnapFlingBehavior(
+            lazyListState = rowState,
+            frictionMultiplier = 6f,
+        ),
         contentPadding =
             PaddingValues(
                 start = (maxWidth - itemSize) / 2,

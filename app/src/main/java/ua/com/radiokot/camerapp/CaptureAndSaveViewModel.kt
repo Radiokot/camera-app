@@ -164,12 +164,6 @@ class CaptureAndSaveViewModel(
             prevSaveFrameBitmap?.recycle()
             prevSaveFrameBitmap = it
         }.launchIn(viewModelScope)
-
-        var prevSaveFrameImage: ImageBitmap? = null
-        saveFrameImage.onEach {
-            prevSaveFrameImage?.asAndroidBitmap()?.recycle()
-            prevSaveFrameImage = it
-        }.launchIn(viewModelScope)
     }
 
     fun onCaptureClicked(
