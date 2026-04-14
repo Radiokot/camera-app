@@ -1,5 +1,11 @@
 package ua.com.radiokot.camerapp
 
+import android.icu.text.DecimalFormat
+import android.icu.text.NumberFormat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,6 +80,7 @@ fun AdjustmentsController(
             items = items,
             currentItemState = currentItemState,
             onCurrentItemChanged = onCurrentItemChanged,
+            valueState = valueState,
             onValueResetClicked = remember {
                 fun() {
                     onValueChanged(0)
@@ -105,6 +113,7 @@ private fun ItemSelector(
     items: List<AdjustmentControllerItem>,
     currentItemState: State<AdjustmentControllerItem>,
     onCurrentItemChanged: (AdjustmentControllerItem) -> Unit,
+    valueState: IntState,
     onValueResetClicked: () -> Unit,
 ) = BoxWithConstraints(
     modifier = modifier
@@ -190,7 +199,7 @@ private fun ItemSelector(
         }
     }
 
-    Spacer(
+    Box(
         modifier = Modifier
             .size(itemSize)
             .align(Alignment.Center)
@@ -199,7 +208,45 @@ private fun ItemSelector(
                 color = Color(0xFF6B624B),
                 shape = CircleShape,
             )
-    )
+    ) {
+        val valueNumberFormat = remember {
+            (NumberFormat.getNumberInstance() as DecimalFormat).apply {
+                positivePrefix = "+"
+                negativePrefix = "-"
+            }
+        }
+        val isValueVisible by remember {
+            derivedStateOf {
+                valueState.intValue != 0
+            }
+        }
+
+        AnimatedVisibility(
+            enter = fadeIn(
+                animationSpec = tween(150),
+            ),
+            exit = fadeOut(
+                animationSpec = tween(150),
+            ),
+            visible = isValueVisible,
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = Color(0xFFEFE7CD),
+                        shape = CircleShape,
+                    )
+            ) {
+                BasicText(
+                    text =
+                        valueNumberFormat
+                            .format(valueState.intValue),
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -374,7 +421,7 @@ private fun AdjustmentsControllerPreview(
         mutableStateOf(items[1])
     }
     val currentValue = remember {
-        mutableIntStateOf(0)
+        mutableIntStateOf(10)
     }
 
     AdjustmentsController(
