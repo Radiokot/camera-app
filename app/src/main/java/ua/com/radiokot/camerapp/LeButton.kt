@@ -36,12 +36,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
 fun LeButton(
     modifier: Modifier = Modifier,
+    innerColor: Color = Color(0xFFfff9eb),
+    cornerRadius: Dp = 10.dp,
+    depth: Dp = 10.dp,
     onClick: () -> Unit,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -77,24 +81,28 @@ fun LeButton(
             )
     ) {
         val shape = remember {
-            RoundedCornerShape(10.dp)
+            RoundedCornerShape(cornerRadius)
         }
-        val depth = 10.dp
+        val depthShape = remember {
+            RoundedCornerShape(
+                bottomStart = cornerRadius,
+                bottomEnd = cornerRadius,
+            )
+        }
 
         Spacer(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = depth,
-                )
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(depth + cornerRadius + 1.dp)
                 .background(
                     color = Color(0xFFcbc4bb),
-                    shape = shape
+                    shape = depthShape,
                 )
                 .border(
                     width = 2.dp,
                     color = Color(0xFF6B624B),
-                    shape = shape,
+                    shape = depthShape,
                 )
         )
 
@@ -121,7 +129,7 @@ fun LeButton(
                     translationY = pressOffset.toPx()
                 }
                 .background(
-                    color = Color(0xFFfff9eb),
+                    color = innerColor,
                     shape = shape,
                 )
                 .border(

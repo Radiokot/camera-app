@@ -20,7 +20,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -45,7 +48,7 @@ import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.toSize
@@ -130,19 +133,6 @@ fun CaptureScreen(
 
                             camera.cameraControl.startFocusAndMetering(focusAction)
                         },
-                        onLongPress = {
-                            val frameLayoutCoordinates = frameLayoutCoordinates
-                                ?: return@detectTapGestures
-
-                            val viewfinderSize =
-                                frameLayoutCoordinates
-                                    .parentLayoutCoordinates!!
-                                    .size
-                                    .toSize()
-                            val frameRect = frameLayoutCoordinates.boundsInParent()
-
-                            onCaptureClicked(viewfinderSize, frameRect)
-                        },
                     )
                 }
         )
@@ -163,113 +153,131 @@ fun CaptureScreen(
         }
     }
 
-    Box(
+    val frameSize = StampSize * 1.5f
+
+    Spacer(
         modifier = Modifier
-            .size(StampSize * 1.5f)
+            .testTag("frame")
+            .size(frameSize)
+            .run {
+                if (frameImage == null) {
+                    return@run this
+                }
+
+                background(Color.Black)
+            }
             .onPlaced { layoutCoordinates ->
                 frameLayoutCoordinates = layoutCoordinates
             }
-    ) {
+    )
+
+    StampCutter(
+        frameSize = frameSize,
+        onPressed = handler@{
+            val frameLayoutCoordinates = frameLayoutCoordinates
+                ?: return@handler
+
+            val viewfinderSize =
+                frameLayoutCoordinates
+                    .parentLayoutCoordinates!!
+                    .size
+                    .toSize()
+            val frameRect = frameLayoutCoordinates.boundsInParent()
+
+            onCaptureClicked(viewfinderSize, frameRect)
+        },
+        modifier = Modifier
+            .requiredWidth(StampSize.width * 2.5f)
+            .requiredHeight(StampSize.height * 2.8f)
+    )
+
+    if (frameImage != null) {
+        val rotation = remember {
+            Animatable(0f)
+        }
+        val offsetX = remember {
+            Animatable(0f)
+        }
+        val offsetY = remember {
+            Animatable(0f)
+        }
+        val scale = remember {
+            Animatable(1f)
+        }
+
         Image(
-            painter = painterResource(
-                if (frameImage == null)
-                    R.drawable.stamp_a_stroke
-                else
-                    R.drawable.stamp_a
-            ),
+            bitmap = frameImage,
             contentDescription = null,
             modifier = Modifier
-                .fillMaxSize()
+                .size(frameSize)
+                .graphicsLayer {
+                    rotationZ = rotation.value
+                    translationX = offsetX.value
+                    translationY = offsetY.value
+                    scaleX = scale.value
+                    scaleY = scale.value
+                }
+                .run {
+                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                        return@run this
+                    }
+
+                    with(sharedTransitionScope) {
+                        sharedElement(
+                            sharedContentState = rememberSharedContentState("image"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                        )
+                    }
+                }
         )
 
-        if (frameImage != null) {
-            val rotation = remember {
-                Animatable(0f)
-            }
-            val offsetX = remember {
-                Animatable(0f)
-            }
-            val offsetY = remember {
-                Animatable(0f)
-            }
-            val scale = remember {
-                Animatable(1f)
-            }
+        val hapticFeedback = LocalHapticFeedback.current
 
-            Image(
-                bitmap = frameImage,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        rotationZ = rotation.value
-                        translationX = offsetX.value
-                        translationY = offsetY.value
-                        scaleX = scale.value
-                        scaleY = scale.value
-                    }
-                    .run {
-                        if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                            return@run this
-                        }
-
-                        with(sharedTransitionScope) {
-                            sharedElement(
-                                sharedContentState = rememberSharedContentState("image"),
-                                animatedVisibilityScope = animatedVisibilityScope,
-                            )
-                        }
-                    }
+        LaunchedEffect(Unit) {
+            hapticFeedback.performHapticFeedback(
+                HapticFeedbackType.Confirm
             )
 
-            val hapticFeedback = LocalHapticFeedback.current
+            coroutineScope {
+                launch {
+                    rotation.animateTo(
+                        targetValue = Random
+                            .nextInt(-10, 10)
+                            .toFloat(),
+                    )
+                }
 
-            LaunchedEffect(Unit) {
-                hapticFeedback.performHapticFeedback(
-                    HapticFeedbackType.Confirm
-                )
+                launch {
+                    offsetX.animateTo(
+                        targetValue = Random
+                            .nextInt(-200, 200)
+                            .toFloat(),
+                    )
+                }
 
-                coroutineScope {
-                    launch {
-                        rotation.animateTo(
-                            targetValue = Random
-                                .nextInt(-10, 10)
-                                .toFloat(),
-                        )
-                    }
+                launch {
+                    offsetY.animateTo(
+                        targetValue = Random
+                            .nextInt(-200, 200)
+                            .toFloat(),
+                    )
+                }
 
-                    launch {
-                        offsetX.animateTo(
-                            targetValue = Random
-                                .nextInt(-200, 200)
-                                .toFloat(),
-                        )
-                    }
-
-                    launch {
-                        offsetY.animateTo(
-                            targetValue = Random
-                                .nextInt(-200, 200)
-                                .toFloat(),
-                        )
-                    }
-
-                    launch {
-                        scale.animateTo(
-                            targetValue = 1.1f,
-                            animationSpec = tween(
-                                durationMillis = 120,
-                                easing = EaseInQuad,
-                            ),
-                        )
-                        scale.animateTo(
-                            targetValue = 1f,
-                            animationSpec = tween(
-                                durationMillis = 120,
-                                easing = EaseOutQuad,
-                            ),
-                        )
-                    }
+                launch {
+                    scale.animateTo(
+                        targetValue = 1.1f,
+                        animationSpec = tween(
+                            durationMillis = 120,
+                            easing = EaseInQuad,
+                        ),
+                    )
+                    scale.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(
+                            durationMillis = 120,
+                            easing = EaseOutQuad,
+                        ),
+                    )
                 }
             }
         }
