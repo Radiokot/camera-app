@@ -71,7 +71,9 @@ fun AdjustmentsController(
         BasicText(
             text = currentItemState.value.title,
             style = TextStyle(
+                fontSize = 16.sp,
                 textAlign = TextAlign.Center,
+                fontFamily = podkovaFamily,
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,7 +182,7 @@ private fun ItemSelector(
                     .size(itemSize)
                     .align(Alignment.Center)
                     .border(
-                        width = 1.dp,
+                        width = 2.dp,
                         color = Color(0xFFB9AC8C),
                         shape = CircleShape,
                     )
@@ -205,7 +207,9 @@ private fun ItemSelector(
                     text = item.title.first().toString(),
                     style = TextStyle(
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Light,
+                        fontFamily = podkovaFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFB9AC8C),
                     )
                 )
             }
@@ -217,7 +221,7 @@ private fun ItemSelector(
             .size(itemSize)
             .align(Alignment.Center)
             .border(
-                width = 1.dp,
+                width = 2.dp,
                 color = Color(0xFF6B624B),
                 shape = CircleShape,
             )
@@ -256,6 +260,10 @@ private fun ItemSelector(
                     text =
                         valueNumberFormat
                             .format(valueState.intValue),
+                    style = TextStyle(
+                        fontFamily = podkovaFamily,
+                        fontWeight = FontWeight.Medium
+                    )
                 )
             }
         }

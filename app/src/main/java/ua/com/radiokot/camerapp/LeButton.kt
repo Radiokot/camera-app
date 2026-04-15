@@ -33,9 +33,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun LeButton(
@@ -137,15 +139,22 @@ fun LeTextButton(
     text: String,
     onClick: () -> Unit,
 ) {
+    val textStyle = remember {
+        TextStyle(
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center,
+            fontFamily = podkovaFamily,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+
     LeButton(
         modifier = modifier,
         onClick = onClick,
     ) {
         BasicText(
             text = text,
-            style = TextStyle(
-                textAlign = TextAlign.Center,
-            ),
+            style = textStyle,
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(10.dp)
@@ -171,7 +180,8 @@ private fun LeButtonPreview(
             text = "Me clicked $counter time(s)",
             onClick = { counter++ },
             modifier = Modifier
-                .fillMaxWidth(0.5f)
+                .align(Alignment.TopCenter)
+                .fillMaxWidth(0.75f)
                 .padding(24.dp)
         )
     }

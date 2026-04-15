@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
 import androidx.compose.runtime.State
@@ -102,10 +101,6 @@ fun SaveScreen(
             onValueChanged = onAdjustmentsControllerValueChanged,
             modifier = Modifier
                 .fillMaxWidth()
-        )
-
-        val buttonShape = RoundedCornerShape(
-            percent = 50,
         )
 
         LeTextButton(
