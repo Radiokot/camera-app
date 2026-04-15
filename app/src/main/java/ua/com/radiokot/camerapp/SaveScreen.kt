@@ -56,12 +56,30 @@ fun SaveScreen(
             modifier = Modifier
                 .weight(1f, true)
         ) {
-            Box(
+            if (frameImageState.value== null){
+                return@BoxWithConstraints
+            }
+
+            Image(
+                bitmap = frameImageState.value!!,
+                contentDescription = null,
                 modifier = Modifier
                     .offset(
                         y = maxHeight / 9,
                     )
                     .size(StampSize * 2f)
+                    .run {
+                        if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                            return@run this
+                        }
+
+                        with(sharedTransitionScope) {
+                            sharedElement(
+                                sharedContentState = rememberSharedContentState("image"),
+                                animatedVisibilityScope = animatedVisibilityScope,
+                            )
+                        }
+                    }
                     .dropShadow(
                         shape = RectangleShape,
                         shadow = Shadow(
@@ -69,28 +87,7 @@ fun SaveScreen(
                             color = Color(0x7447525E),
                         )
                     )
-            ) {
-                if (frameImageState.value != null) {
-                    Image(
-                        bitmap = frameImageState.value!!,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .run {
-                                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                                    return@run this
-                                }
-
-                                with(sharedTransitionScope) {
-                                    sharedElement(
-                                        sharedContentState = rememberSharedContentState("image"),
-                                        animatedVisibilityScope = animatedVisibilityScope,
-                                    )
-                                }
-                            }
-                    )
-                }
-            }
+            )
         }
 
         AdjustmentsController(
