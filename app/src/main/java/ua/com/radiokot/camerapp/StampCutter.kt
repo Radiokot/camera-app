@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.withSaveLayer
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
@@ -41,8 +41,8 @@ fun StampCutter(
         contentAlignment = Alignment.Center,
         modifier = modifier,
     ) {
-        val stampPainter = painterResource(R.drawable.stamp_a)
-        val stampStrokePainter = painterResource(R.drawable.stamp_a_stroke)
+        val stampPainter = rememberVectorPainter(StampShapeA.fill)
+        val stampStrokePainter = rememberVectorPainter(StampShapeA.stroke)
         val strokeColor = Color(0xFF6B624B)
 
         Spacer(

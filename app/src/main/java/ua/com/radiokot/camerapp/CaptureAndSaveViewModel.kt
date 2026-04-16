@@ -28,15 +28,14 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.util.fastCoerceIn
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.times
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -284,20 +283,22 @@ class CaptureAndSaveViewModel(
             }
             isAntiAlias = true
         }
-        val shapeAlphaBitmap =
-            ContextCompat
-                .getDrawable(application, R.drawable.stamp_a)!!
-                .toBitmap(
-                    resultBitmap.width,
-                    resultBitmap.height,
-                    Bitmap.Config.ALPHA_8
-                )
+
+        val stampPath =
+            StampShapeA
+                .path
+                .toPath()
+                .asAndroidPath()
+                .apply {
+                    transform(Matrix().apply {
+                        val scale = resultBitmap.width / StampShapeA.size.width.value
+                        setScale(scale, scale)
+                    })
+                }
 
         resultBitmap.applyCanvas {
-            drawBitmap(shapeAlphaBitmap, 0f, 0f, imageShaderPaint)
+            drawPath(stampPath, imageShaderPaint)
         }
-
-        shapeAlphaBitmap.recycle()
 
         return resultBitmap
     }
