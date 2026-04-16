@@ -1,5 +1,6 @@
 package ua.com.radiokot.camerapp
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -34,8 +36,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun StampCutter(
     modifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource = remember(::MutableInteractionSource),
     frameSize: DpSize,
-    onPressed: () -> Unit,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -103,7 +105,9 @@ fun StampCutter(
             innerColor = Color.Transparent,
             cornerRadius = outerCornerRadius,
             depth = 18.dp,
-            onClick = onPressed,
+            interactionSource = interactionSource,
+            onClick = null,
+            hapticFeedbackEnabled = false,
             modifier = Modifier
                 .fillMaxSize()
         ) {
@@ -197,7 +201,6 @@ private fun StampCutterPreview(
     ) {
         StampCutter(
             frameSize = StampSize * 1.5f,
-            onPressed = {},
             modifier = Modifier
                 .requiredWidth(StampSize.width * 2.5f)
                 .requiredHeight(StampSize.height * 2.8f)

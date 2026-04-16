@@ -18,7 +18,8 @@ import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,12 +44,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -95,47 +98,79 @@ fun CaptureScreen(
     var frameLayoutCoordinates by remember {
         mutableStateOf<LayoutCoordinates?>(null)
     }
-    val coordinateTransformer = remember {
-        MutableCoordinateTransformer()
-    }
+    val interactionSource = remember(::MutableInteractionSource)
+
 
     if (surfaceRequest != null) {
-        CameraXViewfinder(
-            surfaceRequest = surfaceRequest,
-            coordinateTransformer = coordinateTransformer,
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(camera, surfaceRequest) {
-                    detectTapGestures(
-                        onTap = { tapOffset ->
+        val coordinateTransformer = remember(::MutableCoordinateTransformer)
+        val meteringFactory = remember(surfaceRequest) {
+            SurfaceOrientedMeteringPointFactory(
+                surfaceRequest.resolution.width.toFloat(),
+                surfaceRequest.resolution.height.toFloat()
+            )
+        }
+        val viewConfiguration = LocalViewConfiguration.current
+        val adjustedViewConfiguration = remember(viewConfiguration) {
+            object : ViewConfiguration by viewConfiguration {
+                // The timeout is adjusted to match the visual of the cutter.
+                override val longPressTimeoutMillis: Long = 90L
+            }
+        }
+        CompositionLocalProvider(
+            LocalViewConfiguration provides adjustedViewConfiguration
+        ) {
+            CameraXViewfinder(
+                surfaceRequest = surfaceRequest,
+                coordinateTransformer = coordinateTransformer,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .combinedClickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        hapticFeedbackEnabled = false,
+                        // Focus in the frame center on click.
+                        onClick = handler@{
                             val camera = camera
-                                ?: return@detectTapGestures
+                                ?: return@handler
+                            val frameLayoutCoordinates = frameLayoutCoordinates
+                                ?: return@handler
 
-                            val surfacePoint =
+                            val centerPoint =
                                 coordinateTransformer
                                     .transformMatrix
-                                    .map(tapOffset)
-
-                            val meteringFactory = SurfaceOrientedMeteringPointFactory(
-                                surfaceRequest.resolution.width.toFloat(),
-                                surfaceRequest.resolution.height.toFloat()
+                                    .map(
+                                        frameLayoutCoordinates
+                                            .boundsInParent()
+                                            .center
+                                    )
+                            val meteringPoint = meteringFactory.createPoint(
+                                centerPoint.x,
+                                centerPoint.y
                             )
 
-                            val focusPoint = meteringFactory.createPoint(
-                                surfacePoint.x,
-                                surfacePoint.y
-                            )
-
-                            val focusAction =
-                                FocusMeteringAction.Builder(focusPoint)
+                            camera.cameraControl.startFocusAndMetering(
+                                FocusMeteringAction.Builder(meteringPoint)
                                     .setAutoCancelDuration(3, TimeUnit.SECONDS)
                                     .build()
+                            )
+                        },
+                        // Capture on long click.
+                        onLongClick = handler@{
+                            val frameLayoutCoordinates = frameLayoutCoordinates
+                                ?: return@handler
 
-                            camera.cameraControl.startFocusAndMetering(focusAction)
+                            val viewfinderSize =
+                                frameLayoutCoordinates
+                                    .parentLayoutCoordinates!!
+                                    .size
+                                    .toSize()
+                            val frameRect = frameLayoutCoordinates.boundsInParent()
+
+                            onCaptureClicked(viewfinderSize, frameRect)
                         },
                     )
-                }
-        )
+            )
+        }
     } else {
         Box(
             contentAlignment = Alignment.Center,
@@ -173,19 +208,21 @@ fun CaptureScreen(
 
     StampCutter(
         frameSize = frameSize,
-        onPressed = handler@{
-            val frameLayoutCoordinates = frameLayoutCoordinates
-                ?: return@handler
-
-            val viewfinderSize =
-                frameLayoutCoordinates
-                    .parentLayoutCoordinates!!
-                    .size
-                    .toSize()
-            val frameRect = frameLayoutCoordinates.boundsInParent()
-
-            onCaptureClicked(viewfinderSize, frameRect)
-        },
+        interactionSource = interactionSource,
+//        onPressed = handler@{
+//            println("OOLEG pressed")
+//            val frameLayoutCoordinates = frameLayoutCoordinates
+//                ?: return@handler
+//
+//            val viewfinderSize =
+//                frameLayoutCoordinates
+//                    .parentLayoutCoordinates!!
+//                    .size
+//                    .toSize()
+//            val frameRect = frameLayoutCoordinates.boundsInParent()
+//
+//            onCaptureClicked(viewfinderSize, frameRect)
+//        },
         modifier = Modifier
             .requiredWidth(StampSize.width * 2.5f)
             .requiredHeight(StampSize.height * 2.8f)

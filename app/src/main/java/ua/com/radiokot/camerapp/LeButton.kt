@@ -46,19 +46,20 @@ fun LeButton(
     innerColor: Color = Color(0xFFfff9eb),
     cornerRadius: Dp = 10.dp,
     depth: Dp = 10.dp,
-    onClick: () -> Unit,
+    interactionSource: MutableInteractionSource = remember(::MutableInteractionSource),
+    hapticFeedbackEnabled: Boolean = true,
+    onClick: (() -> Unit)?,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val interactionSource = remember {
-        MutableInteractionSource()
-    }
     val hapticFeedback by rememberUpdatedState(LocalHapticFeedback.current)
     val isPressed by produceState(false) {
         interactionSource.interactions.collect { interaction ->
             if (interaction is PressInteraction.Press) {
-                hapticFeedback.performHapticFeedback(
-                    HapticFeedbackType.VirtualKey
-                )
+                if (hapticFeedbackEnabled) {
+                    hapticFeedback.performHapticFeedback(
+                        HapticFeedbackType.VirtualKey
+                    )
+                }
                 value = true
             } else if (interaction is PressInteraction.Release
                 || interaction is PressInteraction.Cancel
@@ -74,11 +75,17 @@ fun LeButton(
                 min = 64.dp,
             )
             .height(IntrinsicSize.Min)
-            .clickable(
-                indication = null,
-                interactionSource = interactionSource,
-                onClick = onClick,
-            )
+            .run {
+                if (onClick == null) {
+                    return@run this
+                }
+
+                clickable(
+                    indication = null,
+                    interactionSource = interactionSource,
+                    onClick = onClick,
+                )
+            }
     ) {
         val shape = remember {
             RoundedCornerShape(cornerRadius)
