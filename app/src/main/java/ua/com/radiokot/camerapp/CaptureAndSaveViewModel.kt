@@ -138,6 +138,9 @@ class CaptureAndSaveViewModel(
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    private val _captionInput: MutableStateFlow<String> = MutableStateFlow("")
+    val captionInput: StateFlow<String> = _captionInput
+
     private val _state: MutableStateFlow<State> = MutableStateFlow(State.Capture)
     val state: StateFlow<State> = _state
 
@@ -236,6 +239,7 @@ class CaptureAndSaveViewModel(
             )
 
             imageAdjustmentsControllerViewModel.reset()
+            _captionInput.value = ""
             _saveFrameBitmap.value = frameImage(
                 image = rotatedImageBitmap,
                 visibleViewfinderRect = visibleViewfinderRect,
@@ -301,6 +305,12 @@ class CaptureAndSaveViewModel(
         }
 
         return resultBitmap
+    }
+
+    fun onCaptionInputChanged(
+        newInput: String,
+    ) {
+        _captionInput.value = newInput
     }
 
     fun onSaveClicked() {

@@ -74,6 +74,11 @@ class MainActivity : ComponentActivity() {
                                 viewModel.imageAdjustmentsControllerViewModel
 
                             SaveScreen(
+                                captionInputState =
+                                viewModel
+                                    .captionInput
+                                    .collectAsState(),
+                                onCaptionInputChanged = viewModel::onCaptionInputChanged,
                                 frameImageState =
                                     viewModel
                                         .saveFrameImage
