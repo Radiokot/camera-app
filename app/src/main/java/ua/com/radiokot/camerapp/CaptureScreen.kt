@@ -39,8 +39,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -54,6 +57,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.coroutineScope
@@ -100,8 +104,10 @@ fun CaptureScreen(
     var frameLayoutCoordinates by remember {
         mutableStateOf<LayoutCoordinates?>(null)
     }
-    val interactionSource = remember(::MutableInteractionSource)
-
+    val cutterInteractionSoruce = remember(::MutableInteractionSource)
+    val focusIndicatorAlpha = remember {
+        Animatable(0f)
+    }
 
     if (surfaceRequest != null) {
         val coordinateTransformer = remember(::MutableCoordinateTransformer)
@@ -138,6 +144,15 @@ fun CaptureScreen(
                         .setAutoCancelDuration(3, TimeUnit.SECONDS)
                         .build()
                 )
+                coroutineScope.launch {
+                    focusIndicatorAlpha.animateTo(
+                        targetValue = 1f,
+                    )
+                    focusIndicatorAlpha.animateTo(
+                        targetValue = 0f,
+                        animationSpec = tween(800),
+                    )
+                }
             }
         }
 
@@ -173,7 +188,7 @@ fun CaptureScreen(
                             val pressInteraction = PressInteraction.Press(pressPosition)
                             val longPress = coroutineScope.launch {
                                 delay(viewConfiguration.longPressTimeoutMillis)
-                                interactionSource.emit(pressInteraction)
+                                cutterInteractionSoruce.emit(pressInteraction)
                                 delay(50)
                                 requestCapture()
                             }
@@ -184,7 +199,7 @@ fun CaptureScreen(
                                 focusAtCenter()
                             }
                             longPress.cancel()
-                            interactionSource.emit(PressInteraction.Cancel(pressInteraction))
+                            cutterInteractionSoruce.emit(PressInteraction.Cancel(pressInteraction))
                         },
                     )
                 }
@@ -222,11 +237,52 @@ fun CaptureScreen(
             .onPlaced { layoutCoordinates ->
                 frameLayoutCoordinates = layoutCoordinates
             }
+            .graphicsLayer {
+                alpha = focusIndicatorAlpha.value
+            }
+            .drawWithCache {
+                val lineHalfLength = 32.dp.toPx()
+                val verticalLineWStart = size.center + Offset(0f, -lineHalfLength)
+                val verticalLineWEnd = size.center + Offset(0f, lineHalfLength)
+                val verticalLineBStart = size.center + Offset(1f, -lineHalfLength)
+                val verticalLineBEnd = size.center + Offset(1f, lineHalfLength)
+                val horizontalLineWStart = size.center + Offset(-lineHalfLength, 0f)
+                val horizontalLineWEnd = size.center + Offset(lineHalfLength, 0f)
+                val horizontalLineBStart = size.center + Offset(-lineHalfLength, 1f)
+                val horizontalLineBEnd = size.center + Offset(lineHalfLength, 1f)
+
+                onDrawBehind {
+                    drawLine(
+                        color = Color.White,
+                        strokeWidth = 1f,
+                        start = verticalLineWStart,
+                        end = verticalLineWEnd,
+                    )
+                    drawLine(
+                        color = Color.Black,
+                        strokeWidth = 1f,
+                        start = verticalLineBStart,
+                        end = verticalLineBEnd,
+                    )
+                    drawLine(
+                        color = Color.White,
+                        strokeWidth = 1f,
+                        start = horizontalLineWStart,
+                        end = horizontalLineWEnd,
+                    )
+                    drawLine(
+                        color = Color.Black,
+                        strokeWidth = 1f,
+                        start = horizontalLineBStart,
+                        end = horizontalLineBEnd,
+                    )
+                }
+            }
     )
 
     StampCutter(
         frameSize = frameSize,
-        interactionSource = interactionSource,
+        interactionSource = cutterInteractionSoruce,
         modifier = Modifier
             .requiredWidth(StampSize.width * 2.5f)
             .requiredHeight(StampSize.height * 2.8f)
