@@ -18,8 +18,9 @@ import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,13 +29,13 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,29 +45,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+import kotlin.system.measureTimeMillis
 
 @Composable
 fun CaptureScreen(
     useCases: Array<UseCase?>,
     surfaceRequest: SurfaceRequest?,
     frameImage: ImageBitmap?,
-    onCaptureClicked: (Size, Rect) -> Unit,
+    onCaptureRequested: (Size, Rect) -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
     modifier: Modifier = Modifier,
@@ -109,68 +111,84 @@ fun CaptureScreen(
                 surfaceRequest.resolution.height.toFloat()
             )
         }
-        val viewConfiguration = LocalViewConfiguration.current
-        val adjustedViewConfiguration = remember(viewConfiguration) {
-            object : ViewConfiguration by viewConfiguration {
-                // The timeout is adjusted to match the visual of the cutter.
-                override val longPressTimeoutMillis: Long = 90L
+        val coroutineScope = rememberCoroutineScope()
+
+        val focusAtCenter = remember(coordinateTransformer) {
+            fun() {
+                val camera = camera
+                    ?: return
+                val frameLayoutCoordinates = frameLayoutCoordinates
+                    ?: return
+
+                val centerPoint =
+                    coordinateTransformer
+                        .transformMatrix
+                        .map(
+                            frameLayoutCoordinates
+                                .boundsInParent()
+                                .center
+                        )
+                val meteringPoint = meteringFactory.createPoint(
+                    centerPoint.x,
+                    centerPoint.y
+                )
+
+                camera.cameraControl.startFocusAndMetering(
+                    FocusMeteringAction.Builder(meteringPoint)
+                        .setAutoCancelDuration(3, TimeUnit.SECONDS)
+                        .build()
+                )
             }
         }
-        CompositionLocalProvider(
-            LocalViewConfiguration provides adjustedViewConfiguration
-        ) {
-            CameraXViewfinder(
-                surfaceRequest = surfaceRequest,
-                coordinateTransformer = coordinateTransformer,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .combinedClickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        hapticFeedbackEnabled = false,
-                        // Focus in the frame center on click.
-                        onClick = handler@{
-                            val camera = camera
-                                ?: return@handler
-                            val frameLayoutCoordinates = frameLayoutCoordinates
-                                ?: return@handler
 
-                            val centerPoint =
-                                coordinateTransformer
-                                    .transformMatrix
-                                    .map(
-                                        frameLayoutCoordinates
-                                            .boundsInParent()
-                                            .center
-                                    )
-                            val meteringPoint = meteringFactory.createPoint(
-                                centerPoint.x,
-                                centerPoint.y
-                            )
+        val requestCapture = remember(onCaptureRequested) {
+            fun() {
+                val frameLayoutCoordinates = frameLayoutCoordinates
+                    ?: return
 
-                            camera.cameraControl.startFocusAndMetering(
-                                FocusMeteringAction.Builder(meteringPoint)
-                                    .setAutoCancelDuration(3, TimeUnit.SECONDS)
-                                    .build()
-                            )
-                        },
-                        // Capture on long click.
-                        onLongClick = handler@{
-                            val frameLayoutCoordinates = frameLayoutCoordinates
-                                ?: return@handler
+                val viewfinderSize =
+                    frameLayoutCoordinates
+                        .parentLayoutCoordinates!!
+                        .size
+                        .toSize()
+                val frameRect = frameLayoutCoordinates.boundsInParent()
 
-                            val viewfinderSize =
-                                frameLayoutCoordinates
-                                    .parentLayoutCoordinates!!
-                                    .size
-                                    .toSize()
-                            val frameRect = frameLayoutCoordinates.boundsInParent()
+                onCaptureRequested(viewfinderSize, frameRect)
+            }
+        }
 
-                            onCaptureClicked(viewfinderSize, frameRect)
+        CameraXViewfinder(
+            surfaceRequest = surfaceRequest,
+            coordinateTransformer = coordinateTransformer,
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(
+                    focusAtCenter,
+                    requestCapture,
+                ) {
+                    detectTapGestures(
+                        // Long press – cut, tap – focus.
+                        // The cutter doesn't move until the long press is registered.
+                        onPress = { pressPosition ->
+                            val pressInteraction = PressInteraction.Press(pressPosition)
+                            val longPress = coroutineScope.launch {
+                                delay(viewConfiguration.longPressTimeoutMillis)
+                                interactionSource.emit(pressInteraction)
+                                delay(50)
+                                requestCapture()
+                            }
+                            val releasedInMs = measureTimeMillis {
+                                tryAwaitRelease()
+                            }
+                            if (releasedInMs < viewConfiguration.longPressTimeoutMillis) {
+                                focusAtCenter()
+                            }
+                            longPress.cancel()
+                            interactionSource.emit(PressInteraction.Cancel(pressInteraction))
                         },
                     )
-            )
-        }
+                }
+        )
     } else {
         Box(
             contentAlignment = Alignment.Center,
@@ -209,20 +227,6 @@ fun CaptureScreen(
     StampCutter(
         frameSize = frameSize,
         interactionSource = interactionSource,
-//        onPressed = handler@{
-//            println("OOLEG pressed")
-//            val frameLayoutCoordinates = frameLayoutCoordinates
-//                ?: return@handler
-//
-//            val viewfinderSize =
-//                frameLayoutCoordinates
-//                    .parentLayoutCoordinates!!
-//                    .size
-//                    .toSize()
-//            val frameRect = frameLayoutCoordinates.boundsInParent()
-//
-//            onCaptureClicked(viewfinderSize, frameRect)
-//        },
         modifier = Modifier
             .requiredWidth(StampSize.width * 2.5f)
             .requiredHeight(StampSize.height * 2.8f)
@@ -330,7 +334,7 @@ private fun CaptureScreenPreview(
         useCases = emptyArray(),
         surfaceRequest = null,
         frameImage = null,
-        onCaptureClicked = { _, _ -> },
+        onCaptureRequested = { _, _ -> },
         sharedTransitionScope = null,
         animatedVisibilityScope = null,
         modifier = Modifier

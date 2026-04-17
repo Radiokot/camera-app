@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                                 ),
                                 surfaceRequest = surfaceRequest,
                                 frameImage = frameImage,
-                                onCaptureClicked = viewModel::onCaptureClicked,
+                                onCaptureRequested = viewModel::onCaptureRequested,
                                 sharedTransitionScope = this@SharedTransitionLayout,
                                 animatedVisibilityScope = this,
                                 modifier = Modifier

@@ -173,7 +173,7 @@ fun StampCutter(
             )
 
             BasicText(
-                text = "press and hold to cut",
+                text = "tap to focus, hold to cut",
                 style = TextStyle(
                     fontFamily = podkovaFamily,
                     color = Color(0xFFcbc4bb),

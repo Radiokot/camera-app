@@ -165,7 +165,7 @@ class CaptureAndSaveViewModel(
         }.launchIn(viewModelScope)
     }
 
-    fun onCaptureClicked(
+    fun onCaptureRequested(
         visibleViewfinderSize: Size,
         visibleFrameRect: Rect,
     ) {
