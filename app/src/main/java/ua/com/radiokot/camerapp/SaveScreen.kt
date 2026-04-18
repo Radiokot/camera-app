@@ -2,15 +2,18 @@ package ua.com.radiokot.camerapp
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
@@ -20,12 +23,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -35,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
@@ -45,9 +51,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.core.graphics.createBitmap
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.transform
 
 @Composable
 fun SaveScreen(
@@ -64,121 +73,147 @@ fun SaveScreen(
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = Box(
+    contentAlignment = Alignment.Center,
     modifier = modifier
         .paperBackground()
+        .safeContentPadding()
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .fillMaxSize()
-            .safeContentPadding()
+            .fillMaxWidth()
+            .zIndex(10f)
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .padding(24.dp)
         ) {
+            val hintStyle = remember {
+                TextStyle(
+                    fontFamily = podkovaFamily,
+                    fontSize = 24.sp,
+                    color = Color(0xFFB9AC8C),
+                    textAlign = TextAlign.Center,
+                )
+            }
+            val inputStyle = remember {
+                hintStyle.copy(
+                    color = Color.Unspecified,
+                )
+            }
+            val focusRequester = remember(::FocusRequester)
+            val focusManager = LocalFocusManager.current
 
-            Spacer(
-                modifier = Modifier
-                    .fillMaxHeight(0.1f)
-            )
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-            ) {
-                val hintStyle = remember {
-                    TextStyle(
-                        fontFamily = podkovaFamily,
-                        fontSize = 24.sp,
-                        color = Color(0xFFB9AC8C),
-                        textAlign = TextAlign.Center,
-                    )
+            val isCaptionHintVisible by remember {
+                derivedStateOf {
+                    captionInputState.value.isBlank()
                 }
-                val inputStyle = remember {
-                    hintStyle.copy(
-                        color = Color.Unspecified,
-                    )
-                }
-                val focusRequester = remember(::FocusRequester)
-                val focusManager = LocalFocusManager.current
+            }
 
-                val isCaptionHintVisible by remember {
-                    derivedStateOf {
-                        captionInputState.value.isBlank()
-                    }
-                }
-
-                if (isCaptionHintVisible) {
-                    BasicText(
-                        text = "A caption",
-                        style = hintStyle,
-                        modifier = Modifier
-                            .clickable(
-                                onClick = {
-                                    focusRequester.requestFocus()
-                                }
-                            )
-                    )
-                }
-
-                BasicTextField(
-                    value = captionInputState.value,
-                    onValueChange = onCaptionInputChanged,
-                    textStyle = inputStyle,
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        keyboardType = KeyboardType.Text,
-                        showKeyboardOnFocus = true,
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                        },
-                    ),
+            if (isCaptionHintVisible) {
+                BasicText(
+                    text = "A caption",
+                    style = hintStyle,
                     modifier = Modifier
-                        .focusRequester(focusRequester)
+                        .clickable(
+                            onClick = {
+                                focusRequester.requestFocus()
+                            }
+                        )
                 )
             }
 
-            if (frameImageState.value == null) {
-                return@Column
-            }
-
-            Image(
-                bitmap = frameImageState.value!!,
-                contentDescription = null,
+            BasicTextField(
+                value = captionInputState.value,
+                onValueChange = onCaptionInputChanged,
+                textStyle = inputStyle,
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    keyboardType = KeyboardType.Text,
+                    showKeyboardOnFocus = true,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    },
+                ),
                 modifier = Modifier
-                    .size(StampSize * 2f)
-                    .run {
-                        if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                            return@run this
-                        }
-
-                        with(sharedTransitionScope) {
-                            sharedElement(
-                                sharedContentState = rememberSharedContentState("image"),
-                                animatedVisibilityScope = animatedVisibilityScope,
-                            )
-                        }
-                    }
-                    .dropShadow(
-                        shape = RectangleShape,
-                        shadow = Shadow(
-                            radius = 16.dp,
-                            color = Color(0x7447525E),
-                        )
-                    )
+                    .focusRequester(focusRequester)
             )
         }
 
+        if (frameImageState.value == null) {
+            return@Column
+        }
+
+        Image(
+            bitmap = frameImageState.value!!,
+            contentDescription = null,
+            modifier = Modifier
+                .size(StampSize * 2f)
+                .run {
+                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                        return@run this
+                    }
+
+                    with(sharedTransitionScope) {
+                        sharedElement(
+                            sharedContentState = rememberSharedContentState("image"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                        )
+                    }
+                }
+                .dropShadow(
+                    shape = RectangleShape,
+                    shadow = Shadow(
+                        radius = 16.dp,
+                        color = Color(0x7447525E),
+                    )
+                )
+        )
+
+        Spacer(
+            modifier = Modifier
+                .fillMaxHeight(0.5f)
+        )
+    }
+
+    val bottomControlsAlpha = remember {
+        Animatable(1f)
+    }
+    val imePadding = WindowInsets.ime.asPaddingValues()
+    val keyboardTrendFlow = remember {
+        var previousPadding = 0f
+        snapshotFlow { imePadding.calculateBottomPadding().value }
+            .transform { currentPadding ->
+                val trend = currentPadding.compareTo(previousPadding)
+                previousPadding = currentPadding
+                if (trend != 0) {
+                    emit(trend)
+                }
+            }
+            .distinctUntilChanged()
+    }
+    LaunchedEffect(keyboardTrendFlow) {
+        keyboardTrendFlow.collect { trend ->
+            bottomControlsAlpha.animateTo(
+                targetValue = if (trend > 0) 0f else 1f
+            )
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .graphicsLayer {
+                alpha = bottomControlsAlpha.value
+            }
+    ) {
         AdjustmentsController(
             items = adjustmentsControllerItems,
             currentItemState = currentAdjustmentsControllerItemState,
