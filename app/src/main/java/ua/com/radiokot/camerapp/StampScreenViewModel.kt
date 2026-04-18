@@ -3,6 +3,7 @@ package ua.com.radiokot.camerapp
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
 
 @Immutable
 class StampScreenViewModel(
@@ -15,11 +16,11 @@ class StampScreenViewModel(
             ?: error("Stamp ${parameters.stampId} not found")
     }
 
-    val stampId: String
-        get() = stamp.id
-
-    val thumbnailUrl: String
-        get() = stamp.imageUri
+    val stampId: String by stamp::id
+    val caption: String? by stamp::caption
+    val imageUri: String by stamp::imageUri
+    val takenAt: LocalDate
+        get() = stamp.takenAtLocal.toLocalDate()
 
     data class Parameters(
         val stampId: String,

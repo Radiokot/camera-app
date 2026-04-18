@@ -113,7 +113,9 @@ private fun SharedTransitionScope.StampsNavHost(
 
             StampScreen(
                 stampId = viewModel.stampId,
-                thumbnailUrl = viewModel.thumbnailUrl,
+                caption = viewModel.caption,
+                imageUri = viewModel.imageUri,
+                takenAt = viewModel.takenAt,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
                 modifier = Modifier
