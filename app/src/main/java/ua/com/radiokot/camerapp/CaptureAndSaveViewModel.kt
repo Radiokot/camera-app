@@ -9,7 +9,6 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
@@ -52,8 +51,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
@@ -62,7 +59,7 @@ import kotlin.math.round
 
 @Immutable
 class CaptureAndSaveViewModel(
-    private val stampDirectory: File,
+    private val stampRepository: StampRepository,
     val imageAdjustmentsControllerViewModel: ImageAdjustmentsControllerViewModel,
     application: Application,
 ) : AndroidViewModel(application) {
@@ -320,36 +317,26 @@ class CaptureAndSaveViewModel(
                 ?.asAndroidBitmap()
                 ?: return
 
-        saveImage(imageBitmap)
+        saveStamp(imageBitmap)
     }
 
     private var saveJob: Job? = null
 
-    private fun saveImage(
+    private fun saveStamp(
         imageBitmap: Bitmap,
     ) {
         saveJob?.cancel()
-        saveJob = viewModelScope.launch(Dispatchers.Default) {
-            val outputFile = File(
-                stampDirectory,
-                "${System.currentTimeMillis()}.webp"
-            )
+        saveJob = viewModelScope.launch {
+            val caption =
+                _captionInput
+                    .value
+                    .trim()
+                    .takeIf(String::isNotEmpty)
 
-            FileOutputStream(outputFile).use { stream ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    imageBitmap.compress(
-                        Bitmap.CompressFormat.WEBP_LOSSY,
-                        100,
-                        stream,
-                    )
-                } else {
-                    imageBitmap.compress(
-                        Bitmap.CompressFormat.WEBP,
-                        100,
-                        stream,
-                    )
-                }
-            }
+            stampRepository.addStamp(
+                imageBitmap = imageBitmap,
+                caption = caption,
+            )
 
             _state.value = State.Capture
         }

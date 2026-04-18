@@ -1,13 +1,12 @@
 package ua.com.radiokot.camerapp
 
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import java.time.LocalDate
 
-@OptIn(ExperimentalTime::class)
 class Stamp(
     val id: String,
-    val thumbnailUrl: String,
-    val takenAt: Instant,
+    val imageUri: String,
+    val caption: String?,
+    val takenAtLocal: LocalDate,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -23,6 +22,6 @@ class Stamp(
     }
 
     override fun toString(): String {
-        return "Stamp(id='$id', thumbnailUrl='$thumbnailUrl', takenAt=$takenAt)"
+        return "Stamp(id='$id', imageUri='$imageUri', caption=$caption, takenAt=$takenAtLocal)"
     }
 }

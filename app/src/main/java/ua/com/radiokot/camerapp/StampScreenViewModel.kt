@@ -19,7 +19,7 @@ class StampScreenViewModel(
         get() = stamp.id
 
     val thumbnailUrl: String
-        get() = stamp.thumbnailUrl
+        get() = stamp.imageUri
 
     data class Parameters(
         val stampId: String,

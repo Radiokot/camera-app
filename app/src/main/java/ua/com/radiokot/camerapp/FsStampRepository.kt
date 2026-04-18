@@ -1,15 +1,16 @@
 package ua.com.radiokot.camerapp
 
+import android.graphics.Bitmap
+import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
+import java.time.ZoneId
 import kotlin.io.path.absolutePathString
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 class FsStampRepository(
     private val stampDirectory: File,
 ) : StampRepository {
@@ -43,9 +44,9 @@ class FsStampRepository(
             .map(::toStamp)
             .sortedWith { a, b ->
                 if (asc)
-                    a.takenAt.compareTo(b.takenAt)
+                    a.takenAtLocal.compareTo(b.takenAtLocal)
                 else
-                    b.takenAt.compareTo(a.takenAt)
+                    b.takenAtLocal.compareTo(a.takenAtLocal)
             }
     }
 
@@ -68,22 +69,58 @@ class FsStampRepository(
         return@withContext toStamp(files.first())
     }
 
+    override suspend fun addStamp(
+        imageBitmap: Bitmap,
+        caption: String?,
+    ): Unit = withContext(Dispatchers.IO) {
+
+        val id = System.currentTimeMillis().toString()
+        val outputFile = File(
+            stampDirectory,
+            "$id.$EXTENSION_WEBP"
+        )
+
+        FileOutputStream(outputFile).use { stream ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                imageBitmap.compress(
+                    Bitmap.CompressFormat.WEBP_LOSSY,
+                    100,
+                    stream,
+                )
+            } else {
+                imageBitmap.compress(
+                    Bitmap.CompressFormat.WEBP,
+                    100,
+                    stream,
+                )
+            }
+        }
+
+        // TODO append caption
+    }
+
     private fun toStamp(file: File): Stamp {
         val path = file.toPath()
         val attributes = Files.readAttributes(path, BasicFileAttributes::class.java)
 
         return Stamp(
             id = file.nameWithoutExtension,
-            thumbnailUrl = "file://${path.absolutePathString()}",
-            takenAt = Instant.fromEpochMilliseconds(
-                attributes.creationTime().toMillis()
-            ),
+            imageUri = "file://${path.absolutePathString()}",
+            // TODO read from the metadata
+            caption = null,
+            takenAtLocal =
+                attributes
+                    .creationTime()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
         )
     }
 
     private companion object {
+        private const val EXTENSION_WEBP = "webp"
         private val EXTENSIONS = setOf(
-            "webp",
+            EXTENSION_WEBP,
         )
     }
 }

@@ -5,7 +5,7 @@ data class StampListItem(
     val key: Any,
 ) {
     constructor(source: Stamp) : this(
-        thumbnailUrl = source.thumbnailUrl,
+        thumbnailUrl = source.imageUri,
         key = source.id,
     )
 }
