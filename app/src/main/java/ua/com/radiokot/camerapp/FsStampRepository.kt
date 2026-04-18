@@ -2,12 +2,21 @@ package ua.com.radiokot.camerapp
 
 import android.graphics.Bitmap
 import android.os.Build
+import com.ashampoo.kim.format.webp.WebPImageParser
+import com.ashampoo.kim.format.webp.WebPWriter
+import com.ashampoo.kim.input.AndroidInputStreamByteReader
+import com.ashampoo.kim.input.ByteArrayByteReader
+import com.ashampoo.kim.output.OutputStreamByteWriter
+import com.ashampoo.xmp.XMPMeta
+import com.ashampoo.xmp.XMPMetaFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
+import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.io.path.absolutePathString
 
@@ -75,12 +84,14 @@ class FsStampRepository(
     ): Unit = withContext(Dispatchers.IO) {
 
         val id = System.currentTimeMillis().toString()
+        val takenAtLocal = LocalDateTime.now()
+
         val outputFile = File(
             stampDirectory,
             "$id.$EXTENSION_WEBP"
         )
 
-        FileOutputStream(outputFile).use { stream ->
+        val webpBytes = ByteArrayOutputStream().use { stream ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 imageBitmap.compress(
                     Bitmap.CompressFormat.WEBP_LOSSY,
@@ -94,26 +105,56 @@ class FsStampRepository(
                     stream,
                 )
             }
+
+            stream.flush()
+            stream.toByteArray()
         }
 
-        // TODO append caption
+        val xmpMeta = XMPMetaFactory.create().apply {
+            setTitle(caption)
+            setDateTimeOriginal(takenAtLocal.toString())
+        }
+
+        WebPWriter.writeImage(
+            byteReader = ByteArrayByteReader(webpBytes),
+            byteWriter = OutputStreamByteWriter(
+                FileOutputStream(outputFile)
+            ),
+            xmp = XMPMetaFactory.serializeToString(xmpMeta),
+            exifBytes = null,
+        )
     }
 
-    private fun toStamp(file: File): Stamp {
+    private fun toStamp(
+        file: File,
+    ): Stamp {
+
         val path = file.toPath()
-        val attributes = Files.readAttributes(path, BasicFileAttributes::class.java)
+        val xmpMeta: XMPMeta? =
+            WebPImageParser
+                .parseMetadata(
+                    AndroidInputStreamByteReader(
+                        inputStream = file.inputStream().buffered(),
+                        contentLength = file.length(),
+                    )
+                )
+                .xmp
+                ?.let(XMPMetaFactory::parseFromString)
 
         return Stamp(
             id = file.nameWithoutExtension,
             imageUri = "file://${path.absolutePathString()}",
-            // TODO read from the metadata
-            caption = null,
+            caption = xmpMeta?.getTitle(),
             takenAtLocal =
-                attributes
-                    .creationTime()
-                    .toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate()
+                xmpMeta
+                    ?.getDateTimeOriginal()
+                    ?.let(LocalDateTime::parse)
+                    ?: Files
+                        .readAttributes(path, BasicFileAttributes::class.java)
+                        .creationTime()
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime()
         )
     }
 

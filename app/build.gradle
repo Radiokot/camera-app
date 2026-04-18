@@ -38,6 +38,7 @@ dependencies {
     implementation "androidx.core:core-ktx:1.18.0"
     implementation "androidx.appcompat:appcompat:1.7.1"
     implementation "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0"
+    implementation "com.ashampoo:kim:0.26.2"
 
     def activityVersion = "1.13.0"
     // noinspection KtxExtensionAvailable
