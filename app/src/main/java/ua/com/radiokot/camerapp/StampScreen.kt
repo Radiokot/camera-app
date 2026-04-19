@@ -3,8 +3,11 @@ package ua.com.radiokot.camerapp
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +19,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -23,6 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,7 +37,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.math.absoluteValue
 
 @Composable
 fun StampScreen(
@@ -40,6 +48,7 @@ fun StampScreen(
     caption: String?,
     imageUri: String,
     takenAt: LocalDate,
+    onSwipedToExit: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = Column(
@@ -50,6 +59,16 @@ fun StampScreen(
     val detailsAlpha = remember {
         Animatable(0f)
     }
+    val dragVerticalOffset = remember {
+        Animatable(0f)
+    }
+    // 8 mm to drag to exit.
+    val res = LocalResources.current
+    val swipeToExitThreshold = remember(res) {
+        8 * res.displayMetrics.ydpi / 25.4f
+    }
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         delay(100)
         detailsAlpha.animateTo(
@@ -73,37 +92,86 @@ fun StampScreen(
             }
     )
 
-    LandscapistImage(
-        imageModel = { imageUri.toUri() },
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(StampSize * 2f)
-            .run {
-                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                    return@run this
-                }
-
-                with(sharedTransitionScope) {
-                    sharedElement(
-                        sharedContentState = rememberSharedContentState(stampId),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                    )
-                }
+            .fillMaxWidth()
+            .graphicsLayer {
+                translationY = dragVerticalOffset.value
             }
-            .dropShadow(
-                shape = RectangleShape,
-                shadow = Shadow(
-                    radius = 16.dp,
-                    color = Color(0x7447525E),
+            .pointerInput(Unit) {
+                val dragAnimationSpec = spring<Float>(
+                    stiffness = Spring.StiffnessHigh
                 )
-            )
-            .run {
-                if (imageUri.isNotEmpty()) {
-                    return@run this
-                }
 
-                background(Color.Yellow)
+                detectDragGestures(
+                    onDragStart = {
+                        coroutineScope.launch {
+                            detailsAlpha.animateTo(0f)
+                        }
+                    },
+                    onDrag = { _, offset ->
+                        coroutineScope.launch {
+                            dragVerticalOffset.animateTo(
+                                targetValue = dragVerticalOffset.targetValue + offset.y,
+                                animationSpec = dragAnimationSpec,
+                            )
+                        }
+                    },
+                    onDragEnd = onDragEnd@{
+                        if (dragVerticalOffset.targetValue.absoluteValue >= swipeToExitThreshold) {
+                            onSwipedToExit()
+                            return@onDragEnd
+                        }
+
+                        coroutineScope.launch {
+                            dragVerticalOffset.animateTo(
+                                targetValue = 0f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                )
+                            )
+                        }
+                        coroutineScope.launch {
+                            detailsAlpha.animateTo(1f)
+                        }
+                    },
+                )
             }
-    )
+    ) {
+
+        LandscapistImage(
+            imageModel = { imageUri.toUri() },
+            modifier = Modifier
+                .size(StampSize * 2f)
+                .run {
+                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                        return@run this
+                    }
+
+                    with(sharedTransitionScope) {
+                        sharedElement(
+                            sharedContentState = rememberSharedContentState(stampId),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                        )
+                    }
+                }
+                .dropShadow(
+                    shape = RectangleShape,
+                    shadow = Shadow(
+                        radius = 16.dp,
+                        color = Color(0x7447525E),
+                    )
+                )
+                .run {
+                    if (imageUri.isNotEmpty()) {
+                        return@run this
+                    }
+
+                    background(Color.Yellow)
+                }
+        )
+    }
 
     BasicText(
         text = takenAt.toString(),
@@ -137,6 +205,7 @@ private fun StampScreenPreview(
             caption = "My stamp",
             imageUri = "",
             takenAt = LocalDate.now(),
+            onSwipedToExit = { },
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
             modifier = Modifier

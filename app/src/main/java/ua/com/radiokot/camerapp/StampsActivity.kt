@@ -116,6 +116,7 @@ private fun SharedTransitionScope.StampsNavHost(
                 caption = viewModel.caption,
                 imageUri = viewModel.imageUri,
                 takenAt = viewModel.takenAt,
+                onSwipedToExit = navController::navigateUp,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
                 modifier = Modifier
