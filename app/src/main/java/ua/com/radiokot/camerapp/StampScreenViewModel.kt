@@ -23,11 +23,13 @@ class StampScreenViewModel(
     val imageUri: String by stamp::imageUri
     val takenAt: LocalDate
         get() = stamp.takenAtLocal.toLocalDate()
+    val isEditable: Boolean
+        get() = !stamp.isReadOnly
 
     private val _caption: MutableStateFlow<String?> = MutableStateFlow(stamp.caption)
     val caption: StateFlow<String?> = _caption
     private val _isCaptionInputEnabled: MutableStateFlow<Boolean> =
-        MutableStateFlow(stamp.caption != null)
+        MutableStateFlow(isEditable && stamp.caption != null)
     val isCaptionInputEnabled: StateFlow<Boolean> = _isCaptionInputEnabled
 
     fun onCaptionInputChanged(
@@ -37,6 +39,10 @@ class StampScreenViewModel(
     }
 
     fun onAddCaptionClicked() {
+        check(isEditable) {
+            "Can't add a caption for a read-only stamp"
+        }
+
         _isCaptionInputEnabled.value = true
     }
 
@@ -56,8 +62,10 @@ class StampScreenViewModel(
     }
 
     override fun onCleared() {
-        runBlocking {
-            saveUpdates()
+        if (isEditable) {
+            runBlocking {
+                saveUpdates()
+            }
         }
         super.onCleared()
     }

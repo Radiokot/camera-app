@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
@@ -72,6 +73,7 @@ import kotlin.math.absoluteValue
 fun StampScreen(
     modifier: Modifier = Modifier,
     stampId: String,
+    isEditable: Boolean,
     captionState: State<String?>,
     isCaptionInputEnabled: Boolean,
     onCaptionInputChanged: (String) -> Unit,
@@ -262,8 +264,8 @@ fun StampScreen(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(
-                    vertical = 4.dp,
+                .heightIn(
+                    min = 64.dp
                 )
                 .graphicsLayer {
                     alpha = detailsAlpha.value * dateRowAlpha
@@ -284,20 +286,27 @@ fun StampScreen(
                 ),
             )
 
-            Image(
-                painter = painterResource(R.drawable.ic_pencil),
-                contentDescription = "Edit",
-                colorFilter = ColorFilter.tint(Color(0xFFB9AC8C)),
-                modifier = Modifier
-                    .padding(
-                        vertical = 16.dp,
-                        horizontal = 12.dp,
-                    )
-                    .size(16.dp)
-                    .clickable(
-                        onClick = { areActionsVisible = !areActionsVisible },
-                    )
-            )
+            if (isEditable) {
+                Image(
+                    painter = painterResource(R.drawable.ic_pencil),
+                    contentDescription = "Edit",
+                    colorFilter = ColorFilter.tint(Color(0xFFB9AC8C)),
+                    modifier = Modifier
+                        .clickable(
+                            onClick = { areActionsVisible = !areActionsVisible },
+                        )
+                        .padding(
+                            vertical = 16.dp,
+                            horizontal = 12.dp,
+                        )
+                        .size(16.dp)
+                )
+            } else {
+                Spacer(
+                    modifier = Modifier
+                        .width(40.dp)
+                )
+            }
         }
 
         Spacer(
@@ -384,6 +393,7 @@ private fun StampScreenPreview(
     ) {
         StampScreen(
             stampId = "",
+            isEditable = true,
             captionState = "My stamp".let(::mutableStateOf),
             isCaptionInputEnabled = false,
             onCaptionInputChanged = {},

@@ -209,7 +209,8 @@ class FsStampRepository(
                         .creationTime()
                         .toInstant()
                         .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime()
+                        .toLocalDateTime(),
+            isReadOnly = !file.canWrite(),
         )
     }
 

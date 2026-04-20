@@ -115,6 +115,7 @@ private fun SharedTransitionScope.StampsNavHost(
 
             StampScreen(
                 stampId = viewModel.stampId,
+                isEditable = viewModel.isEditable,
                 captionState = viewModel.caption.collectAsState(),
                 isCaptionInputEnabled = isCaptionInputEnabled,
                 onCaptionInputChanged = viewModel::onCaptionInputChanged,

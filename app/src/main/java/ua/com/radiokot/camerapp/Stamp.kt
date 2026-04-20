@@ -7,6 +7,7 @@ class Stamp(
     val imageUri: String,
     val caption: String?,
     val takenAtLocal: LocalDateTime,
+    val isReadOnly: Boolean,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -22,6 +23,6 @@ class Stamp(
     }
 
     override fun toString(): String {
-        return "Stamp(id='$id', imageUri='$imageUri', caption=$caption, takenAtLocal=$takenAtLocal)"
+        return "Stamp(id='$id', caption=$caption)"
     }
 }
