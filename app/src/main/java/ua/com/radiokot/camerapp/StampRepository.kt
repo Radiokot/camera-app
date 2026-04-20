@@ -1,6 +1,7 @@
 package ua.com.radiokot.camerapp
 
 import android.graphics.Bitmap
+import java.util.Optional
 
 interface StampRepository {
 
@@ -15,5 +16,10 @@ interface StampRepository {
     suspend fun addStamp(
         imageBitmap: Bitmap,
         caption: String?,
+    )
+
+    suspend fun updateStamp(
+        stamp: Stamp,
+        newCaption: Optional<String>?,
     )
 }

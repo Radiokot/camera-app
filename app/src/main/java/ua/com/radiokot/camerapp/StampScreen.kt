@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
@@ -70,9 +72,12 @@ import kotlin.math.absoluteValue
 fun StampScreen(
     modifier: Modifier = Modifier,
     stampId: String,
-    caption: String?,
+    captionState: State<String?>,
+    isCaptionInputEnabled: Boolean,
+    onCaptionInputChanged: (String) -> Unit,
     imageUri: String,
     takenAt: LocalDate,
+    onAddCaptionClicked: () -> Unit,
     onSwipedToExit: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
@@ -104,6 +109,7 @@ fun StampScreen(
             stiffness = Spring.StiffnessMediumLow,
         )
     )
+    val captionInputFocusRequester = remember(::FocusRequester)
 
     LaunchedEffect(Unit) {
         delay(100)
@@ -117,8 +123,6 @@ fun StampScreen(
         enabled = areActionsVisible,
         onBack = { areActionsVisible = false },
     )
-
-
 
     AnimatedVisibility(
         visible = areActionsVisible,
@@ -135,7 +139,15 @@ fun StampScreen(
             }
     ) {
         Actions(
-            isCaptionSet = caption != null,
+            isCaptionSet = captionState.value != null,
+            onAddCaptionClicked = {
+                areActionsVisible = false
+                onAddCaptionClicked()
+                coroutineScope.launch {
+                    delay(100)
+                    captionInputFocusRequester.requestFocus()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -150,13 +162,11 @@ fun StampScreen(
                 translationY = allCenterVerticalOffset.value.toPx()
             }
     ) {
-        BasicText(
-            text = caption ?: "",
-            style = TextStyle(
-                fontFamily = podkovaFamily,
-                fontSize = 24.sp,
-                textAlign = TextAlign.Center,
-            ),
+        StampCaptionInput(
+            isEnabled = isCaptionInputEnabled,
+            inputState = captionState,
+            onInputChanged = onCaptionInputChanged,
+            focusRequester = captionInputFocusRequester,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)
@@ -301,6 +311,7 @@ fun StampScreen(
 private fun Actions(
     modifier: Modifier = Modifier,
     isCaptionSet: Boolean,
+    onAddCaptionClicked: () -> Unit,
 ) = Column(
     verticalArrangement = Arrangement.spacedBy(16.dp),
     modifier = modifier
@@ -326,26 +337,27 @@ private fun Actions(
         )
     }
 
-    BasicText(
-        text =
-            if (!isCaptionSet)
-                "Add a caption"
-            else
-                "Change the caption",
-        style = textStyle,
-        modifier = Modifier
-            .padding(
-                horizontal = 24.dp,
-            )
-            .fillMaxWidth()
-    )
+    if (!isCaptionSet) {
+        BasicText(
+            text = "Add a caption",
+            style = textStyle,
+            modifier = Modifier
+                .clickable(
+                    onClick = onAddCaptionClicked,
+                )
+                .padding(
+                    horizontal = 24.dp,
+                )
+                .fillMaxWidth()
+        )
 
-    Spacer(
-        modifier = Modifier
-            .height(1.dp)
-            .fillMaxWidth()
-            .background(Color(0xFFcbc4bb))
-    )
+        Spacer(
+            modifier = Modifier
+                .height(1.dp)
+                .fillMaxWidth()
+                .background(Color(0xFFcbc4bb))
+        )
+    }
 
     BasicText(
         text = "Delete",
@@ -372,9 +384,12 @@ private fun StampScreenPreview(
     ) {
         StampScreen(
             stampId = "",
-            caption = "My stamp",
+            captionState = "My stamp".let(::mutableStateOf),
+            isCaptionInputEnabled = false,
+            onCaptionInputChanged = {},
             imageUri = "",
             takenAt = LocalDate.now(),
+            onAddCaptionClicked = { },
             onSwipedToExit = { },
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
@@ -391,6 +406,7 @@ private fun ActionsPreview(
 ) {
     Actions(
         isCaptionSet = false,
+        onAddCaptionClicked = {},
         modifier = Modifier
             .width(350.dp)
     )

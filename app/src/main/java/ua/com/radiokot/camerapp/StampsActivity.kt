@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -110,10 +111,14 @@ private fun SharedTransitionScope.StampsNavHost(
                     )
                 )
             }
+            val isCaptionInputEnabled by viewModel.isCaptionInputEnabled.collectAsState()
 
             StampScreen(
                 stampId = viewModel.stampId,
-                caption = viewModel.caption,
+                captionState = viewModel.caption.collectAsState(),
+                isCaptionInputEnabled = isCaptionInputEnabled,
+                onCaptionInputChanged = viewModel::onCaptionInputChanged,
+                onAddCaptionClicked = viewModel::onAddCaptionClicked,
                 imageUri = viewModel.imageUri,
                 takenAt = viewModel.takenAt,
                 onSwipedToExit = navController::navigateUp,

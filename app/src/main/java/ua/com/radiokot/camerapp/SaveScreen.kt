@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,16 +16,10 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,23 +27,14 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.createBitmap
 import kotlinx.collections.immutable.ImmutableList
@@ -84,67 +68,13 @@ fun SaveScreen(
             .fillMaxWidth()
             .zIndex(10f)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
+        StampCaptionInput(
+            inputState = captionInputState,
+            onInputChanged = onCaptionInputChanged,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)
-        ) {
-            val hintStyle = remember {
-                TextStyle(
-                    fontFamily = podkovaFamily,
-                    fontSize = 24.sp,
-                    color = Color(0xFFB9AC8C),
-                    textAlign = TextAlign.Center,
-                )
-            }
-            val inputStyle = remember {
-                hintStyle.copy(
-                    color = Color.Unspecified,
-                )
-            }
-            val focusRequester = remember(::FocusRequester)
-            val focusManager = LocalFocusManager.current
-
-            val isCaptionHintVisible by remember {
-                derivedStateOf {
-                    captionInputState.value.isBlank()
-                }
-            }
-
-            if (isCaptionHintVisible) {
-                BasicText(
-                    text = "A caption",
-                    style = hintStyle,
-                    modifier = Modifier
-                        .clickable(
-                            onClick = {
-                                focusRequester.requestFocus()
-                            }
-                        )
-                )
-            }
-
-            BasicTextField(
-                value = captionInputState.value,
-                onValueChange = onCaptionInputChanged,
-                textStyle = inputStyle,
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    keyboardType = KeyboardType.Text,
-                    showKeyboardOnFocus = true,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                    },
-                ),
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-            )
-        }
+        )
 
         if (frameImageState.value == null) {
             return@Column

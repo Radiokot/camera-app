@@ -18,7 +18,9 @@ import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Optional
 import kotlin.io.path.absolutePathString
+import kotlin.jvm.optionals.getOrNull
 
 class FsStampRepository(
     private val stampDirectory: File,
@@ -110,10 +112,10 @@ class FsStampRepository(
             stream.toByteArray()
         }
 
-        val xmpMeta = XMPMetaFactory.create().apply {
-            setTitle(caption)
-            setDateTimeOriginal(takenAtLocal.toString())
-        }
+        val xmpMeta = XMPMetaFactory.create().setStampDetails(
+            caption = caption,
+            takenAtLocal = takenAtLocal,
+        )
 
         WebPWriter.writeImage(
             byteReader = ByteArrayByteReader(webpBytes),
@@ -123,6 +125,59 @@ class FsStampRepository(
             xmp = XMPMetaFactory.serializeToString(xmpMeta),
             exifBytes = null,
         )
+    }
+
+    override suspend fun updateStamp(
+        stamp: Stamp,
+        newCaption: Optional<String>?,
+    ) = withContext(Dispatchers.IO) {
+
+        val file = File(
+            stampDirectory,
+            "${stamp.id}.$EXTENSION_WEBP"
+        )
+
+        val webpChunks =
+            WebPImageParser
+                .readChunks(
+                    AndroidInputStreamByteReader(
+                        inputStream = file.inputStream().buffered(),
+                        contentLength = file.length(),
+                    )
+                )
+
+        val xmpMeta =
+            WebPImageParser
+                .parseMetadataFromChunks(webpChunks)
+                .xmp
+                ?.let(XMPMetaFactory::parseFromString)
+                ?: XMPMetaFactory.create()
+        xmpMeta.setStampDetails(
+            caption =
+                if (newCaption != null)
+                    newCaption.getOrNull()
+                else
+                    stamp.caption,
+            takenAtLocal = stamp.takenAtLocal,
+        )
+
+        WebPWriter
+            .writeImage(
+                chunks = webpChunks,
+                byteWriter = OutputStreamByteWriter(
+                    FileOutputStream(file)
+                ),
+                xmp = XMPMetaFactory.serializeToString(xmpMeta),
+                exifBytes = null,
+            )
+    }
+
+    private fun XMPMeta.setStampDetails(
+        caption: String?,
+        takenAtLocal: LocalDateTime,
+    ) = apply {
+        setTitle(caption)
+        setDateTimeOriginal(takenAtLocal.toString())
     }
 
     private fun toStamp(
