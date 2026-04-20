@@ -81,7 +81,7 @@ fun StampCaptionInput(
         value = inputState.value ?: "",
         onValueChange = onInputChanged,
         textStyle = inputStyle,
-        maxLines = 1,
+        singleLine = true,
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Sentences,
             keyboardType = KeyboardType.Text,
