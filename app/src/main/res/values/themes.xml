@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="CameraAppTheme" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+    <style name="CameraAppTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
