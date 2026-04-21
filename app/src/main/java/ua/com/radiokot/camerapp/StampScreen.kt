@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInOutQuad
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -18,7 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,20 +47,30 @@ import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -79,7 +90,8 @@ fun StampScreen(
     onCaptionInputChanged: (String) -> Unit,
     imageUri: String,
     takenAt: LocalDate,
-    onAddCaptionClicked: () -> Unit,
+    onAddCaptionAction: () -> Unit,
+    onDeleteAction: () -> Unit,
     onSwipedToExit: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
@@ -142,13 +154,17 @@ fun StampScreen(
     ) {
         Actions(
             isCaptionSet = captionState.value != null,
-            onAddCaptionClicked = {
+            onAddCaption = {
                 areActionsVisible = false
-                onAddCaptionClicked()
+                onAddCaptionAction()
                 coroutineScope.launch {
                     delay(100)
                     captionInputFocusRequester.requestFocus()
                 }
+            },
+            onDelete = {
+                areActionsVisible = false
+                onDeleteAction()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -319,22 +335,20 @@ fun StampScreen(
 @Composable
 private fun Actions(
     modifier: Modifier = Modifier,
+    cornerRadius: Dp = 10.dp,
     isCaptionSet: Boolean,
-    onAddCaptionClicked: () -> Unit,
+    onAddCaption: () -> Unit,
+    onDelete: () -> Unit,
 ) = Column(
-    verticalArrangement = Arrangement.spacedBy(16.dp),
     modifier = modifier
         .background(
             color = Color(0xFFfff9eb),
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(cornerRadius),
         )
         .border(
             width = 2.dp,
             color = Color(0xFF6B624B),
-            shape = RoundedCornerShape(10.dp),
-        )
-        .padding(
-            vertical = 20.dp,
+            shape = RoundedCornerShape(cornerRadius),
         )
 ) {
     val textStyle = remember {
@@ -352,10 +366,10 @@ private fun Actions(
             style = textStyle,
             modifier = Modifier
                 .clickable(
-                    onClick = onAddCaptionClicked,
+                    onClick = onAddCaption,
                 )
                 .padding(
-                    horizontal = 24.dp,
+                    vertical = 20.dp,
                 )
                 .fillMaxWidth()
         )
@@ -368,14 +382,101 @@ private fun Actions(
         )
     }
 
+    val deleteAnimationProgress = remember {
+        Animatable(0f)
+    }
+    val hapticFeedback = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
+
     BasicText(
-        text = "Delete",
+        text = "Hold to delete",
         style = textStyle.copy(
-            color = Color(0xFFBD8282),
+            color = Color(0xFFD97D7D),
         ),
         modifier = Modifier
+            // When pressed, a growing red background is drawn.
+            .drawWithCache {
+                val roundedCornerRadius = CornerRadius(
+                    x = cornerRadius.toPx(),
+                    y = cornerRadius.toPx()
+                )
+                // The top corner radius matches outer corner radius
+                // or shrinks to 0 if the divider is above.
+                val topCornerRadius =
+                    if (isCaptionSet || deleteAnimationProgress.value < 0.8f)
+                        roundedCornerRadius
+                    else
+                        roundedCornerRadius *
+                                (1 - deleteAnimationProgress.value) / 0.2f
+                val color = Color(0xFFEAB8B8)
+                val halfWidth = size.width / 2f
+                val path = Path()
+                path.addRoundRect(
+                    RoundRect(
+                        rect = Rect(
+                            offset = Offset(
+                                x = halfWidth - halfWidth * deleteAnimationProgress.value,
+                                y = 0f,
+                            ),
+                            size = Size(
+                                width = size.width * deleteAnimationProgress.value,
+                                height = size.height,
+                            ),
+                        ),
+                        topRight = topCornerRadius,
+                        topLeft = topCornerRadius,
+                        bottomRight = roundedCornerRadius,
+                        bottomLeft = roundedCornerRadius,
+                    )
+                )
+
+                onDrawBehind {
+                    drawPath(
+                        path = path,
+                        color = color,
+                        alpha = deleteAnimationProgress.value * 2f,
+                    )
+                }
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        hapticFeedback.performHapticFeedback(
+                            HapticFeedbackType.GestureEnd
+                        )
+
+                        val pressingJob = coroutineScope.launch {
+                            deleteAnimationProgress.animateTo(
+                                targetValue = 1f,
+                                animationSpec = tween(
+                                    durationMillis = 1200,
+                                    easing = EaseInOutQuad,
+                                ),
+                            )
+                            hapticFeedback.performHapticFeedback(
+                                HapticFeedbackType.LongPress
+                            )
+                            onDelete()
+                        }
+
+                        awaitRelease()
+
+                        if (!pressingJob.isCompleted) {
+                            pressingJob.cancel()
+                            coroutineScope.launch {
+                                deleteAnimationProgress.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = spring(
+                                        stiffness = Spring.StiffnessHigh,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                )
+            }
             .padding(
-                horizontal = 24.dp,
+                vertical = 20.dp,
             )
             .fillMaxWidth()
     )
@@ -399,7 +500,8 @@ private fun StampScreenPreview(
             onCaptionInputChanged = {},
             imageUri = "",
             takenAt = LocalDate.now(),
-            onAddCaptionClicked = { },
+            onAddCaptionAction = { },
+            onDeleteAction = { },
             onSwipedToExit = { },
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
@@ -416,7 +518,8 @@ private fun ActionsPreview(
 ) {
     Actions(
         isCaptionSet = false,
-        onAddCaptionClicked = {},
+        onAddCaption = {},
+        onDelete = {},
         modifier = Modifier
             .width(350.dp)
     )

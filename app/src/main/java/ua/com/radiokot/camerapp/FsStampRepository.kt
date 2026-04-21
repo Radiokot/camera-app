@@ -9,12 +9,20 @@ import com.ashampoo.kim.input.ByteArrayByteReader
 import com.ashampoo.kim.output.OutputStreamByteWriter
 import com.ashampoo.xmp.XMPMeta
 import com.ashampoo.xmp.XMPMetaFactory
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -40,9 +48,7 @@ class FsStampRepository(
         }
     }
 
-    override suspend fun getStamps(
-        asc: Boolean,
-    ): List<Stamp> = withContext(Dispatchers.IO) {
+    override suspend fun getStamps(): PersistentList<Stamp> = withContext(Dispatchers.IO) {
 
         val files =
             stampDirectory
@@ -52,18 +58,36 @@ class FsStampRepository(
                 ?: error("Can't access the directory: $stampDirectory")
 
         return@withContext files
-            .map(::toStamp)
-            .sortedWith { a, b ->
-                if (asc)
-                    a.takenAtLocal.compareTo(b.takenAtLocal)
-                else
-                    b.takenAtLocal.compareTo(a.takenAtLocal)
-            }
+            .map(File::toStamp)
+            .toPersistentList()
     }
+
+    private val sharedCacheFlow: MutableStateFlow<PersistentList<Stamp>?> =
+        MutableStateFlow(null)
+
+    override fun getStampsFlow(): Flow<PersistentList<Stamp>> =
+        if (sharedCacheFlow.value != null)
+            sharedCacheFlow.filterNotNull()
+        else
+            flow {
+                sharedCacheFlow.value = getStamps()
+                sharedCacheFlow
+                    .filterNotNull()
+                    .collect(this)
+            }
 
     override suspend fun getStamp(
         id: String,
     ): Stamp? = withContext(Dispatchers.IO) {
+
+        val cached =
+            sharedCacheFlow
+                .value
+                ?.find { it.id == id }
+
+        if (cached != null) {
+            return@withContext cached
+        }
 
         val files =
             stampDirectory
@@ -77,7 +101,7 @@ class FsStampRepository(
             return@withContext null
         }
 
-        return@withContext toStamp(files.first())
+        return@withContext files.first().toStamp()
     }
 
     override suspend fun addStamp(
@@ -88,9 +112,8 @@ class FsStampRepository(
         val id = System.currentTimeMillis().toString()
         val takenAtLocal = LocalDateTime.now()
 
-        val outputFile = File(
-            stampDirectory,
-            "$id.$EXTENSION_WEBP"
+        val outputFile = getStampFile(
+            id = id,
         )
 
         val webpBytes = ByteArrayOutputStream().use { stream ->
@@ -125,6 +148,21 @@ class FsStampRepository(
             xmp = XMPMetaFactory.serializeToString(xmpMeta),
             exifBytes = null,
         )
+
+        sharedCacheFlow.update { cache ->
+            if (cache == null)
+                return@update null
+
+            cache.add(
+                Stamp(
+                    id = id,
+                    caption = caption,
+                    imageUri = outputFile.toPath().toImageUri(),
+                    takenAtLocal = takenAtLocal,
+                    isReadOnly = false,
+                )
+            )
+        }
     }
 
     override suspend fun updateStamp(
@@ -132,10 +170,14 @@ class FsStampRepository(
         newCaption: Optional<String>?,
     ) = withContext(Dispatchers.IO) {
 
-        val file = File(
-            stampDirectory,
-            "${stamp.id}.$EXTENSION_WEBP"
+        val file = getStampFile(
+            id = stamp.id,
         )
+        val captionToSet =
+            if (newCaption != null)
+                newCaption.getOrNull()
+            else
+                stamp.caption
 
         val webpChunks =
             WebPImageParser
@@ -153,11 +195,7 @@ class FsStampRepository(
                 ?.let(XMPMetaFactory::parseFromString)
                 ?: XMPMetaFactory.create()
         xmpMeta.setStampDetails(
-            caption =
-                if (newCaption != null)
-                    newCaption.getOrNull()
-                else
-                    stamp.caption,
+            caption = captionToSet,
             takenAtLocal = stamp.takenAtLocal,
         )
 
@@ -170,49 +208,37 @@ class FsStampRepository(
                 xmp = XMPMetaFactory.serializeToString(xmpMeta),
                 exifBytes = null,
             )
-    }
 
-    private fun XMPMeta.setStampDetails(
-        caption: String?,
-        takenAtLocal: LocalDateTime,
-    ) = apply {
-        setTitle(caption)
-        setDateTimeOriginal(takenAtLocal.toString())
-    }
-
-    private fun toStamp(
-        file: File,
-    ): Stamp {
-
-        val path = file.toPath()
-        val xmpMeta: XMPMeta? =
-            WebPImageParser
-                .parseMetadata(
-                    AndroidInputStreamByteReader(
-                        inputStream = file.inputStream().buffered(),
-                        contentLength = file.length(),
-                    )
-                )
-                .xmp
-                ?.let(XMPMetaFactory::parseFromString)
-
-        return Stamp(
-            id = file.nameWithoutExtension,
-            imageUri = "file://${path.absolutePathString()}",
-            caption = xmpMeta?.getTitle(),
-            takenAtLocal =
-                xmpMeta
-                    ?.getDateTimeOriginal()
-                    ?.let(LocalDateTime::parse)
-                    ?: Files
-                        .readAttributes(path, BasicFileAttributes::class.java)
-                        .creationTime()
-                        .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime(),
-            isReadOnly = !file.canWrite(),
+        val updatedStamp = stamp.copy(
+            newCaption = captionToSet,
         )
+
+        sharedCacheFlow.update { it?.remove(stamp) }
+        sharedCacheFlow.update { it?.add(updatedStamp) }
     }
+
+    override suspend fun deleteStamp(
+        stamp: Stamp,
+    ): Unit = withContext(Dispatchers.IO) {
+
+        val file = getStampFile(
+            id = stamp.id,
+        )
+
+        if (file.exists()) {
+            file.delete()
+        }
+
+        sharedCacheFlow.update { cache ->
+            cache?.remove(stamp)
+        }
+    }
+
+    private fun getStampFile(id: String): File =
+        File(
+            stampDirectory,
+            "$id.$EXTENSION_WEBP"
+        )
 
     private companion object {
         private const val EXTENSION_WEBP = "webp"
@@ -221,3 +247,45 @@ class FsStampRepository(
         )
     }
 }
+
+private fun XMPMeta.setStampDetails(
+    caption: String?,
+    takenAtLocal: LocalDateTime,
+) = apply {
+    setTitle(caption)
+    setDateTimeOriginal(takenAtLocal.toString())
+}
+
+private fun File.toStamp(): Stamp {
+    val path = toPath()
+    val xmpMeta: XMPMeta? =
+        WebPImageParser
+            .parseMetadata(
+                AndroidInputStreamByteReader(
+                    inputStream = inputStream().buffered(),
+                    contentLength = length(),
+                )
+            )
+            .xmp
+            ?.let(XMPMetaFactory::parseFromString)
+
+    return Stamp(
+        id = nameWithoutExtension,
+        imageUri = path.toImageUri(),
+        caption = xmpMeta?.getTitle(),
+        takenAtLocal =
+            xmpMeta
+                ?.getDateTimeOriginal()
+                ?.let(LocalDateTime::parse)
+                ?: Files
+                    .readAttributes(path, BasicFileAttributes::class.java)
+                    .creationTime()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime(),
+        isReadOnly = !canWrite(),
+    )
+}
+
+private fun Path.toImageUri(): String =
+    "file://${absolutePathString()}"

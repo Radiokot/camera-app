@@ -119,7 +119,8 @@ private fun SharedTransitionScope.StampsNavHost(
                 captionState = viewModel.caption.collectAsState(),
                 isCaptionInputEnabled = isCaptionInputEnabled,
                 onCaptionInputChanged = viewModel::onCaptionInputChanged,
-                onAddCaptionClicked = viewModel::onAddCaptionClicked,
+                onAddCaptionAction = viewModel::onAddCaptionAction,
+                onDeleteAction = viewModel::onDeleteAction,
                 imageUri = viewModel.imageUri,
                 takenAt = viewModel.takenAt,
                 onSwipedToExit = navController::navigateUp,
@@ -128,6 +129,16 @@ private fun SharedTransitionScope.StampsNavHost(
                 modifier = Modifier
                     .fillMaxSize()
             )
+
+            LaunchedEffect(viewModel) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is StampScreenViewModel.Event.Done -> {
+                            navController.navigateUp()
+                        }
+                    }
+                }
+            }
         }
     }
 }

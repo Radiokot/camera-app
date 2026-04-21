@@ -9,6 +9,16 @@ class Stamp(
     val takenAtLocal: LocalDateTime,
     val isReadOnly: Boolean,
 ) {
+    fun copy(
+        newCaption: String? = this.caption,
+    ) = Stamp(
+        id = id,
+        imageUri = imageUri,
+        caption = newCaption,
+        takenAtLocal = takenAtLocal,
+        isReadOnly = isReadOnly,
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Stamp) return false

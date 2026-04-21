@@ -6,28 +6,30 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @Immutable
 class StampsScreenViewModel(
-    private val stampRepository: StampRepository,
+    stampRepository: StampRepository,
 ) : ViewModel() {
 
     val stamps: StateFlow<ImmutableList<StampListItem>> =
-        suspend {
-            stampRepository
-                .getStamps(
-                    asc = false,
-                )
-                .map(::StampListItem)
-                .toPersistentList()
-        }
-            .asFlow()
+        stampRepository
+            .getStampsFlow()
+            .map { stamps ->
+                stamps
+                    .sortedByDescending(Stamp::takenAtLocal)
+                    .map(::StampListItem)
+                    .toPersistentList()
+            }
+            .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.Eagerly, persistentListOf())
 
     private val _events: MutableSharedFlow<Event> = eventSharedFlow()
