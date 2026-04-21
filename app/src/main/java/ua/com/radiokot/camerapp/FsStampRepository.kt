@@ -149,11 +149,8 @@ class FsStampRepository(
             exifBytes = null,
         )
 
-        sharedCacheFlow.update { cache ->
-            if (cache == null)
-                return@update null
-
-            cache.add(
+        sharedCacheFlow.update {
+            it?.add(
                 Stamp(
                     id = id,
                     caption = caption,
@@ -229,16 +226,15 @@ class FsStampRepository(
             file.delete()
         }
 
-        sharedCacheFlow.update { cache ->
-            cache?.remove(stamp)
-        }
+        sharedCacheFlow.update { it?.remove(stamp) }
     }
 
-    private fun getStampFile(id: String): File =
-        File(
-            stampDirectory,
-            "$id.$EXTENSION_WEBP"
-        )
+    private fun getStampFile(
+        id: String,
+    ) = File(
+        stampDirectory,
+        "$id.$EXTENSION_WEBP"
+    )
 
     private companion object {
         private const val EXTENSION_WEBP = "webp"

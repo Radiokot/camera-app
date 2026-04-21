@@ -28,4 +28,8 @@ interface StampRepository {
     suspend fun deleteStamp(
         stamp: Stamp,
     )
+
+    data class Parameters(
+        val collectionId: String,
+    )
 }

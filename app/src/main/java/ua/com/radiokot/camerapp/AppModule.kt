@@ -33,6 +33,12 @@ val appModule = module {
     } bind StampRepository::class
 
     single {
+        FsStampCollectionRepository(
+            stampDirectory = get(named(DIRECTORY_STAMPS)),
+        )
+    } bind StampCollectionRepository::class
+
+    single<Landscapist> {
         val config = LandscapistConfig(
             diskCacheSize = 0L,
         )
@@ -41,7 +47,7 @@ val appModule = module {
             .config(config)
             .fetcher(AndroidFetchers.createDefault(config.networkConfig))
             .build()
-    }
+    } bind Landscapist::class
 
     viewModel {
         CaptureAndSaveViewModel(
