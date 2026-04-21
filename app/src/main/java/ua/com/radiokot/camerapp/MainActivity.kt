@@ -16,9 +16,12 @@ import androidx.compose.runtime.asIntState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.createBitmap
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -75,9 +78,9 @@ class MainActivity : ComponentActivity() {
 
                             SaveScreen(
                                 captionInputState =
-                                viewModel
-                                    .captionInput
-                                    .collectAsState(),
+                                    viewModel
+                                        .captionInput
+                                        .collectAsState(),
                                 onCaptionInputChanged = viewModel::onCaptionInputChanged,
                                 frameImageState =
                                     viewModel

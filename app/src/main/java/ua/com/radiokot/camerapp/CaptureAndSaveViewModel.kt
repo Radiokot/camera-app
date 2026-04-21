@@ -99,7 +99,7 @@ class CaptureAndSaveViewModel(
             }
 
     private val _saveFrameBitmap: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
-    val saveFrameImage: StateFlow<ImageBitmap?> =
+    val saveFrameImage: StateFlow<ImageBitmap> =
         combine(
             _saveFrameBitmap.filterNotNull(),
             combine(
@@ -133,7 +133,11 @@ class CaptureAndSaveViewModel(
                 resultBitmap.asImageBitmap()
             }
             .flowOn(Dispatchers.Default)
-            .stateIn(viewModelScope, SharingStarted.Lazily, null)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = createBitmap(1, 1).asImageBitmap(),
+            )
 
     private val _captionInput: MutableStateFlow<String> = MutableStateFlow("")
     val captionInput: StateFlow<String> = _captionInput

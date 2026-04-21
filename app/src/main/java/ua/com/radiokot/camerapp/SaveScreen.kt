@@ -32,13 +32,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.createBitmap
-import com.skydoves.landscapist.rememberDrawablePainter
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -49,7 +47,7 @@ fun SaveScreen(
     modifier: Modifier = Modifier,
     captionInputState: State<String>,
     onCaptionInputChanged: (String) -> Unit,
-    frameImageState: State<ImageBitmap?>,
+    frameImageState: State<ImageBitmap>,
     onSaveClicked: () -> Unit,
     adjustmentsControllerItems: ImmutableList<AdjustmentControllerItem>,
     currentAdjustmentsControllerItemState: State<AdjustmentControllerItem>,
@@ -79,11 +77,7 @@ fun SaveScreen(
         )
 
         Image(
-            painter =
-                if (frameImageState.value == null)
-                    rememberDrawablePainter(null)
-                else
-                    remember { BitmapPainter(frameImageState.value!!) },
+            bitmap = frameImageState.value,
             contentDescription = null,
             modifier = Modifier
                 .size(StampSize * 2f)
