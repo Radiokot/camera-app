@@ -67,6 +67,19 @@ private fun SharedTransitionScope.StampsNavHost(
             )
     ) {
         composable(
+            route = CollectionsDestination,
+        ) {
+            val viewModel: CollectionsScreenViewModel = koinViewModel()
+            val items = viewModel.items.collectAsState()
+
+            CollectionsScreen(
+                itemsState = items,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
+        }
+
+        composable(
             route = StampsDestination,
         ) {
             val viewModel: StampsScreenViewModel = koinViewModel()
@@ -143,4 +156,5 @@ private fun SharedTransitionScope.StampsNavHost(
     }
 }
 
+private const val CollectionsDestination = "collections"
 private const val StampsDestination = "stamps"

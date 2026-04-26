@@ -74,4 +74,10 @@ val appModule = module {
             stampRepository = get(),
         )
     }
+
+    viewModel {
+        CollectionsScreenViewModel(
+            collectionRepository = get(),
+        )
+    }
 }

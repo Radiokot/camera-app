@@ -35,7 +35,7 @@ class FsStampCollectionRepository(
 
         val directories =
             stampDirectory
-                .listFiles { file, _ -> file.isDirectory }
+                .listFiles(File::isDirectory)
                 ?: error("Can't access the directory: $stampDirectory")
 
         return@withContext directories

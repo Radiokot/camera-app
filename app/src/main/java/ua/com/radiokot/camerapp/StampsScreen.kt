@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -46,7 +47,9 @@ fun StampsScreen(
 ) {
     val spacedBy = Arrangement.spacedBy(24.dp)
     val shadowColor = Color(0x7447525E)
-    val rotationAngles = arrayOf(4, 3, 2, -2, -3, -4)
+    val rotationAngles = remember {
+        intArrayOf(4, 3, 2, -2, -3, -4)
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(
