@@ -20,7 +20,6 @@
 package ua.com.radiokot.camerapp
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -51,11 +50,3 @@ fun <T> eventSharedFlow() =
         extraBufferCapacity = 5,
         onBufferOverflow = BufferOverflow.SUSPEND,
     )
-
-fun coroutineScopeThatCancelsWith(
-    other: CoroutineScope,
-) = CoroutineScope(
-    context = requireNotNull(other.coroutineContext[Job]) {
-        "The other scope cannot be cancelled because it does not have a job"
-    },
-)

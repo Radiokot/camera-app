@@ -1,7 +1,14 @@
 package ua.com.radiokot.camerapp
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -47,6 +54,9 @@ import kotlin.math.absoluteValue
 fun CollectionsScreen(
     modifier: Modifier = Modifier,
     itemsState: State<ImmutableList<CollectionListItem>>,
+    onItemClicked: (CollectionListItem) -> Unit,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
 ) {
     val spacedBy = Arrangement.spacedBy(24.dp)
     val collectionShape = remember {
@@ -55,7 +65,7 @@ fun CollectionsScreen(
     val nameStyle = remember {
         TextStyle(
             fontFamily = podkovaFamily,
-            fontSize = 22.sp,
+            fontSize = 20.sp,
             textAlign = TextAlign.Center,
         )
     }
@@ -71,7 +81,7 @@ fun CollectionsScreen(
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(
-            minSize = 168.dp,
+            minSize = StampSize.width * 1.5f,
         ),
         horizontalArrangement = spacedBy,
         verticalArrangement = spacedBy,
@@ -92,12 +102,17 @@ fun CollectionsScreen(
 
             Box(
                 modifier = Modifier
-                    .height(StampSize.height * 1.1f)
+                    .height(StampSize.height)
+                    .clickable(
+                        onClick = {
+                            onItemClicked(item)
+                        },
+                    )
             ) {
                 Spacer(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(StampSize.height * 0.8f)
+                        .height(StampSize.height * 0.7f)
                         .background(
                             color = Color(0xFFCBC4BB),
                             shape = collectionShape,
@@ -114,8 +129,11 @@ fun CollectionsScreen(
                     1 -> {
                         StampSampleView(
                             sample = item.someStamps[0],
+                            order = 0,
                             possibleRotationAngles = centerSampleRotationAngles,
                             fallbackColor = Color.Yellow,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .offset(
@@ -126,20 +144,12 @@ fun CollectionsScreen(
 
                     2 -> {
                         StampSampleView(
-                            sample = item.someStamps[0],
-                            possibleRotationAngles = leftSampleRotationAngles,
-                            fallbackColor = Color.Yellow,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    x = -StampSize.width * 0.2f,
-                                    y = -(4.dp),
-                                )
-                        )
-                        StampSampleView(
                             sample = item.someStamps[1],
+                            order = 0,
                             possibleRotationAngles = rightSampleRotationAngles,
                             fallbackColor = Color.Red,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .offset(
@@ -147,24 +157,44 @@ fun CollectionsScreen(
                                     y = -(8.dp),
                                 )
                         )
+                        StampSampleView(
+                            sample = item.someStamps[0],
+                            order = 1,
+                            possibleRotationAngles = leftSampleRotationAngles,
+                            fallbackColor = Color.Yellow,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .offset(
+                                    x = -StampSize.width * 0.2f,
+                                    y = -(4.dp),
+                                )
+                        )
                     }
 
                     3 -> {
                         StampSampleView(
-                            sample = item.someStamps[0],
-                            possibleRotationAngles = leftSampleRotationAngles,
+                            sample = item.someStamps[2],
+                            order = 0,
+                            possibleRotationAngles = rightSampleRotationAngles,
                             fallbackColor = Color.Yellow,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .offset(
-                                    x = -StampSize.width * 0.25f,
+                                    x = StampSize.width * 0.25f,
                                     y = -(2.dp),
                                 )
                         )
                         StampSampleView(
                             sample = item.someStamps[1],
+                            order = 1,
                             possibleRotationAngles = centerSampleRotationAngles,
                             fallbackColor = Color.Red,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .offset(
@@ -172,13 +202,16 @@ fun CollectionsScreen(
                                 )
                         )
                         StampSampleView(
-                            sample = item.someStamps[2],
-                            possibleRotationAngles = rightSampleRotationAngles,
+                            sample = item.someStamps[0],
+                            order = 2,
+                            possibleRotationAngles = leftSampleRotationAngles,
                             fallbackColor = Color.Magenta,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .offset(
-                                    x = StampSize.width * 0.25f,
+                                    x = -StampSize.width * 0.25f,
                                     y = -(8.dp),
                                 )
                         )
@@ -191,6 +224,25 @@ fun CollectionsScreen(
                         .fillMaxWidth()
                         .height(StampSize.height * 0.5f)
                         .align(Alignment.BottomCenter)
+                        .run {
+                            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                                return@run this
+                            }
+
+                            with(sharedTransitionScope) {
+                                sharedBounds(
+                                    sharedContentState = rememberSharedContentState(item.key),
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
+                                        alignment = Alignment.TopCenter,
+                                    ),
+                                    exit = fadeOut(
+                                        animationSpec = snap(),
+                                    ),
+                                    zIndexInOverlay = 10f,
+                                )
+                            }
+                        }
                         .background(
                             color = Color(0xFFFFF9EB),
                             shape = collectionShape,
@@ -207,6 +259,19 @@ fun CollectionsScreen(
                         style = nameStyle,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .run {
+                                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                                    return@run this
+                                }
+
+                                with(sharedTransitionScope) {
+                                    sharedElement(
+                                        sharedContentState = rememberSharedContentState("${item.key}-name"),
+                                        animatedVisibilityScope = animatedVisibilityScope,
+                                        zIndexInOverlay = 20f,
+                                    )
+                                }
+                            }
                     )
                 }
             }
@@ -220,16 +285,32 @@ private fun StampSampleView(
     fallbackColor: Color,
     sample: CollectionListItem.StampSampleItem,
     possibleRotationAngles: IntArray,
+    order: Int,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = LandscapistImage(
-    imageModel = { sample.thumbnailUrl.toUri() },
+    imageModel = { sample.imageUri.toUri() },
     modifier = modifier
-        .size(StampSize)
+        .size(StampSize * 0.85f)
+        .run {
+            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                return@run this
+            }
+
+            with(sharedTransitionScope) {
+                sharedElement(
+                    sharedContentState = rememberSharedContentState(sample.key),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    zIndexInOverlay = order.toFloat(),
+                )
+            }
+        }
         .rotate(
             (possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size])
                 .toFloat()
         )
         .run {
-            if (sample.thumbnailUrl.isNotEmpty()) {
+            if (sample.imageUri.isNotEmpty()) {
                 return@run this
             }
 
@@ -253,7 +334,7 @@ private fun CollectionsScreenPreview() {
             name = "My stamps",
             someStamps = persistentListOf(
                 CollectionListItem.StampSampleItem(
-                    thumbnailUrl = "",
+                    imageUri = "",
                     key = "",
                 ),
             ),
@@ -263,11 +344,11 @@ private fun CollectionsScreenPreview() {
             name = "RED",
             someStamps = persistentListOf(
                 CollectionListItem.StampSampleItem(
-                    thumbnailUrl = "",
+                    imageUri = "",
                     key = "1",
                 ),
                 CollectionListItem.StampSampleItem(
-                    thumbnailUrl = "",
+                    imageUri = "",
                     key = "2",
                 ),
             ),
@@ -277,15 +358,15 @@ private fun CollectionsScreenPreview() {
             name = "Food",
             someStamps = persistentListOf(
                 CollectionListItem.StampSampleItem(
-                    thumbnailUrl = "",
+                    imageUri = "",
                     key = "1",
                 ),
                 CollectionListItem.StampSampleItem(
-                    thumbnailUrl = "",
+                    imageUri = "",
                     key = "2",
                 ),
                 CollectionListItem.StampSampleItem(
-                    thumbnailUrl = "",
+                    imageUri = "",
                     key = "3",
                 ),
             ),
@@ -294,6 +375,9 @@ private fun CollectionsScreenPreview() {
 
     CollectionsScreen(
         itemsState = items.let(::mutableStateOf),
+        onItemClicked = {},
+        sharedTransitionScope = null,
+        animatedVisibilityScope = null,
         modifier = Modifier
             .fillMaxSize()
             .paperBackground()

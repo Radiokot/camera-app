@@ -64,6 +64,8 @@ val appModule = module {
     viewModel {
         StampsScreenViewModel(
             stampRepository = get(),
+            parameters = getOrNull()
+                ?: error("No StampsScreenViewModel.Parameters provided"),
         )
     }
 
@@ -78,6 +80,14 @@ val appModule = module {
     viewModel {
         CollectionsScreenViewModel(
             collectionRepository = get(),
+            getStampCollectionsWithSamplesUseCase = get(),
+        )
+    }
+
+    factory {
+        GetStampCollectionsWithSamplesUseCase(
+            collectionRepository = get(),
+            stampRepository = get(),
         )
     }
 }

@@ -9,8 +9,9 @@ data class CollectionListItem(
     val someStamps: ImmutableList<StampSampleItem>,
     val key: String,
 ) {
-    class StampSampleItem(
-        val thumbnailUrl: String,
+    @Immutable
+    data class StampSampleItem(
+        val imageUri: String,
         val key: String,
     )
 }

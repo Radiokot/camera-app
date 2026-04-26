@@ -58,7 +58,7 @@ private fun SharedTransitionScope.StampsNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = StampsDestination,
+        startDestination = CollectionsDestination,
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },
         modifier = modifier
@@ -74,18 +74,51 @@ private fun SharedTransitionScope.StampsNavHost(
 
             CollectionsScreen(
                 itemsState = items,
+                onItemClicked = viewModel::onItemClicked,
+                sharedTransitionScope = this@StampsNavHost,
+                animatedVisibilityScope = this@composable,
                 modifier = Modifier
                     .fillMaxSize()
             )
+
+            LaunchedEffect(viewModel) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is CollectionsScreenViewModel.Event.ProceedToCollection -> {
+                            navController.navigate(
+                                route = CollectionDestination(
+                                    collectionId = event.collectionId,
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         composable(
-            route = StampsDestination,
-        ) {
-            val viewModel: StampsScreenViewModel = koinViewModel()
+            route = CollectionDestination,
+            arguments = listOf(
+                navArgument(CollectionDestinationCollectionId) {
+                    type = NavType.StringType
+                }
+            ),
+        ) { navEntry ->
+            val viewModel: StampsScreenViewModel = koinViewModel {
+                parametersOf(
+                    StampsScreenViewModel.Parameters(
+                        collectionId =
+                            navEntry
+                                .arguments
+                                ?.getString(CollectionDestinationCollectionId)
+                                ?: error("No ID argument passed"),
+                    )
+                )
+            }
             val stamps = viewModel.stamps.collectAsState()
 
             StampsScreen(
+                collectionId = viewModel.collectionId,
                 stamps = stamps,
                 gridState = stampGridState,
                 onStampClicked = viewModel::onStampClicked,
@@ -157,4 +190,12 @@ private fun SharedTransitionScope.StampsNavHost(
 }
 
 private const val CollectionsDestination = "collections"
+private const val CollectionDestinationCollectionId = "collectionId"
+private const val CollectionDestination =
+    "$CollectionsDestination/{$CollectionDestinationCollectionId}"
+
+private fun CollectionDestination(
+    collectionId: String,
+) = "$CollectionsDestination/$collectionId"
+
 private const val StampsDestination = "stamps"
