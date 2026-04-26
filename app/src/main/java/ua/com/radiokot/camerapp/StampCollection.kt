@@ -2,6 +2,7 @@ package ua.com.radiokot.camerapp
 
 class StampCollection(
     val id: String,
+    val name: String,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

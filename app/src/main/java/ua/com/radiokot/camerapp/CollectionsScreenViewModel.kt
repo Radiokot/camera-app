@@ -8,7 +8,6 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class CollectionsScreenViewModel(
@@ -23,7 +22,7 @@ class CollectionsScreenViewModel(
                     .map { collection ->
                         CollectionListItem(
                             key = collection.id,
-                            name = collection.id,
+                            name = collection.name,
                             someStamps = persistentListOf(),
                         )
                     }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 
 class Stamp(
     val id: String,
+    val collectionId: String,
     val imageUri: String,
     val caption: String?,
     val takenAtLocal: LocalDateTime,
@@ -13,6 +14,7 @@ class Stamp(
         newCaption: String? = this.caption,
     ) = Stamp(
         id = id,
+        collectionId = collectionId,
         imageUri = imageUri,
         caption = newCaption,
         takenAtLocal = takenAtLocal,

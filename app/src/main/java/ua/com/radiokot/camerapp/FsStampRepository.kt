@@ -2,6 +2,7 @@ package ua.com.radiokot.camerapp
 
 import android.graphics.Bitmap
 import android.os.Build
+import androidx.core.text.isDigitsOnly
 import com.ashampoo.kim.format.webp.WebPImageParser
 import com.ashampoo.kim.format.webp.WebPWriter
 import com.ashampoo.kim.input.AndroidInputStreamByteReader
@@ -15,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -53,7 +55,17 @@ class FsStampRepository(
         val files =
             stampDirectory
                 .listFiles { file ->
-                    file.extension.lowercase() in EXTENSIONS
+                    isStamp(file) || file.isDirectory
+                }
+                ?.flatMapTo(mutableListOf()) { fileOrDirectory ->
+                    if (!fileOrDirectory.isDirectory) {
+                        return@flatMapTo listOf(fileOrDirectory)
+                    }
+
+                    fileOrDirectory
+                        .listFiles(::isStamp)
+                        ?.asList()
+                        ?: error("Can't access the directory: $fileOrDirectory")
                 }
                 ?: error("Can't access the directory: $stampDirectory")
 
@@ -78,31 +90,10 @@ class FsStampRepository(
 
     override suspend fun getStamp(
         id: String,
-    ): Stamp? = withContext(Dispatchers.IO) {
-
-        val cached =
-            sharedCacheFlow
-                .value
-                ?.find { it.id == id }
-
-        if (cached != null) {
-            return@withContext cached
-        }
-
-        val files =
-            stampDirectory
-                .listFiles { file ->
-                    file.nameWithoutExtension == id
-                            && file.extension.lowercase() in EXTENSIONS
-                }
-                ?: error("Can't access the directory: $stampDirectory")
-
-        if (files.isEmpty()) {
-            return@withContext null
-        }
-
-        return@withContext files.first().toStamp()
-    }
+    ): Stamp? =
+        getStampsFlow()
+            .first()
+            .find { it.id == id }
 
     override suspend fun addStamp(
         imageBitmap: Bitmap,
@@ -110,10 +101,13 @@ class FsStampRepository(
     ): Unit = withContext(Dispatchers.IO) {
 
         val id = System.currentTimeMillis().toString()
+        // TODO Use actual collection ID
+        val collectionId = "0"
         val takenAtLocal = LocalDateTime.now()
 
         val outputFile = getStampFile(
             id = id,
+            collectionId = collectionId,
         )
 
         val webpBytes = ByteArrayOutputStream().use { stream ->
@@ -153,6 +147,7 @@ class FsStampRepository(
             it?.add(
                 Stamp(
                     id = id,
+                    collectionId = collectionId,
                     caption = caption,
                     imageUri = outputFile.toPath().toImageUri(),
                     takenAtLocal = takenAtLocal,
@@ -169,6 +164,7 @@ class FsStampRepository(
 
         val file = getStampFile(
             id = stamp.id,
+            collectionId = stamp.collectionId,
         )
         val captionToSet =
             if (newCaption != null)
@@ -220,6 +216,7 @@ class FsStampRepository(
 
         val file = getStampFile(
             id = stamp.id,
+            collectionId = stamp.collectionId,
         )
 
         if (file.exists()) {
@@ -231,10 +228,15 @@ class FsStampRepository(
 
     private fun getStampFile(
         id: String,
+        collectionId: String,
     ) = File(
         stampDirectory,
-        "$id.$EXTENSION_WEBP"
+        "$collectionId/$id.$EXTENSION_WEBP"
     )
+
+    private fun isStamp(file: File): Boolean =
+        file.extension in EXTENSIONS
+                && file.nameWithoutExtension.isDigitsOnly()
 
     private companion object {
         private const val EXTENSION_WEBP = "webp"
@@ -264,9 +266,11 @@ private fun File.toStamp(): Stamp {
             )
             .xmp
             ?.let(XMPMetaFactory::parseFromString)
+    val parent = parentFile!!
 
     return Stamp(
         id = nameWithoutExtension,
+        collectionId = parent.name,
         imageUri = path.toImageUri(),
         caption = xmpMeta?.getTitle(),
         takenAtLocal =

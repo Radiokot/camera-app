@@ -9,7 +9,9 @@ interface StampCollectionRepository {
 
     fun getStampCollectionsFlow(): Flow<PersistentList<StampCollection>>
 
-    suspend fun addStampCollection()
+    suspend fun addStampCollection(
+        name: String,
+    )
 
     suspend fun deleteStampCollection(
         collection: StampCollection,
