@@ -4,11 +4,11 @@
         android:enabled="true"
         android:icon="@drawable/ic_dots_grid"
         android:shortcutId="stamps"
-        android:shortcutShortLabel="@string/stamps_shortcut">
+        android:shortcutShortLabel="@string/new_stamp_shortcut">
 
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="ua.com.radiokot.camerapp.StampsActivity"
+            android:targetClass="ua.com.radiokot.camerapp.cut.ui.NewStampActivity"
             android:targetPackage="ua.com.radiokot.camerapp" />
     </shortcut>
 

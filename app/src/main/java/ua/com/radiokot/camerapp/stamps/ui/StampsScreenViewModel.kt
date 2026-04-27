@@ -1,0 +1,73 @@
+package ua.com.radiokot.camerapp.stamps.ui
+
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
+import ua.com.radiokot.camerapp.stamps.domain.Stamp
+import ua.com.radiokot.camerapp.stamps.domain.StampRepository
+import ua.com.radiokot.camerapp.util.eventSharedFlow
+import ua.com.radiokot.camerapp.util.lazyLogger
+
+@Immutable
+class StampsScreenViewModel(
+    stampRepository: StampRepository,
+    parameters: Parameters,
+) : ViewModel() {
+
+    private val log by lazyLogger("StampsScreenVM")
+
+    val collectionId: String = parameters.collectionId
+    val stamps: StateFlow<ImmutableList<StampListItem>> = runBlocking {
+        stampRepository
+            .getStampsFlow()
+            .map { stamps ->
+                stamps
+                    .filter { it.collectionId == collectionId }
+                    .sortedByDescending(Stamp::takenAtLocal)
+                    .map(::StampListItem)
+                    .toPersistentList()
+            }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope)
+    }
+
+    private val _events: MutableSharedFlow<Event> = eventSharedFlow()
+    val events: SharedFlow<Event> = _events
+
+    fun onStampClicked(
+        item: StampListItem,
+    ) {
+        val stampId = item.key
+
+        log.debug {
+            "onStampClicked(): proceeding to the stamp:" +
+                    "\nstampId = $stampId"
+        }
+
+        _events.tryEmit(
+            Event.ProceedToStamp(
+                stampId = stampId,
+            )
+        )
+    }
+
+    sealed interface Event {
+        class ProceedToStamp(
+            val stampId: String,
+        ) : Event
+    }
+
+    data class Parameters(
+        val collectionId: String,
+    )
+}

@@ -1,0 +1,74 @@
+package ua.com.radiokot.camerapp.stamps
+
+import android.os.Environment
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.qualifier.named
+import org.koin.dsl.bind
+import org.koin.dsl.module
+import ua.com.radiokot.camerapp.stamps.data.FsStampCollectionRepository
+import ua.com.radiokot.camerapp.stamps.data.FsStampRepository
+import ua.com.radiokot.camerapp.stamps.domain.GetStampCollectionsWithSamplesUseCase
+import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
+import ua.com.radiokot.camerapp.stamps.domain.StampRepository
+import ua.com.radiokot.camerapp.stamps.ui.CollectionsScreenViewModel
+import ua.com.radiokot.camerapp.stamps.ui.StampScreenViewModel
+import ua.com.radiokot.camerapp.stamps.ui.StampsScreenViewModel
+import java.io.File
+
+const val DIRECTORY_STAMPS = "stamps-dir"
+
+val stampsModule = module {
+
+    single(named(DIRECTORY_STAMPS)) {
+        File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+            "Stamps"
+        ).also { dir ->
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+        }
+    }
+
+    single {
+        FsStampRepository(
+            stampDirectory = get(named(DIRECTORY_STAMPS)),
+        )
+    } bind StampRepository::class
+
+    single {
+        FsStampCollectionRepository(
+            stampDirectory = get(named(DIRECTORY_STAMPS)),
+        )
+    } bind StampCollectionRepository::class
+
+    factory {
+        GetStampCollectionsWithSamplesUseCase(
+            collectionRepository = get(),
+            stampRepository = get(),
+        )
+    }
+
+    viewModel {
+        StampsScreenViewModel(
+            stampRepository = get(),
+            parameters = getOrNull()
+                ?: error("No StampsScreenViewModel.Parameters provided"),
+        )
+    }
+
+    viewModel {
+        StampScreenViewModel(
+            parameters = getOrNull()
+                ?: error("No StampScreenViewModel.Parameters provided"),
+            stampRepository = get(),
+        )
+    }
+
+    viewModel {
+        CollectionsScreenViewModel(
+            collectionRepository = get(),
+            getStampCollectionsWithSamplesUseCase = get(),
+        )
+    }
+}

@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Camera App</string>
-    <string name="stamps_shortcut">Stamps</string>
+    <string name="new_stamp_shortcut">New stamp</string>
 </resources>
