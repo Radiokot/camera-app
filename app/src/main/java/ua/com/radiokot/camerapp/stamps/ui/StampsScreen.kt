@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -47,7 +45,6 @@ import kotlin.math.absoluteValue
 @Composable
 fun StampsScreen(
     modifier: Modifier = Modifier,
-    gridState: LazyGridState = rememberLazyGridState(),
     collectionId: String,
     collectionName: String,
     stamps: State<ImmutableList<StampListItem>>,
@@ -69,8 +66,6 @@ fun StampsScreen(
         contentPadding = WindowInsets
             .safeContent
             .asPaddingValues(),
-        state = gridState,
-        overscrollEffect = null,
         modifier = modifier
             .run {
                 if (sharedTransitionScope == null || animatedVisibilityScope == null) {

@@ -41,10 +41,9 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.transform
-import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.stamps.ui.StampCaptionInput
 import ua.com.radiokot.camerapp.stamps.ui.StampSize
-import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.ui.LeTextButton
 
 @Composable
 fun StampSaveScreen(
@@ -63,7 +62,6 @@ fun StampSaveScreen(
 ) = Box(
     contentAlignment = Alignment.Center,
     modifier = modifier
-        .paperBackground()
         .safeContentPadding()
 ) {
     Column(

@@ -5,10 +5,10 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlin.ranges.step
 
 fun Modifier.paperBackground(
     verticalOffset: (() -> Int)? = null,
+    drawBackgroundColor: Boolean = false,
 ) = drawWithCache {
 
     val backgroundColor = Color(0xfffef6eb)
@@ -17,7 +17,9 @@ fun Modifier.paperBackground(
     val gridThickness = 1.dp.toPx()
 
     onDrawWithContent {
-        drawRect(backgroundColor)
+        if (drawBackgroundColor) {
+            drawRect(backgroundColor)
+        }
 
         var startY = (0 - gridSize / 2)
         if (verticalOffset != null) {

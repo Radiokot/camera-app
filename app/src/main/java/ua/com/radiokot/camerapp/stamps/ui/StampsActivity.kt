@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package ua.com.radiokot.camerapp.stamps.ui
 
 import android.os.Bundle
@@ -10,13 +12,19 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.util.fastRoundToInt
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,7 +63,21 @@ private fun SharedTransitionScope.StampsNavHost(
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
-    val stampGridState = rememberLazyGridState()
+    val totalScrollOffsetState = remember {
+        mutableIntStateOf(0)
+    }
+    val totalScrollOffsetCounter = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                totalScrollOffsetState.intValue += consumed.y.fastRoundToInt()
+                return Offset.Zero
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -64,8 +86,9 @@ private fun SharedTransitionScope.StampsNavHost(
         exitTransition = { fadeOut() },
         modifier = modifier
             .paperBackground(
-                verticalOffset = { -stampGridState.firstVisibleItemScrollOffset }
+                verticalOffset = totalScrollOffsetState::value,
             )
+            .nestedScroll(totalScrollOffsetCounter)
     ) {
         composable(
             route = CollectionsDestination,
@@ -124,7 +147,6 @@ private fun SharedTransitionScope.StampsNavHost(
                 collectionId = viewModel.collectionId,
                 collectionName = viewModel.collectionName,
                 stamps = stamps,
-                gridState = stampGridState,
                 onStampClicked = viewModel::onStampClicked,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,

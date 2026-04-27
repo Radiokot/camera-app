@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import ua.com.radiokot.camerapp.ui.paperBackground
 
 class NewStampActivity : ComponentActivity() {
 
@@ -164,6 +165,9 @@ private fun SharedTransitionScope.StampCutNavHost(
                 onAdjustmentsControllerValueChanged =
                     imageAdjustmentsControllerViewModel::onValueChanged,
                 modifier = Modifier
+                    .paperBackground(
+                        drawBackgroundColor = true,
+                    )
                     .fillMaxSize(),
             )
 

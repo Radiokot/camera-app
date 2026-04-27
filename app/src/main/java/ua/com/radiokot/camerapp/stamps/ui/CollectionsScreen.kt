@@ -91,7 +91,6 @@ fun CollectionsScreen(
             .safeContent
             .asPaddingValues(),
         state = rememberLazyGridState(),
-        overscrollEffect = null,
         modifier = modifier
             .padding(
                 horizontal = 16.dp,
