@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
+import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
 import ua.com.radiokot.camerapp.util.eventSharedFlow
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -21,12 +22,20 @@ import ua.com.radiokot.camerapp.util.lazyLogger
 @Immutable
 class StampsScreenViewModel(
     stampRepository: StampRepository,
+    collectionRepository: StampCollectionRepository,
     parameters: Parameters,
 ) : ViewModel() {
 
     private val log by lazyLogger("StampsScreenVM")
 
-    val collectionId: String = parameters.collectionId
+    private val collection = runBlocking {
+        collectionRepository.getStampCollection(parameters.collectionId)
+            ?: error("Stamp collection ${parameters.collectionId} not found")
+    }
+    val collectionId: String =
+        collection.id
+    val collectionName: String =
+        collection.name
     val stamps: StateFlow<ImmutableList<StampListItem>> = runBlocking {
         stampRepository
             .getStampsFlow()

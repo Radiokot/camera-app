@@ -122,6 +122,7 @@ private fun SharedTransitionScope.StampsNavHost(
 
             StampsScreen(
                 collectionId = viewModel.collectionId,
+                collectionName = viewModel.collectionName,
                 stamps = stamps,
                 gridState = stampGridState,
                 onStampClicked = viewModel::onStampClicked,

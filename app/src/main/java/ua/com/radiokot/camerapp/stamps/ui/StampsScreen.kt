@@ -49,6 +49,7 @@ fun StampsScreen(
     modifier: Modifier = Modifier,
     gridState: LazyGridState = rememberLazyGridState(),
     collectionId: String,
+    collectionName: String,
     stamps: State<ImmutableList<StampListItem>>,
     onStampClicked: (StampListItem) -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
@@ -99,7 +100,7 @@ fun StampsScreen(
                     )
             ) {
                 BasicText(
-                    text = "My stamps",
+                    text = collectionName,
                     style = TextStyle(
                         fontFamily = podkovaFamily,
                         fontSize = 24.sp,
@@ -195,6 +196,7 @@ private fun StampsScreenPreview(
         modifier = Modifier
             .fillMaxSize(),
         collectionId = "",
+        collectionName = "My stamps",
         stamps = stamps.let(::mutableStateOf),
         onStampClicked = { },
         sharedTransitionScope = null,

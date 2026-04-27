@@ -59,6 +59,7 @@ val stampsModule = module {
     viewModel {
         StampsScreenViewModel(
             stampRepository = get(),
+            collectionRepository = get(),
             parameters = getOrNull()
                 ?: error("No StampsScreenViewModel.Parameters provided"),
         )

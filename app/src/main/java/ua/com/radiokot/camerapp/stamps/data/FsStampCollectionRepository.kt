@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -68,6 +69,13 @@ class FsStampCollectionRepository(
                     .filterNotNull()
                     .collect(this)
             }
+
+    override suspend fun getStampCollection(
+        collectionId: String,
+    ): StampCollection? =
+        getStampCollectionsFlow()
+            .first()
+            .find { it.id == collectionId }
 
     override suspend fun addStampCollection(
         id: String,
