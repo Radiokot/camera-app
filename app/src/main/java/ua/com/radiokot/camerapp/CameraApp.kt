@@ -3,10 +3,17 @@ package ua.com.radiokot.camerapp
 import android.app.Application
 import android.os.Environment
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import ua.com.radiokot.camerapp.cut.cutModule
 import ua.com.radiokot.camerapp.io.ioModule
+import ua.com.radiokot.camerapp.stamps.domain.EnsurePrimaryStampCollectionUseCase
 import ua.com.radiokot.camerapp.stamps.stampsModule
 import ua.com.radiokot.camerapp.util.KoinSlf4jLogger
 import java.io.File
@@ -18,6 +25,8 @@ class CameraApp : Application() {
     private val log by lazy {
         KotlinLogging.logger("App")
     }
+    private val coroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("App"))
 
     override fun onCreate() {
         super.onCreate()
@@ -33,6 +42,8 @@ class CameraApp : Application() {
                 stampsModule,
             )
         }
+
+        ensurePrimaryCollection()
     }
 
     private fun initLogging() {
@@ -86,6 +97,13 @@ class CameraApp : Application() {
         }
         log.info {
             "initLogging(): info logger enabled"
+        }
+    }
+
+    private fun ensurePrimaryCollection() {
+        coroutineScope.launch {
+            get<EnsurePrimaryStampCollectionUseCase>()
+                .invoke()
         }
     }
 }

@@ -35,12 +35,15 @@ class NewStampActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
+        val collectionId: String? = intent.getStringExtra(COLLECTION_ID_EXTRA)
+
         setContent {
             SharedTransitionLayout(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
                 StampCutNavHost(
+                    collectionId = collectionId,
                     onDidSave = ::finish,
                     modifier = Modifier
                         .fillMaxSize()
@@ -48,11 +51,26 @@ class NewStampActivity : ComponentActivity() {
             }
         }
     }
+
+    companion object {
+        private const val COLLECTION_ID_EXTRA = "collectionId"
+
+        /**
+         * @param collectionId ID of a specific collection to save the stamp into,
+         * if not specified it's saved into the primary collection.
+         */
+        fun getBundle(
+            collectionId: String?,
+        ) = Bundle().apply {
+            putString(COLLECTION_ID_EXTRA, collectionId)
+        }
+    }
 }
 
 @Composable
 private fun SharedTransitionScope.StampCutNavHost(
     modifier: Modifier = Modifier,
+    collectionId: String?,
     onDidSave: () -> Unit,
 ) {
     val navController = rememberNavController()
@@ -116,6 +134,7 @@ private fun SharedTransitionScope.StampCutNavHost(
             val viewModel: StampSaveScreenViewModel = koinViewModel {
                 parametersOf(
                     StampSaveScreenViewModel.Parameters(
+                        collectionId = collectionId,
                         stampImageBitmap =
                             stampImageBitmapToSave
                                 ?: error("Can't open the save screen without the bitmap to save")

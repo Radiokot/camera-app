@@ -16,6 +16,7 @@ interface StampRepository {
     ): Stamp?
 
     suspend fun addStamp(
+        collectionId: String,
         imageBitmap: Bitmap,
         caption: String?,
     )

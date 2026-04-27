@@ -7,6 +7,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import ua.com.radiokot.camerapp.stamps.data.FsStampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.data.FsStampRepository
+import ua.com.radiokot.camerapp.stamps.domain.EnsurePrimaryStampCollectionUseCase
 import ua.com.radiokot.camerapp.stamps.domain.GetStampCollectionsWithSamplesUseCase
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
@@ -46,6 +47,12 @@ val stampsModule = module {
         GetStampCollectionsWithSamplesUseCase(
             collectionRepository = get(),
             stampRepository = get(),
+        )
+    }
+
+    factory {
+        EnsurePrimaryStampCollectionUseCase(
+            collectionRepository = get(),
         )
     }
 

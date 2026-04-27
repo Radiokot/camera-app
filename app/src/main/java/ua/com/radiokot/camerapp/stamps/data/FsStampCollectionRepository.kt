@@ -18,11 +18,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.stamps.domain.StampCollection
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
+import ua.com.radiokot.camerapp.util.lazyLogger
 import java.io.File
 
 class FsStampCollectionRepository(
     private val stampDirectory: File,
 ) : StampCollectionRepository {
+
+    private val log by lazyLogger("FsStampCollectionRepo")
 
     init {
         require(stampDirectory.exists()) {
@@ -48,7 +51,7 @@ class FsStampCollectionRepository(
                 ?: error("Can't access the directory: $stampDirectory")
 
         return@withContext directories
-            .map(::toStampCollection)
+            .mapNotNull(::toStampCollection)
             .toPersistentList()
     }
 
@@ -67,10 +70,10 @@ class FsStampCollectionRepository(
             }
 
     override suspend fun addStampCollection(
+        id: String,
         name: String,
     ): Unit = withContext(Dispatchers.IO) {
 
-        val id = System.currentTimeMillis().toString()
         val directory = getStampCollectionDirectory(
             id = id,
         )
@@ -133,7 +136,7 @@ class FsStampCollectionRepository(
 
     private fun toStampCollection(
         directory: File,
-    ): StampCollection {
+    ): StampCollection? = runCatching {
         val detailsFile = File(directory, DETAILS_FILE_NAME)
         val xmpMeta =
             WebPImageParser
@@ -151,6 +154,13 @@ class FsStampCollectionRepository(
             name = xmpMeta?.getTitle() ?: "…",
         )
     }
+        .onFailure { error ->
+            log.warn(error) {
+                "toStampCollection(): failed creating a collection from a directory:" +
+                        "\ndirectory=$directory"
+            }
+        }
+        .getOrNull()
 
     private companion object {
         private const val DETAILS_FILE_NAME = "collection.webp"

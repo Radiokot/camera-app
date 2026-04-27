@@ -10,6 +10,7 @@ interface StampCollectionRepository {
     fun getStampCollectionsFlow(): Flow<PersistentList<StampCollection>>
 
     suspend fun addStampCollection(
+        id: String = System.currentTimeMillis().toString(),
         name: String,
     )
 

@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ua.com.radiokot.camerapp.stamps.domain.StampCollection
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
 import ua.com.radiokot.camerapp.util.eventSharedFlow
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -33,7 +34,7 @@ import kotlin.math.round
 class StampSaveScreenViewModel(
     private val stampRepository: StampRepository,
     val imageAdjustmentsControllerViewModel: ImageAdjustmentsControllerViewModel,
-    parameters: Parameters,
+    private val parameters: Parameters,
 ) : ViewModel() {
 
     private val log by lazyLogger("StampSaveScreenVM")
@@ -110,6 +111,10 @@ class StampSaveScreenViewModel(
     }
 
     private suspend fun saveStamp() = withContext(Dispatchers.IO) {
+        val collectionId =
+            parameters.collectionId
+                ?: StampCollection.PRIMARY_ID
+
         val caption =
             _captionInput
                 .value
@@ -118,10 +123,12 @@ class StampSaveScreenViewModel(
 
         log.debug {
             "saveStamp(): saving:" +
+                    "\ncollectionId=$collectionId," +
                     "\ncaption=$caption"
         }
 
         stampRepository.addStamp(
+            collectionId = collectionId,
             imageBitmap = adjustedStampImage.value.asAndroidBitmap(),
             caption = caption,
         )
@@ -196,6 +203,7 @@ class StampSaveScreenViewModel(
     }
 
     data class Parameters(
+        val collectionId: String?,
         val stampImageBitmap: Bitmap,
     )
 }

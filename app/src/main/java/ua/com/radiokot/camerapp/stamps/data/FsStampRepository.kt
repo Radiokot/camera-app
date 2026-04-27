@@ -56,18 +56,12 @@ class FsStampRepository(
 
         val files =
             stampDirectory
-                .listFiles { file ->
-                    isStamp(file) || file.isDirectory
-                }
-                ?.flatMapTo(mutableListOf()) { fileOrDirectory ->
-                    if (!fileOrDirectory.isDirectory) {
-                        return@flatMapTo listOf(fileOrDirectory)
-                    }
-
-                    fileOrDirectory
+                .listFiles(File::isDirectory)
+                ?.flatMapTo(mutableListOf()) { collectionDirectory ->
+                    collectionDirectory
                         .listFiles(::isStamp)
                         ?.asList()
-                        ?: error("Can't access the directory: $fileOrDirectory")
+                        ?: error("Can't access the directory: $collectionDirectory")
                 }
                 ?: error("Can't access the directory: $stampDirectory")
 
@@ -98,13 +92,12 @@ class FsStampRepository(
             .find { it.id == id }
 
     override suspend fun addStamp(
+        collectionId: String,
         imageBitmap: Bitmap,
         caption: String?,
     ): Unit = withContext(Dispatchers.IO) {
 
         val id = System.currentTimeMillis().toString()
-        // TODO Use actual collection ID
-        val collectionId = "0"
         val takenAtLocal = LocalDateTime.now()
 
         val outputFile = getStampFile(
