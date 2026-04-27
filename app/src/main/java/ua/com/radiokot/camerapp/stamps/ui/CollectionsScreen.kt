@@ -58,7 +58,6 @@ fun CollectionsScreen(
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) {
-    val spacedBy = Arrangement.spacedBy(24.dp)
     val collectionShape = remember {
         RoundedCornerShape(10.dp)
     }
@@ -83,8 +82,11 @@ fun CollectionsScreen(
         columns = GridCells.Adaptive(
             minSize = StampSize.width * 1.5f,
         ),
-        horizontalArrangement = spacedBy,
-        verticalArrangement = spacedBy,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(
+            space = 24.dp,
+            alignment = Alignment.CenterVertically,
+        ),
         contentPadding = WindowInsets
             .safeContent
             .asPaddingValues(),
