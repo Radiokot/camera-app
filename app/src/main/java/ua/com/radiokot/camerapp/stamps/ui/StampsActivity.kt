@@ -2,6 +2,7 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
@@ -19,8 +20,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -33,6 +37,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.skydoves.landscapist.image.LocalLandscapist
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -50,6 +55,34 @@ class StampsActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalLandscapist provides koinInject(),
             ) {
+                var isStampsScreenWarmupShown by remember {
+                    mutableStateOf(true)
+                }
+
+                // First appearance of the stamps screen is slow,
+                // there's something with the mere existence of a LazyVerticalGrid in it.
+                // Until I find the cause, making the screen appear invisible for the first time
+                // makes further appearance and animation smooth.
+                if (isStampsScreenWarmupShown) {
+                    @SuppressLint("UnrememberedMutableState")
+                    StampsScreen(
+                        collectionId = "",
+                        collectionName = "I ❤️ weird hacks",
+                        stamps = mutableStateOf(persistentListOf()),
+                        onStampClicked = {},
+                        onNewStampAction = {},
+                        sharedTransitionScope = null,
+                        animatedVisibilityScope = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(0.01f)
+                    )
+
+                    LaunchedEffect(Unit) {
+                        isStampsScreenWarmupShown = false
+                    }
+                }
+
                 SharedTransitionLayout {
                     StampsNavHost(
                         modifier = Modifier

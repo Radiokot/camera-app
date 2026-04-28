@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -36,12 +37,15 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -289,42 +293,59 @@ private fun StampSampleView(
     order: Int,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-) = LandscapistImage(
-    imageModel = { sample.imageUri.toUri() },
-    modifier = modifier
-        .size(StampSize * 0.85f)
-        .run {
-            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                return@run this
-            }
-
-            with(sharedTransitionScope) {
-                sharedElement(
-                    sharedContentState = rememberSharedContentState(sample.key),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    zIndexInOverlay = order.toFloat(),
+) {
+    // To avoid flicker when opening the stamps screen,
+    // make the library load the image in a size
+    // that matches the stamp size on the stamps screen.
+    val density = LocalDensity.current
+    val imageOptions = retain(density) {
+        with(density) {
+            ImageOptions(
+                requestSize = IntSize(
+                    width = StampSize.width.roundToPx(),
+                    height = StampSize.height.roundToPx(),
                 )
-            }
-        }
-        .rotate(
-            (possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size])
-                .toFloat()
-        )
-        .run {
-            if (sample.imageUri.isNotEmpty()) {
-                return@run this
-            }
-
-            background(fallbackColor)
-        }
-        .dropShadow(
-            shape = RectangleShape,
-            shadow = Shadow(
-                radius = 4.dp,
-                color = Color(0x7447525E),
             )
-        )
-)
+        }
+    }
+    LandscapistImage(
+        imageModel = { sample.imageUri.toUri() },
+        imageOptions = imageOptions,
+        modifier = modifier
+            .size(StampSize * 0.85f)
+            .run {
+                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                    return@run this
+                }
+
+                with(sharedTransitionScope) {
+                    sharedElement(
+                        sharedContentState = rememberSharedContentState(sample.key),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        zIndexInOverlay = order.toFloat(),
+                    )
+                }
+            }
+            .rotate(
+                (possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size])
+                    .toFloat()
+            )
+            .run {
+                if (sample.imageUri.isNotEmpty()) {
+                    return@run this
+                }
+
+                background(fallbackColor)
+            }
+            .dropShadow(
+                shape = RectangleShape,
+                shadow = Shadow(
+                    radius = 4.dp,
+                    color = Color(0x7447525E),
+                )
+            )
+    )
+}
 
 @Preview
 @Composable
