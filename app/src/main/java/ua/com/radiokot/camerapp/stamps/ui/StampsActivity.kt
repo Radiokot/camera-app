@@ -2,6 +2,7 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -24,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,6 +36,7 @@ import com.skydoves.landscapist.image.LocalLandscapist
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import ua.com.radiokot.camerapp.cut.ui.NewStampActivity
 import ua.com.radiokot.camerapp.ui.paperBackground
 
 class StampsActivity : ComponentActivity() {
@@ -148,11 +151,14 @@ private fun SharedTransitionScope.StampsNavHost(
                 collectionName = viewModel.collectionName,
                 stamps = stamps,
                 onStampClicked = viewModel::onStampClicked,
+                onNewStampAction = viewModel::onNewStampAction,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
                 modifier = Modifier
                     .fillMaxSize()
             )
+
+            val context = LocalContext.current
 
             LaunchedEffect(viewModel) {
                 viewModel.events.collect { event ->
@@ -165,6 +171,17 @@ private fun SharedTransitionScope.StampsNavHost(
                             ) {
                                 launchSingleTop = true
                             }
+                        }
+
+                        is StampsScreenViewModel.Event.ProceedToNewStamp -> {
+                            val newStampIntent =
+                                Intent(context, NewStampActivity::class.java)
+                                    .putExtras(
+                                        NewStampActivity.getBundle(
+                                            collectionId = event.collectionId,
+                                        )
+                                    )
+                            context.startActivity(newStampIntent)
                         }
                     }
                 }

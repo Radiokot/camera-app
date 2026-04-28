@@ -60,7 +60,7 @@ class StampsScreenViewModel(
 
         log.debug {
             "onStampClicked(): proceeding to the stamp:" +
-                    "\nstampId = $stampId"
+                    "\nstampId=$stampId"
         }
 
         _events.tryEmit(
@@ -70,9 +70,26 @@ class StampsScreenViewModel(
         )
     }
 
+    fun onNewStampAction() {
+        log.debug {
+            "onNewStampAction(): proceeding to new stamp:" +
+                    "\ncollectionId=$collectionId"
+        }
+
+        _events.tryEmit(
+            Event.ProceedToNewStamp(
+                collectionId = collectionId,
+            )
+        )
+    }
+
     sealed interface Event {
         class ProceedToStamp(
             val stampId: String,
+        ) : Event
+
+        class ProceedToNewStamp(
+            val collectionId: String,
         ) : Event
     }
 
