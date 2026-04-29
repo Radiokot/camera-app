@@ -72,7 +72,7 @@ class StampsScreenViewModel(
 
     fun onNewStampAction() {
         log.debug {
-            "onNewStampAction(): proceeding to new stamp:" +
+            "onNewStampAction(): proceeding to new stamp creation:" +
                     "\ncollectionId=$collectionId"
         }
 

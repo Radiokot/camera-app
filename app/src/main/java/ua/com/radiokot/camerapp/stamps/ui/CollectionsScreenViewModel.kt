@@ -80,9 +80,19 @@ class CollectionsScreenViewModel(
         )
     }
 
+    fun onNewStampAction() {
+        log.debug {
+            "onNewStampAction(): proceeding to new stamp creation"
+        }
+
+        _events.tryEmit(Event.ProceedToNewStamp)
+    }
+
     sealed interface Event {
         class ProceedToCollection(
             val collectionId: String,
         ) : Event
+
+        object ProceedToNewStamp : Event
     }
 }

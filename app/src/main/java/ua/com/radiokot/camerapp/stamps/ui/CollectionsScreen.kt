@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -50,8 +51,10 @@ import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.ui.podkovaFamily
+import ua.com.radiokot.camerapp.util.plus
 import kotlin.math.absoluteValue
 
 @Composable
@@ -59,8 +62,11 @@ fun CollectionsScreen(
     modifier: Modifier = Modifier,
     itemsState: State<ImmutableList<CollectionListItem>>,
     onItemClicked: (CollectionListItem) -> Unit,
+    onNewStampAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+) = Box(
+    modifier = modifier
 ) {
     val collectionShape = remember {
         RoundedCornerShape(10.dp)
@@ -81,6 +87,14 @@ fun CollectionsScreen(
     val rightSampleRotationAngles = remember {
         intArrayOf(6, 5, 4)
     }
+    val safeContentPadding =
+        WindowInsets.safeContent.asPaddingValues()
+    val contentPadding =
+        safeContentPadding +
+                PaddingValues(
+                    // Button height and spacing.
+                    bottom = 120.dp,
+                )
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(
@@ -91,11 +105,10 @@ fun CollectionsScreen(
             space = 24.dp,
             alignment = Alignment.CenterVertically,
         ),
-        contentPadding = WindowInsets
-            .safeContent
-            .asPaddingValues(),
+        contentPadding = contentPadding,
         state = rememberLazyGridState(),
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxSize()
             .padding(
                 horizontal = 16.dp,
             )
@@ -282,6 +295,29 @@ fun CollectionsScreen(
             }
         }
     }
+
+    LeTextButton(
+        text = "New Stamp",
+        onClick = onNewStampAction,
+        modifier = Modifier
+            .padding(safeContentPadding)
+            .padding(24.dp)
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .run {
+                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                    return@run this
+                }
+
+                with(sharedTransitionScope) {
+                    sharedElement(
+                        sharedContentState = rememberSharedContentState("new-stamp-button"),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        zIndexInOverlay = 30f,
+                    )
+                }
+            }
+    )
 }
 
 @Composable
@@ -398,6 +434,7 @@ private fun CollectionsScreenPreview() {
     CollectionsScreen(
         itemsState = items.let(::mutableStateOf),
         onItemClicked = {},
+        onNewStampAction = {},
         sharedTransitionScope = null,
         animatedVisibilityScope = null,
         modifier = Modifier

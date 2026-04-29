@@ -114,6 +114,18 @@ private fun SharedTransitionScope.StampsNavHost(
             }
         }
     }
+    val context = LocalContext.current
+
+    fun proceedToNewStamp(collectionId: String?) {
+        val newStampIntent =
+            Intent(context, NewStampActivity::class.java)
+                .putExtras(
+                    NewStampActivity.getBundle(
+                        collectionId = collectionId,
+                    )
+                )
+        context.startActivity(newStampIntent)
+    }
 
     NavHost(
         navController = navController,
@@ -135,6 +147,7 @@ private fun SharedTransitionScope.StampsNavHost(
             CollectionsScreen(
                 itemsState = items,
                 onItemClicked = viewModel::onItemClicked,
+                onNewStampAction = viewModel::onNewStampAction,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
                 modifier = Modifier
@@ -152,6 +165,12 @@ private fun SharedTransitionScope.StampsNavHost(
                             ) {
                                 launchSingleTop = true
                             }
+                        }
+
+                        is CollectionsScreenViewModel.Event.ProceedToNewStamp -> {
+                            proceedToNewStamp(
+                                collectionId = null,
+                            )
                         }
                     }
                 }
@@ -207,14 +226,9 @@ private fun SharedTransitionScope.StampsNavHost(
                         }
 
                         is StampsScreenViewModel.Event.ProceedToNewStamp -> {
-                            val newStampIntent =
-                                Intent(context, NewStampActivity::class.java)
-                                    .putExtras(
-                                        NewStampActivity.getBundle(
-                                            collectionId = event.collectionId,
-                                        )
-                                    )
-                            context.startActivity(newStampIntent)
+                            proceedToNewStamp(
+                                collectionId = event.collectionId,
+                            )
                         }
                     }
                 }

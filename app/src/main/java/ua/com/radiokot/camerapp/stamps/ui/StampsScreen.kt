@@ -209,6 +209,19 @@ fun StampsScreen(
             .padding(24.dp)
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
+            .run {
+                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                    return@run this
+                }
+
+                with(sharedTransitionScope) {
+                    sharedElement(
+                        sharedContentState = rememberSharedContentState("new-stamp-button"),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        zIndexInOverlay = 30f,
+                    )
+                }
+            }
     )
 }
 
