@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.graphics.drawable.toDrawable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +32,7 @@ import ua.com.radiokot.camerapp.ui.paperBackground
 class NewStampActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.setBackgroundDrawable(android.graphics.Color.BLACK.toDrawable())
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0),
         )
