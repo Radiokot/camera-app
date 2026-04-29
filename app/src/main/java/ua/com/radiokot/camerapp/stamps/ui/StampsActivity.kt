@@ -148,6 +148,7 @@ private fun SharedTransitionScope.StampsNavHost(
                 itemsState = items,
                 onItemClicked = viewModel::onItemClicked,
                 onNewStampAction = viewModel::onNewStampAction,
+                onNewCollectionAction = viewModel::onNewCollectionAction,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
                 modifier = Modifier
@@ -209,8 +210,6 @@ private fun SharedTransitionScope.StampsNavHost(
                 modifier = Modifier
                     .fillMaxSize()
             )
-
-            val context = LocalContext.current
 
             LaunchedEffect(viewModel) {
                 viewModel.events.collect { event ->

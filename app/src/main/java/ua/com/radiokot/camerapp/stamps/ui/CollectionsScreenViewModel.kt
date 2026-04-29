@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ua.com.radiokot.camerapp.stamps.domain.GetStampCollectionsWithSamplesUseCase
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
@@ -86,6 +88,42 @@ class CollectionsScreenViewModel(
         }
 
         _events.tryEmit(Event.ProceedToNewStamp)
+    }
+
+    private var addCollectionJob: Job? = null
+    fun onNewCollectionAction() {
+        if (addCollectionJob?.isActive == true) {
+            return
+        }
+
+        addCollectionJob = viewModelScope.launch {
+            addCollection()
+        }
+    }
+
+    private suspend fun addCollection() {
+        log.debug {
+            "addCollection(): adding new collection"
+        }
+
+        val addedCollectionId =
+            collectionRepository.addStampCollection(
+                name = "New Collection",
+            )
+
+        log.debug {
+            "addCollection(): proceeding to the newly added collection:" +
+                    "\naddedCollectionId=$addedCollectionId"
+        }
+        log.info {
+            "Added a collection $addedCollectionId"
+        }
+
+        _events.emit(
+            Event.ProceedToCollection(
+                collectionId = addedCollectionId,
+            )
+        )
     }
 
     sealed interface Event {

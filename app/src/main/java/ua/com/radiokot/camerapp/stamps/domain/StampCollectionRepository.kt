@@ -13,10 +13,13 @@ interface StampCollectionRepository {
         collectionId: String,
     ): StampCollection?
 
+    /**
+     * @return added collection ID
+     */
     suspend fun addStampCollection(
         id: String = System.currentTimeMillis().toString(),
         name: String,
-    )
+    ): String
 
     suspend fun deleteStampCollection(
         collection: StampCollection,

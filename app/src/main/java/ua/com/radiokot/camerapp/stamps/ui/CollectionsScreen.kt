@@ -27,18 +27,30 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,6 +75,7 @@ fun CollectionsScreen(
     itemsState: State<ImmutableList<CollectionListItem>>,
     onItemClicked: (CollectionListItem) -> Unit,
     onNewStampAction: () -> Unit,
+    onNewCollectionAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = Box(
@@ -78,14 +91,12 @@ fun CollectionsScreen(
             textAlign = TextAlign.Center,
         )
     }
-    val centerSampleRotationAngles = remember {
-        intArrayOf(3, 2, -2, -3)
-    }
-    val leftSampleRotationAngles = remember {
-        intArrayOf(-4, -5, -6)
-    }
-    val rightSampleRotationAngles = remember {
-        intArrayOf(6, 5, 4)
+    val sampleRotationAngles = retain {
+        SampleRotationAngles(
+            center = intArrayOf(3, 2, -2, -3),
+            left = intArrayOf(-4, -5, -6),
+            right = intArrayOf(6, 5, 4),
+        )
     }
     val safeContentPadding =
         WindowInsets.safeContent.asPaddingValues()
@@ -100,9 +111,12 @@ fun CollectionsScreen(
         columns = GridCells.Adaptive(
             minSize = StampSize.width * 1.5f,
         ),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(
+            space = 16.dp,
+            alignment = Alignment.CenterHorizontally,
+        ),
         verticalArrangement = Arrangement.spacedBy(
-            space = 24.dp,
+            space = 16.dp,
             alignment = Alignment.CenterVertically,
         ),
         contentPadding = contentPadding,
@@ -117,182 +131,25 @@ fun CollectionsScreen(
             items = itemsState.value,
             key = CollectionListItem::key,
         ) { item ->
+            CollectionView(
+                item = item,
+                onClicked = onItemClicked,
+                nameStyle = nameStyle,
+                shape = collectionShape,
+                rotationAngles = sampleRotationAngles,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+            )
+        }
 
-            Box(
-                modifier = Modifier
-                    .height(StampSize.height)
-                    .clickable(
-                        onClick = {
-                            onItemClicked(item)
-                        },
-                    )
-            ) {
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(StampSize.height * 0.7f)
-                        .background(
-                            color = Color(0xFFCBC4BB),
-                            shape = collectionShape,
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = Color(0xFF6B624B),
-                            shape = collectionShape,
-                        )
-                        .align(Alignment.BottomCenter)
-                )
-
-                when (item.someStamps.size) {
-                    1 -> {
-                        StampSampleView(
-                            sample = item.someStamps[0],
-                            order = 0,
-                            possibleRotationAngles = centerSampleRotationAngles,
-                            fallbackColor = Color.Yellow,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    y = -(8.dp),
-                                )
-                        )
-                    }
-
-                    2 -> {
-                        StampSampleView(
-                            sample = item.someStamps[1],
-                            order = 0,
-                            possibleRotationAngles = rightSampleRotationAngles,
-                            fallbackColor = Color.Red,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    x = StampSize.width * 0.2f,
-                                    y = -(8.dp),
-                                )
-                        )
-                        StampSampleView(
-                            sample = item.someStamps[0],
-                            order = 1,
-                            possibleRotationAngles = leftSampleRotationAngles,
-                            fallbackColor = Color.Yellow,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    x = -StampSize.width * 0.2f,
-                                    y = -(4.dp),
-                                )
-                        )
-                    }
-
-                    3 -> {
-                        StampSampleView(
-                            sample = item.someStamps[2],
-                            order = 0,
-                            possibleRotationAngles = rightSampleRotationAngles,
-                            fallbackColor = Color.Yellow,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    x = StampSize.width * 0.25f,
-                                    y = -(2.dp),
-                                )
-                        )
-                        StampSampleView(
-                            sample = item.someStamps[1],
-                            order = 1,
-                            possibleRotationAngles = centerSampleRotationAngles,
-                            fallbackColor = Color.Red,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    y = -(4.dp),
-                                )
-                        )
-                        StampSampleView(
-                            sample = item.someStamps[0],
-                            order = 2,
-                            possibleRotationAngles = leftSampleRotationAngles,
-                            fallbackColor = Color.Magenta,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(
-                                    x = -StampSize.width * 0.25f,
-                                    y = -(8.dp),
-                                )
-                        )
-                    }
-                }
-
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(StampSize.height * 0.5f)
-                        .align(Alignment.BottomCenter)
-                        .run {
-                            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                                return@run this
-                            }
-
-                            with(sharedTransitionScope) {
-                                sharedBounds(
-                                    sharedContentState = rememberSharedContentState(item.key),
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                        alignment = Alignment.TopCenter,
-                                    ),
-                                    exit = fadeOut(
-                                        animationSpec = snap(),
-                                    ),
-                                    zIndexInOverlay = 10f,
-                                )
-                            }
-                        }
-                        .background(
-                            color = Color(0xFFFFF9EB),
-                            shape = collectionShape,
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = Color(0xFF6B624B),
-                            shape = collectionShape,
-                        )
-                        .padding(8.dp)
-                ) {
-                    BasicText(
-                        text = item.name,
-                        style = nameStyle,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .run {
-                                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                                    return@run this
-                                }
-
-                                with(sharedTransitionScope) {
-                                    sharedElement(
-                                        sharedContentState = rememberSharedContentState("${item.key}-name"),
-                                        animatedVisibilityScope = animatedVisibilityScope,
-                                        zIndexInOverlay = 20f,
-                                    )
-                                }
-                            }
-                    )
-                }
-            }
+        item(
+            key = "new-collection-button"
+        ) {
+            NewCollectionView(
+                onClicked = onNewCollectionAction,
+                textStyle = nameStyle,
+                shape = collectionShape,
+            )
         }
     }
 
@@ -318,6 +175,298 @@ fun CollectionsScreen(
                 }
             }
     )
+}
+
+@Immutable
+private class SampleRotationAngles(
+    val center: IntArray,
+    val left: IntArray,
+    val right: IntArray,
+)
+
+@Composable
+private fun CollectionView(
+    modifier: Modifier = Modifier,
+    item: CollectionListItem,
+    onClicked: (CollectionListItem) -> Unit,
+    nameStyle: TextStyle,
+    shape: Shape,
+    rotationAngles: SampleRotationAngles,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+) = Box(
+    modifier = modifier
+        .height(StampSize.height)
+        .clickable(
+            onClick = {
+                onClicked(item)
+            },
+        )
+) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(StampSize.height * 0.7f)
+            .background(
+                color = Color(0xFFCBC4BB),
+                shape = shape,
+            )
+            .border(
+                width = 2.dp,
+                color = Color(0xFF6B624B),
+                shape = shape,
+            )
+            .align(Alignment.BottomCenter)
+    )
+
+    when (item.someStamps.size) {
+        1 -> {
+            StampSampleView(
+                sample = item.someStamps[0],
+                order = 0,
+                possibleRotationAngles = rotationAngles.center,
+                fallbackColor = Color.Yellow,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(
+                        y = -(8.dp),
+                    )
+            )
+        }
+
+        2 -> {
+            StampSampleView(
+                sample = item.someStamps[1],
+                order = 0,
+                possibleRotationAngles = rotationAngles.right,
+                fallbackColor = Color.Red,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(
+                        x = StampSize.width * 0.2f,
+                        y = -(8.dp),
+                    )
+            )
+            StampSampleView(
+                sample = item.someStamps[0],
+                order = 1,
+                possibleRotationAngles = rotationAngles.left,
+                fallbackColor = Color.Yellow,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(
+                        x = -StampSize.width * 0.2f,
+                        y = -(4.dp),
+                    )
+            )
+        }
+
+        3 -> {
+            StampSampleView(
+                sample = item.someStamps[2],
+                order = 0,
+                possibleRotationAngles = rotationAngles.right,
+                fallbackColor = Color.Yellow,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(
+                        x = StampSize.width * 0.25f,
+                        y = -(2.dp),
+                    )
+            )
+            StampSampleView(
+                sample = item.someStamps[1],
+                order = 1,
+                possibleRotationAngles = rotationAngles.center,
+                fallbackColor = Color.Red,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(
+                        y = -(4.dp),
+                    )
+            )
+            StampSampleView(
+                sample = item.someStamps[0],
+                order = 2,
+                possibleRotationAngles = rotationAngles.left,
+                fallbackColor = Color.Magenta,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(
+                        x = -StampSize.width * 0.25f,
+                        y = -(8.dp),
+                    )
+            )
+        }
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(StampSize.height * 0.5f)
+            .align(Alignment.BottomCenter)
+            .run {
+                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                    return@run this
+                }
+
+                with(sharedTransitionScope) {
+                    sharedBounds(
+                        sharedContentState = rememberSharedContentState(item.key),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
+                            alignment = Alignment.TopCenter,
+                        ),
+                        exit = fadeOut(
+                            animationSpec = snap(),
+                        ),
+                        zIndexInOverlay = 10f,
+                    )
+                }
+            }
+            .background(
+                color = Color(0xFFFFF9EB),
+                shape = shape,
+            )
+            .border(
+                width = 2.dp,
+                color = Color(0xFF6B624B),
+                shape = shape,
+            )
+            .padding(8.dp)
+    ) {
+        BasicText(
+            text = item.name,
+            style = nameStyle,
+            modifier = Modifier
+                .fillMaxWidth()
+                .run {
+                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                        return@run this
+                    }
+
+                    with(sharedTransitionScope) {
+                        sharedElement(
+                            sharedContentState = rememberSharedContentState("${item.key}-name"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            zIndexInOverlay = 20f,
+                        )
+                    }
+                }
+        )
+    }
+}
+
+@Composable
+private fun NewCollectionView(
+    modifier: Modifier = Modifier,
+    onClicked: () -> Unit,
+    textStyle: TextStyle,
+    shape: Shape,
+) = Box(
+    modifier = modifier
+        .height(StampSize.height)
+        .clickable(
+            onClick = {
+                onClicked()
+            },
+        ),
+    contentAlignment = Alignment.Center,
+) {
+    val layoutDirection = LocalLayoutDirection.current
+
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(StampSize.height * 0.7f)
+            .drawWithCache {
+                val backOutline = shape.createOutline(
+                    size = this.size,
+                    layoutDirection = layoutDirection,
+                    density = this,
+                )
+                val frontBackgroundColor = Color(0xFFFFF9EB)
+                val strokeColor = Color(0xFF6B624B)
+                val strokeInterval = StampSize.width.toPx() * 0.08f
+                val dashStrokeStyle = Stroke(
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round,
+                    width = 2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(
+                        intervals = floatArrayOf(strokeInterval, strokeInterval)
+                    )
+                )
+                val frontOutline = shape.createOutline(
+                    size = Size(
+                        width = this.size.width + 1f,
+                        height = StampSize.height.toPx() * 0.5f,
+                    ),
+                    layoutDirection = layoutDirection,
+                    density = this,
+                )
+                val plainStrokeStyle = Stroke(
+                    width = dashStrokeStyle.width,
+                )
+
+                onDrawBehind {
+                    drawOutline(
+                        outline = backOutline,
+                        color = strokeColor,
+                        style = dashStrokeStyle,
+                    )
+                    translate(
+                        left = -1f,
+                        top = backOutline.bounds.height - frontOutline.bounds.height + 1f,
+                    ) {
+                        drawOutline(
+                            outline = frontOutline,
+                            color = frontBackgroundColor,
+                            style = Fill,
+                        )
+                        drawOutline(
+                            outline = frontOutline,
+                            color = frontBackgroundColor,
+                            style = plainStrokeStyle,
+                        )
+                        drawOutline(
+                            outline = frontOutline,
+                            color = strokeColor,
+                            style = dashStrokeStyle,
+                        )
+                    }
+                }
+            }
+            .align(Alignment.BottomCenter)
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(StampSize.height * 0.5f)
+            .align(Alignment.BottomCenter)
+            .padding(8.dp)
+    ) {
+        BasicText(
+            text = "New Collection",
+            style = textStyle,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
 }
 
 @Composable
@@ -435,6 +584,7 @@ private fun CollectionsScreenPreview() {
         itemsState = items.let(::mutableStateOf),
         onItemClicked = {},
         onNewStampAction = {},
+        onNewCollectionAction = {},
         sharedTransitionScope = null,
         animatedVisibilityScope = null,
         modifier = Modifier

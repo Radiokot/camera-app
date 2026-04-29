@@ -80,7 +80,7 @@ class FsStampCollectionRepository(
     override suspend fun addStampCollection(
         id: String,
         name: String,
-    ): Unit = withContext(Dispatchers.IO) {
+    ): String = withContext(Dispatchers.IO) {
 
         val directory = getStampCollectionDirectory(
             id = id,
@@ -118,6 +118,8 @@ class FsStampCollectionRepository(
                 )
             )
         }
+
+        return@withContext id
     }
 
     override suspend fun deleteStampCollection(
