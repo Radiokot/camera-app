@@ -11,6 +11,7 @@ import ua.com.radiokot.camerapp.stamps.domain.EnsurePrimaryStampCollectionUseCas
 import ua.com.radiokot.camerapp.stamps.domain.GetStampCollectionsWithSamplesUseCase
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
+import ua.com.radiokot.camerapp.stamps.ui.CollectionActionsScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.CollectionsScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.StampScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.StampsScreenViewModel
@@ -60,16 +61,18 @@ val stampsModule = module {
         StampsScreenViewModel(
             stampRepository = get(),
             collectionRepository = get(),
-            parameters = getOrNull()
-                ?: error("No StampsScreenViewModel.Parameters provided"),
+            parameters =
+                getOrNull()
+                    ?: error("No StampsScreenViewModel.Parameters provided"),
         )
     }
 
     viewModel {
         StampScreenViewModel(
-            parameters = getOrNull()
-                ?: error("No StampScreenViewModel.Parameters provided"),
             stampRepository = get(),
+            parameters =
+                getOrNull()
+                    ?: error("No StampScreenViewModel.Parameters provided"),
         )
     }
 
@@ -77,6 +80,15 @@ val stampsModule = module {
         CollectionsScreenViewModel(
             collectionRepository = get(),
             getStampCollectionsWithSamplesUseCase = get(),
+        )
+    }
+
+    viewModel {
+        CollectionActionsScreenViewModel(
+            getStampCollectionsWithSamplesUseCase = get(),
+            parameters =
+                getOrNull()
+                    ?: error("No CollectionActionsScreenViewModel.Parameters provided"),
         )
     }
 }

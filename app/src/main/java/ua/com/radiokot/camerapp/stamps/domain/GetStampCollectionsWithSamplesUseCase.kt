@@ -12,9 +12,17 @@ class GetStampCollectionsWithSamplesUseCase(
     private val collectionRepository: StampCollectionRepository,
     private val stampRepository: StampRepository,
 ) {
-    operator fun invoke(): Flow<List<StampCollectionWithSamples>> =
+    operator fun invoke(
+        singleCollectionId: String? = null,
+    ): Flow<List<StampCollectionWithSamples>> =
         collectionRepository
             .getStampCollectionsFlow()
+            .map { collections ->
+                if (singleCollectionId != null)
+                    collections.filter { it.id == singleCollectionId }
+                else
+                    collections
+            }
             .flatMapLatest { collections ->
                 stampRepository
                     .getStampsFlow()

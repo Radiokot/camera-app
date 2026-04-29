@@ -194,9 +194,11 @@ fun StampsScreen(
                             )
                         )
                         .clickable(
+                            indication = null,
+                            interactionSource = null,
                             onClick = {
                                 onStampClicked(stamp)
-                            }
+                            },
                         )
                 )
             }

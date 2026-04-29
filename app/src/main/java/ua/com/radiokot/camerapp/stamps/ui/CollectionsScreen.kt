@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,6 +75,7 @@ fun CollectionsScreen(
     modifier: Modifier = Modifier,
     itemsState: State<ImmutableList<CollectionListItem>>,
     onItemClicked: (CollectionListItem) -> Unit,
+    onItemLongClicked: (CollectionListItem) -> Unit,
     onNewStampAction: () -> Unit,
     onNewCollectionAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
@@ -134,6 +136,7 @@ fun CollectionsScreen(
             CollectionView(
                 item = item,
                 onClicked = onItemClicked,
+                onLongClicked = onItemLongClicked,
                 nameStyle = nameStyle,
                 shape = collectionShape,
                 rotationAngles = sampleRotationAngles,
@@ -189,6 +192,7 @@ private fun CollectionView(
     modifier: Modifier = Modifier,
     item: CollectionListItem,
     onClicked: (CollectionListItem) -> Unit,
+    onLongClicked: (CollectionListItem) -> Unit,
     nameStyle: TextStyle,
     shape: Shape,
     rotationAngles: SampleRotationAngles,
@@ -197,9 +201,14 @@ private fun CollectionView(
 ) = Box(
     modifier = modifier
         .height(StampSize.height)
-        .clickable(
+        .combinedClickable(
+            indication = null,
+            interactionSource = null,
             onClick = {
                 onClicked(item)
+            },
+            onLongClick = {
+                onLongClicked(item)
             },
         )
 ) {
@@ -584,6 +593,7 @@ private fun CollectionsScreenPreview() {
         itemsState = items.let(::mutableStateOf),
         onItemClicked = {},
         onNewStampAction = {},
+        onItemLongClicked = {},
         onNewCollectionAction = {},
         sharedTransitionScope = null,
         animatedVisibilityScope = null,

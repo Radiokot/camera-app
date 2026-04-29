@@ -150,6 +150,7 @@ private fun SharedTransitionScope.StampsNavHost(
             CollectionsScreen(
                 itemsState = items,
                 onItemClicked = viewModel::onItemClicked,
+                onItemLongClicked = viewModel::onItemLongClicked,
                 onNewStampAction = viewModel::onNewStampAction,
                 onNewCollectionAction = viewModel::onNewCollectionAction,
                 sharedTransitionScope = this@StampsNavHost,
@@ -172,6 +173,16 @@ private fun SharedTransitionScope.StampsNavHost(
                             }
                         }
 
+                        is CollectionsScreenViewModel.Event.ProceedToCollectionActions -> {
+                            navController.navigate(
+                                route = CollectionActionsDestination(
+                                    collectionId = event.collectionId,
+                                )
+                            ) {
+                                launchSingleTop = true
+                            }
+                        }
+
                         is CollectionsScreenViewModel.Event.ProceedToNewStamp -> {
                             proceedToNewStamp(
                                 collectionId = null,
@@ -180,6 +191,35 @@ private fun SharedTransitionScope.StampsNavHost(
                     }
                 }
             }
+        }
+
+        composable(
+            route = CollectionActionsDestination,
+            arguments = listOf(
+                navArgument(CollectionDestinationCollectionId) {
+                    type = NavType.StringType
+                },
+            ),
+        ) { navEntry ->
+            val viewModel: CollectionActionsScreenViewModel = koinViewModel {
+                parametersOf(
+                    CollectionActionsScreenViewModel.Parameters(
+                        collectionId =
+                            navEntry
+                                .arguments
+                                ?.getString(CollectionDestinationCollectionId)
+                                ?: error("No ID argument passed"),
+                    )
+                )
+            }
+
+            CollectionActionsScreen(
+                collection = viewModel.collection,
+                sharedTransitionScope = this@StampsNavHost,
+                animatedVisibilityScope = this@composable,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
         }
 
         composable(
@@ -314,6 +354,13 @@ private fun CollectionDestination(
     focusNameInput: Boolean,
 ) = "$CollectionsDestination/$collectionId" +
         "?$CollectionDestinationFocusNameInput=$focusNameInput"
+
+private const val CollectionActionsDestination =
+    "$CollectionsDestination/{$CollectionDestinationCollectionId}/actions"
+
+private fun CollectionActionsDestination(
+    collectionId: String,
+) = "$CollectionsDestination/$collectionId/actions"
 
 private const val StampsDestination = "stamps"
 private const val StampDestinationStampId = "stampId"

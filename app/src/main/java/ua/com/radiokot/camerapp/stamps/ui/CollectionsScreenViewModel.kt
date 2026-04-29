@@ -44,21 +44,7 @@ class CollectionsScreenViewModel(
             .map { collectionsWithSamples ->
                 collectionsWithSamples
                     .sortedWith(comparator)
-                    .map { (collection, samples) ->
-                        CollectionListItem(
-                            name = collection.name,
-                            someStamps =
-                                samples
-                                    .map { stamp ->
-                                        CollectionListItem.StampSampleItem(
-                                            imageUri = stamp.imageUri,
-                                            key = stamp.id,
-                                        )
-                                    }
-                                    .toPersistentList(),
-                            key = collection.id,
-                        )
-                    }
+                    .map(::CollectionListItem)
                     .toPersistentList()
             }
             .flowOn(Dispatchers.Default)
@@ -79,6 +65,23 @@ class CollectionsScreenViewModel(
             Event.ProceedToCollection(
                 collectionId = collectionId,
                 focusNameInput = false,
+            )
+        )
+    }
+
+    fun onItemLongClicked(
+        item: CollectionListItem,
+    ) {
+        val collectionId = item.key
+
+        log.debug {
+            "onItemLongClicked(): proceeding to collection actions:" +
+                    "\ncollectionId = $collectionId"
+        }
+
+        _events.tryEmit(
+            Event.ProceedToCollectionActions(
+                collectionId = collectionId,
             )
         )
     }
@@ -132,6 +135,10 @@ class CollectionsScreenViewModel(
         class ProceedToCollection(
             val collectionId: String,
             val focusNameInput: Boolean,
+        ) : Event
+
+        class ProceedToCollectionActions(
+            val collectionId: String,
         ) : Event
 
         object ProceedToNewStamp : Event
