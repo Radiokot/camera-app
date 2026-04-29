@@ -33,10 +33,11 @@ import androidx.compose.ui.unit.sp
 import ua.com.radiokot.camerapp.ui.podkovaFamily
 
 @Composable
-fun StampCaptionInput(
+fun CaptionInput(
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester = remember(::FocusRequester),
     isEnabled: Boolean = true,
+    hint: String = "A caption",
     inputState: State<String?>,
     onInputChanged: (String) -> Unit,
 ) = Box(
@@ -66,7 +67,7 @@ fun StampCaptionInput(
 
     if (isCaptionHintVisible) {
         BasicText(
-            text = "A caption",
+            text = hint,
             style = hintStyle,
             modifier = Modifier
                 .clickable(
@@ -103,19 +104,19 @@ fun StampCaptionInput(
 
 @Preview
 @Composable
-private fun StampCaptionInputPreview() {
+private fun CaptionInputPreview() {
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp)
     ) {
-        StampCaptionInput(
+        CaptionInput(
             inputState = "".let(::mutableStateOf),
             onInputChanged = {}
         )
 
-        StampCaptionInput(
+        CaptionInput(
             inputState = "My stamp".let(::mutableStateOf),
             onInputChanged = {}
         )

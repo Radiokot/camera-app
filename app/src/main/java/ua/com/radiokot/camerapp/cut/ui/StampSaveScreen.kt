@@ -41,7 +41,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.transform
-import ua.com.radiokot.camerapp.stamps.ui.StampCaptionInput
+import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
 import ua.com.radiokot.camerapp.stamps.ui.StampSize
 import ua.com.radiokot.camerapp.ui.LeTextButton
 
@@ -70,7 +70,7 @@ fun StampSaveScreen(
             .fillMaxWidth()
             .zIndex(10f)
     ) {
-        StampCaptionInput(
+        CaptionInput(
             inputState = captionInputState,
             onInputChanged = onCaptionInputChanged,
             modifier = Modifier

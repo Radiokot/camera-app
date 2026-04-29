@@ -21,8 +21,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,23 +30,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.ui.LeTextButton
-import ua.com.radiokot.camerapp.ui.podkovaFamily
 import ua.com.radiokot.camerapp.util.plus
 import kotlin.math.absoluteValue
 
@@ -54,7 +51,9 @@ import kotlin.math.absoluteValue
 fun StampsScreen(
     modifier: Modifier = Modifier,
     collectionId: String,
-    collectionName: String,
+    collectionNameInputState: State<String>,
+    onCollectionNameInputChanged: (String) -> Unit,
+    focusCollectionNameInput: Boolean,
     stamps: State<ImmutableList<StampListItem>>,
     onStampClicked: (StampListItem) -> Unit,
     onNewStampAction: () -> Unit,
@@ -89,6 +88,12 @@ fun StampsScreen(
                     // Button height and spacing.
                     bottom = 120.dp,
                 )
+    val nameInputFocusRequester = remember(::FocusRequester)
+    if (focusCollectionNameInput) {
+        LaunchedEffect(Unit) {
+            nameInputFocusRequester.requestFocus()
+        }
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(
@@ -112,13 +117,11 @@ fun StampsScreen(
                         vertical = 24.dp,
                     )
             ) {
-                BasicText(
-                    text = collectionName,
-                    style = TextStyle(
-                        fontFamily = podkovaFamily,
-                        fontSize = 24.sp,
-                        textAlign = TextAlign.Center,
-                    ),
+                CaptionInput(
+                    hint = "A name",
+                    focusRequester = nameInputFocusRequester,
+                    inputState = collectionNameInputState,
+                    onInputChanged = onCollectionNameInputChanged,
                     modifier = Modifier
                         .fillMaxWidth()
                         .run {
@@ -243,7 +246,9 @@ private fun StampsScreenPreview(
         modifier = Modifier
             .fillMaxSize(),
         collectionId = "",
-        collectionName = "My stamps",
+        collectionNameInputState = "My stamps".let(::mutableStateOf),
+        onCollectionNameInputChanged = { },
+        focusCollectionNameInput = false,
         stamps = stamps.let(::mutableStateOf),
         onStampClicked = { },
         onNewStampAction = { },

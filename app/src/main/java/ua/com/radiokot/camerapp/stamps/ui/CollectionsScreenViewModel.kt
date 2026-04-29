@@ -78,6 +78,7 @@ class CollectionsScreenViewModel(
         _events.tryEmit(
             Event.ProceedToCollection(
                 collectionId = collectionId,
+                focusNameInput = false,
             )
         )
     }
@@ -122,6 +123,7 @@ class CollectionsScreenViewModel(
         _events.emit(
             Event.ProceedToCollection(
                 collectionId = addedCollectionId,
+                focusNameInput = true,
             )
         )
     }
@@ -129,6 +131,7 @@ class CollectionsScreenViewModel(
     sealed interface Event {
         class ProceedToCollection(
             val collectionId: String,
+            val focusNameInput: Boolean,
         ) : Event
 
         object ProceedToNewStamp : Event

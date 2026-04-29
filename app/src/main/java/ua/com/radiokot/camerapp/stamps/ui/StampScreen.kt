@@ -183,7 +183,7 @@ fun StampScreen(
                 translationY = allCenterVerticalOffset.value.toPx()
             }
     ) {
-        StampCaptionInput(
+        CaptionInput(
             isEnabled = isCaptionInputEnabled,
             inputState = captionState,
             onInputChanged = onCaptionInputChanged,

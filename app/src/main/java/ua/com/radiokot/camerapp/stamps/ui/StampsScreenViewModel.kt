@@ -7,6 +7,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
@@ -34,8 +35,9 @@ class StampsScreenViewModel(
     }
     val collectionId: String =
         collection.id
-    val collectionName: String =
-        collection.name
+    private val _collectionNameInput: MutableStateFlow<String> =
+        MutableStateFlow(collection.name)
+    val collectionNameInput: StateFlow<String> = _collectionNameInput
     val stamps: StateFlow<ImmutableList<StampListItem>> = runBlocking {
         stampRepository
             .getStampsFlow()
@@ -81,6 +83,17 @@ class StampsScreenViewModel(
                 collectionId = collectionId,
             )
         )
+    }
+
+    fun onCollectionNameInputChanged(
+        newInput: String,
+    ) {
+        log.debug {
+            "onCollectionNameInputChanged(): setting new input:" +
+                    "\nnewInput=$newInput"
+        }
+
+        _collectionNameInput.value = newInput
     }
 
     sealed interface Event {

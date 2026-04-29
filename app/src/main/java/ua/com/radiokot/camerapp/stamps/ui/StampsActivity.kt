@@ -67,7 +67,9 @@ class StampsActivity : ComponentActivity() {
                     @SuppressLint("UnrememberedMutableState")
                     StampsScreen(
                         collectionId = "",
-                        collectionName = "I ❤️ weird hacks",
+                        collectionNameInputState = mutableStateOf("I ❤️ weird hacks"),
+                        onCollectionNameInputChanged = {},
+                        focusCollectionNameInput = false,
                         stamps = mutableStateOf(persistentListOf()),
                         onStampClicked = {},
                         onNewStampAction = {},
@@ -162,6 +164,7 @@ private fun SharedTransitionScope.StampsNavHost(
                             navController.navigate(
                                 route = CollectionDestination(
                                     collectionId = event.collectionId,
+                                    focusNameInput = event.focusNameInput,
                                 )
                             ) {
                                 launchSingleTop = true
@@ -184,6 +187,9 @@ private fun SharedTransitionScope.StampsNavHost(
                 navArgument(CollectionDestinationCollectionId) {
                     type = NavType.StringType
                 },
+                navArgument(CollectionDestinationFocusNameInput) {
+                    type = NavType.BoolType
+                }
             ),
         ) { navEntry ->
             val viewModel: StampsScreenViewModel = koinViewModel {
@@ -198,10 +204,17 @@ private fun SharedTransitionScope.StampsNavHost(
                 )
             }
             val stamps = viewModel.stamps.collectAsState()
+            val focusCollectionNameInput =
+                navEntry
+                    .arguments
+                    ?.getBoolean(CollectionDestinationFocusNameInput)
+                    ?: false
 
             StampsScreen(
                 collectionId = viewModel.collectionId,
-                collectionName = viewModel.collectionName,
+                collectionNameInputState = viewModel.collectionNameInput.collectAsState(),
+                onCollectionNameInputChanged = viewModel::onCollectionNameInputChanged,
+                focusCollectionNameInput = focusCollectionNameInput,
                 stamps = stamps,
                 onStampClicked = viewModel::onStampClicked,
                 onNewStampAction = viewModel::onNewStampAction,
@@ -284,12 +297,16 @@ private fun SharedTransitionScope.StampsNavHost(
 
 private const val CollectionsDestination = "collections"
 private const val CollectionDestinationCollectionId = "collectionId"
+private const val CollectionDestinationFocusNameInput = "focusNameInput"
 private const val CollectionDestination =
-    "$CollectionsDestination/{$CollectionDestinationCollectionId}"
+    "$CollectionsDestination/{$CollectionDestinationCollectionId}" +
+            "?$CollectionDestinationFocusNameInput={$CollectionDestinationFocusNameInput}"
 
 private fun CollectionDestination(
     collectionId: String,
-) = "$CollectionsDestination/$collectionId"
+    focusNameInput: Boolean,
+) = "$CollectionsDestination/$collectionId" +
+        "?$CollectionDestinationFocusNameInput=$focusNameInput"
 
 private const val StampsDestination = "stamps"
 private const val StampDestinationStampId = "stampId"
