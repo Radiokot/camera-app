@@ -1,15 +1,14 @@
 package ua.com.radiokot.camerapp.stamps.domain
 
 import android.graphics.Bitmap
-import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.flow.Flow
 import java.util.Optional
 
 interface StampRepository {
 
-    suspend fun getStamps(): PersistentList<Stamp>
+    suspend fun getStamps(): List<Stamp>
 
-    fun getStampsFlow(): Flow<PersistentList<Stamp>>
+    fun getStampsFlow(): Flow<List<Stamp>>
 
     suspend fun getStamp(
         id: String,

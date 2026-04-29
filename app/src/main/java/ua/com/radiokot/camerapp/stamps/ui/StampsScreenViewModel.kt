@@ -1,7 +1,7 @@
 package ua.com.radiokot.camerapp.stamps.ui
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
@@ -23,7 +23,7 @@ import ua.com.radiokot.camerapp.util.lazyLogger
 @Immutable
 class StampsScreenViewModel(
     stampRepository: StampRepository,
-    collectionRepository: StampCollectionRepository,
+    private val collectionRepository: StampCollectionRepository,
     parameters: Parameters,
 ) : ViewModel() {
 
@@ -84,6 +84,42 @@ class StampsScreenViewModel(
         )
     }
 
+    fun onBackAction() {
+        runBlocking {
+            saveUpdates()
+        }
+        _events.tryEmit(Event.Done)
+    }
+
+    private suspend fun saveUpdates() {
+        val newName =
+            collectionNameInput
+                .text
+                .toString()
+                .trim()
+                .takeIf(String::isNotEmpty)
+
+        if (newName != collection.name) {
+            log.debug {
+                "saveUpdates(): updating the collection:" +
+                        "\nnewName=$newName"
+            }
+
+            collectionRepository.updateStampCollection(
+                collection = collection,
+                newName = newName,
+            )
+
+            log.info {
+                "Successfully updated collection ${collection.id}"
+            }
+        } else {
+            log.debug {
+                "saveUpdates(): no updates"
+            }
+        }
+    }
+
     sealed interface Event {
         class ProceedToStamp(
             val stampId: String,
@@ -92,6 +128,8 @@ class StampsScreenViewModel(
         class ProceedToNewStamp(
             val collectionId: String,
         ) : Event
+
+        object Done : Event
     }
 
     data class Parameters(

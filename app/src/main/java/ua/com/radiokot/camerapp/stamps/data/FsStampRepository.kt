@@ -14,14 +14,13 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
+import ua.com.radiokot.camerapp.util.lazyLogger
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -37,6 +36,8 @@ import kotlin.jvm.optionals.getOrNull
 class FsStampRepository(
     private val stampDirectory: File,
 ) : StampRepository {
+
+    private val log by lazyLogger("FsStampRepo")
 
     init {
         require(stampDirectory.exists()) {
@@ -70,19 +71,33 @@ class FsStampRepository(
             .toPersistentList()
     }
 
-    private val sharedCacheFlow: MutableStateFlow<PersistentList<Stamp>?> =
-        MutableStateFlow(null)
+    private var isCacheInitialized = false
+    private val cache: MutableList<Stamp> = mutableListOf()
+    private val sharedFlow: MutableSharedFlow<List<Stamp>> =
+        MutableSharedFlow(
+            replay = 1,
+            extraBufferCapacity = 10,
+        )
 
-    override fun getStampsFlow(): Flow<PersistentList<Stamp>> =
-        if (sharedCacheFlow.value != null)
-            sharedCacheFlow.filterNotNull()
-        else
-            flow {
-                sharedCacheFlow.value = getStamps()
-                sharedCacheFlow
-                    .filterNotNull()
-                    .collect(this)
+    override fun getStampsFlow(): Flow<List<Stamp>> =
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                return@synchronized sharedFlow
             }
+
+            flow {
+                cache += getStamps()
+                isCacheInitialized = true
+
+                log.debug {
+                    "getStampsFlow(): cache initialized:" +
+                            "\nsize=${cache.size}"
+                }
+
+                sharedFlow.emit(cache)
+                sharedFlow.collect(this)
+            }
+        }
 
     override suspend fun getStamp(
         id: String,
@@ -138,9 +153,9 @@ class FsStampRepository(
             exifBytes = null,
         )
 
-        sharedCacheFlow.update {
-            it?.add(
-                Stamp(
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                cache += Stamp(
                     id = id,
                     collectionId = collectionId,
                     caption = caption,
@@ -148,7 +163,8 @@ class FsStampRepository(
                     takenAtLocal = takenAtLocal,
                     isReadOnly = false,
                 )
-            )
+                sharedFlow.tryEmit(cache)
+            }
         }
     }
 
@@ -201,8 +217,12 @@ class FsStampRepository(
             newCaption = captionToSet,
         )
 
-        sharedCacheFlow.update { it?.remove(stamp) }
-        sharedCacheFlow.update { it?.add(updatedStamp) }
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                cache[cache.indexOf(stamp)] = updatedStamp
+                sharedFlow.tryEmit(cache)
+            }
+        }
     }
 
     override suspend fun deleteStamp(
@@ -218,7 +238,12 @@ class FsStampRepository(
             file.delete()
         }
 
-        sharedCacheFlow.update { it?.remove(stamp) }
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                cache -= stamp
+                sharedFlow.tryEmit(cache)
+            }
+        }
     }
 
     private fun getStampFile(

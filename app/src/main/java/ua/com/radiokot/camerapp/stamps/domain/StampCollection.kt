@@ -11,6 +11,13 @@ class StampCollection(
     val isPrimary: Boolean =
         id == PRIMARY_ID
 
+    fun copy(
+        newName: String,
+    ) = StampCollection(
+        id = id,
+        name = newName,
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is StampCollection) return false

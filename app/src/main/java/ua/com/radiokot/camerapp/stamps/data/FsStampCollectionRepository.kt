@@ -11,16 +11,15 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.stamps.domain.StampCollection
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.util.lazyLogger
 import java.io.File
+import java.io.FileOutputStream
 
 class FsStampCollectionRepository(
     private val stampDirectory: File,
@@ -56,19 +55,33 @@ class FsStampCollectionRepository(
             .toPersistentList()
     }
 
-    private val sharedCacheFlow: MutableStateFlow<PersistentList<StampCollection>?> =
-        MutableStateFlow(null)
+    private var isCacheInitialized = false
+    private val cache: MutableList<StampCollection> = mutableListOf()
+    private val sharedFlow: MutableSharedFlow<List<StampCollection>> =
+        MutableSharedFlow(
+            replay = 1,
+            extraBufferCapacity = 10,
+        )
 
-    override fun getStampCollectionsFlow(): Flow<PersistentList<StampCollection>> =
-        if (sharedCacheFlow.value != null)
-            sharedCacheFlow.filterNotNull()
-        else
-            flow {
-                sharedCacheFlow.value = getStampCollections()
-                sharedCacheFlow
-                    .filterNotNull()
-                    .collect(this)
+    override fun getStampCollectionsFlow(): Flow<List<StampCollection>> =
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                return@synchronized sharedFlow
             }
+
+            flow {
+                cache += getStampCollections()
+                isCacheInitialized = true
+
+                log.debug {
+                    "getStampCollectionsFlow(): cache initialized:" +
+                            "\nsize=${cache.size}"
+                }
+
+                sharedFlow.emit(cache)
+                sharedFlow.collect(this)
+            }
+        }
 
     override suspend fun getStampCollection(
         collectionId: String,
@@ -110,13 +123,16 @@ class FsStampCollectionRepository(
                 exifBytes = null,
             )
 
-        sharedCacheFlow.update {
-            it?.add(
-                StampCollection(
-                    id = id,
-                    name = name,
-                )
+        synchronized(cache) {
+            if (!isCacheInitialized) {
+                return@synchronized
+            }
+
+            cache += StampCollection(
+                id = id,
+                name = name,
             )
+            sharedFlow.tryEmit(cache)
         }
 
         return@withContext id
@@ -134,7 +150,64 @@ class FsStampCollectionRepository(
             directory.deleteRecursively()
         }
 
-        sharedCacheFlow.update { it?.remove(collection) }
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                cache -= collection
+                sharedFlow.tryEmit(cache)
+            }
+        }
+    }
+
+    override suspend fun updateStampCollection(
+        collection: StampCollection,
+        newName: String?,
+    ) = withContext(Dispatchers.IO) {
+
+        val directory = getStampCollectionDirectory(
+            id = collection.id
+        )
+        val detailsFile = File(directory, DETAILS_FILE_NAME)
+        val nameToSet = newName ?: collection.name
+
+        val webpChunks =
+            WebPImageParser
+                .readChunks(
+                    AndroidInputStreamByteReader(
+                        inputStream = detailsFile.inputStream().buffered(),
+                        contentLength = detailsFile.length(),
+                    )
+                )
+
+        val xmpMeta =
+            WebPImageParser
+                .parseMetadataFromChunks(webpChunks)
+                .xmp
+                ?.let(XMPMetaFactory::parseFromString)
+                ?: XMPMetaFactory.create()
+        xmpMeta.setCollectionDetails(
+            name = nameToSet,
+        )
+
+        WebPWriter
+            .writeImage(
+                chunks = webpChunks,
+                byteWriter = OutputStreamByteWriter(
+                    FileOutputStream(detailsFile)
+                ),
+                xmp = XMPMetaFactory.serializeToString(xmpMeta),
+                exifBytes = null,
+            )
+
+        val updatedCollection = collection.copy(
+            newName = nameToSet,
+        )
+
+        synchronized(cache) {
+            if (isCacheInitialized) {
+                cache[cache.indexOf(collection)] = updatedCollection
+                sharedFlow.tryEmit(cache)
+            }
+        }
     }
 
     private fun getStampCollectionDirectory(

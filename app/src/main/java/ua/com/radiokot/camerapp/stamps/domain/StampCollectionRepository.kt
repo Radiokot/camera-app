@@ -1,13 +1,12 @@
 package ua.com.radiokot.camerapp.stamps.domain
 
-import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.flow.Flow
 
 interface StampCollectionRepository {
 
-    suspend fun getStampCollections(): PersistentList<StampCollection>
+    suspend fun getStampCollections(): List<StampCollection>
 
-    fun getStampCollectionsFlow(): Flow<PersistentList<StampCollection>>
+    fun getStampCollectionsFlow(): Flow<List<StampCollection>>
 
     suspend fun getStampCollection(
         collectionId: String,
@@ -23,5 +22,10 @@ interface StampCollectionRepository {
 
     suspend fun deleteStampCollection(
         collection: StampCollection,
+    )
+
+    suspend fun updateStampCollection(
+        collection: StampCollection,
+        newName: String?,
     )
 }
