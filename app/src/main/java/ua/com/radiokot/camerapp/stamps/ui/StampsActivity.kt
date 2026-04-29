@@ -14,6 +14,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -67,8 +68,7 @@ class StampsActivity : ComponentActivity() {
                     @SuppressLint("UnrememberedMutableState")
                     StampsScreen(
                         collectionId = "",
-                        collectionNameInputState = mutableStateOf("I ❤️ weird hacks"),
-                        onCollectionNameInputChanged = {},
+                        collectionNameInputState = TextFieldState("I ❤️ weird hacks"),
                         focusCollectionNameInput = false,
                         stamps = mutableStateOf(persistentListOf()),
                         onStampClicked = {},
@@ -212,8 +212,7 @@ private fun SharedTransitionScope.StampsNavHost(
 
             StampsScreen(
                 collectionId = viewModel.collectionId,
-                collectionNameInputState = viewModel.collectionNameInput.collectAsState(),
-                onCollectionNameInputChanged = viewModel::onCollectionNameInputChanged,
+                collectionNameInputState = viewModel.collectionNameInput,
                 focusCollectionNameInput = focusCollectionNameInput,
                 stamps = stamps,
                 onStampClicked = viewModel::onStampClicked,
@@ -268,9 +267,8 @@ private fun SharedTransitionScope.StampsNavHost(
             StampScreen(
                 stampId = viewModel.stampId,
                 isEditable = viewModel.isEditable,
-                captionState = viewModel.caption.collectAsState(),
+                captionState = viewModel.caption,
                 isCaptionInputEnabled = isCaptionInputEnabled,
-                onCaptionInputChanged = viewModel::onCaptionInputChanged,
                 onAddCaptionAction = viewModel::onAddCaptionAction,
                 onDeleteAction = viewModel::onDeleteAction,
                 imageUri = viewModel.imageUri,

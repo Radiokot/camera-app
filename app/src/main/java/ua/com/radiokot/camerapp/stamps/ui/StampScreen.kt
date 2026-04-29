@@ -36,9 +36,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,9 +88,8 @@ fun StampScreen(
     modifier: Modifier = Modifier,
     stampId: String,
     isEditable: Boolean,
-    captionState: State<String?>,
+    captionState: TextFieldState,
     isCaptionInputEnabled: Boolean,
-    onCaptionInputChanged: (String) -> Unit,
     imageUri: String,
     takenAt: LocalDate,
     onAddCaptionAction: () -> Unit,
@@ -156,7 +155,7 @@ fun StampScreen(
             }
     ) {
         Actions(
-            isCaptionSet = captionState.value != null,
+            isCaptionSet = captionState.text.isNotEmpty(),
             onAddCaption = {
                 areActionsVisible = false
                 onAddCaptionAction()
@@ -186,7 +185,6 @@ fun StampScreen(
         CaptionInput(
             isEnabled = isCaptionInputEnabled,
             inputState = captionState,
-            onInputChanged = onCaptionInputChanged,
             focusRequester = captionInputFocusRequester,
             modifier = Modifier
                 .fillMaxWidth()
@@ -498,9 +496,8 @@ private fun StampScreenPreview(
         StampScreen(
             stampId = "",
             isEditable = true,
-            captionState = "My stamp".let(::mutableStateOf),
+            captionState = TextFieldState("My stamp"),
             isCaptionInputEnabled = false,
-            onCaptionInputChanged = {},
             imageUri = "",
             takenAt = LocalDate.now(),
             onAddCaptionAction = { },

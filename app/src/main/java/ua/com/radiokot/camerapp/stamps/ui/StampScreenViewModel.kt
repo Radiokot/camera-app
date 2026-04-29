@@ -1,6 +1,7 @@
 package ua.com.radiokot.camerapp.stamps.ui
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,20 +37,13 @@ class StampScreenViewModel(
     val isEditable: Boolean
         get() = !stamp.isReadOnly
 
-    private val _caption: MutableStateFlow<String?> = MutableStateFlow(stamp.caption)
-    val caption: StateFlow<String?> = _caption
+    val caption: TextFieldState = TextFieldState(initialText = stamp.caption ?: "")
     private val _isCaptionInputEnabled: MutableStateFlow<Boolean> =
         MutableStateFlow(isEditable && stamp.caption != null)
     val isCaptionInputEnabled: StateFlow<Boolean> = _isCaptionInputEnabled
 
     private val _events: MutableSharedFlow<Event> = eventSharedFlow()
     val events: SharedFlow<Event> = _events
-
-    fun onCaptionInputChanged(
-        newInput: String,
-    ) {
-        _caption.value = newInput
-    }
 
     fun onAddCaptionAction() {
         check(isEditable) {
@@ -80,10 +74,11 @@ class StampScreenViewModel(
 
     private suspend fun saveUpdates() {
         val newCaption =
-            _caption
-                .value
-                ?.trim()
-                ?.takeIf(String::isNotEmpty)
+            caption
+                .text
+                .toString()
+                .trim()
+                .takeIf(String::isNotEmpty)
 
         if (newCaption != stamp.caption) {
             log.debug {

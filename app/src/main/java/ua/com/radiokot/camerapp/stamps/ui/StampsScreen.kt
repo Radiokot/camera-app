@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -51,8 +52,7 @@ import kotlin.math.absoluteValue
 fun StampsScreen(
     modifier: Modifier = Modifier,
     collectionId: String,
-    collectionNameInputState: State<String>,
-    onCollectionNameInputChanged: (String) -> Unit,
+    collectionNameInputState: TextFieldState,
     focusCollectionNameInput: Boolean,
     stamps: State<ImmutableList<StampListItem>>,
     onStampClicked: (StampListItem) -> Unit,
@@ -121,7 +121,6 @@ fun StampsScreen(
                     hint = "A name",
                     focusRequester = nameInputFocusRequester,
                     inputState = collectionNameInputState,
-                    onInputChanged = onCollectionNameInputChanged,
                     modifier = Modifier
                         .fillMaxWidth()
                         .run {
@@ -246,8 +245,7 @@ private fun StampsScreenPreview(
         modifier = Modifier
             .fillMaxSize(),
         collectionId = "",
-        collectionNameInputState = "My stamps".let(::mutableStateOf),
-        onCollectionNameInputChanged = { },
+        collectionNameInputState = TextFieldState("My stamps"),
         focusCollectionNameInput = false,
         stamps = stamps.let(::mutableStateOf),
         onStampClicked = { },

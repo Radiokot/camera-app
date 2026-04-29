@@ -3,6 +3,7 @@ package ua.com.radiokot.camerapp.cut.ui
 import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.annotation.FloatRange
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -13,7 +14,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -77,22 +77,10 @@ class StampSaveScreenViewModel(
                 initialValue = createBitmap(1, 1).asImageBitmap(),
             )
 
-    private val _captionInput: MutableStateFlow<String> = MutableStateFlow("")
-    val captionInput: StateFlow<String> = _captionInput
+    val captionInput: TextFieldState = TextFieldState(initialText = "")
 
     private val _events: MutableSharedFlow<Event> = eventSharedFlow()
     val events: SharedFlow<Event> = _events
-
-    fun onCaptionInputChanged(
-        newInput: String,
-    ) {
-        log.debug {
-            "onCaptionInputChanged(): setting new input:" +
-                    "\nnewInput=$newInput"
-        }
-
-        _captionInput.value = newInput
-    }
 
     private var saveJob: Job? = null
 
@@ -116,8 +104,9 @@ class StampSaveScreenViewModel(
                 ?: StampCollection.PRIMARY_ID
 
         val caption =
-            _captionInput
-                .value
+            captionInput
+                .text
+                .toString()
                 .trim()
                 .takeIf(String::isNotEmpty)
 

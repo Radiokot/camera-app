@@ -8,13 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,8 +37,7 @@ fun CaptionInput(
     focusRequester: FocusRequester = remember(::FocusRequester),
     isEnabled: Boolean = true,
     hint: String = "A caption",
-    inputState: State<String?>,
-    onInputChanged: (String) -> Unit,
+    inputState: TextFieldState,
 ) = Box(
     contentAlignment = Alignment.Center,
     modifier = modifier
@@ -61,7 +59,7 @@ fun CaptionInput(
 
     val isCaptionHintVisible by remember(isEnabled) {
         derivedStateOf {
-            isEnabled && inputState.value.isNullOrBlank()
+            isEnabled && inputState.text.isEmpty()
         }
     }
 
@@ -80,21 +78,18 @@ fun CaptionInput(
     }
 
     BasicTextField(
-        value = inputState.value ?: "",
-        onValueChange = onInputChanged,
+        state = inputState,
         textStyle = inputStyle,
-        singleLine = true,
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Sentences,
             keyboardType = KeyboardType.Text,
             showKeyboardOnFocus = true,
             imeAction = ImeAction.Done,
         ),
-        keyboardActions = KeyboardActions(
-            onDone = {
-                focusManager.clearFocus()
-            },
-        ),
+        lineLimits = TextFieldLineLimits.SingleLine,
+        onKeyboardAction = {
+            focusManager.clearFocus()
+        },
         enabled = isEnabled,
         readOnly = !isEnabled,
         modifier = Modifier
@@ -112,13 +107,11 @@ private fun CaptionInputPreview() {
             .padding(24.dp)
     ) {
         CaptionInput(
-            inputState = "".let(::mutableStateOf),
-            onInputChanged = {}
+            inputState = TextFieldState("")
         )
 
         CaptionInput(
-            inputState = "My stamp".let(::mutableStateOf),
-            onInputChanged = {}
+            inputState = TextFieldState("My stamp")
         )
     }
 }

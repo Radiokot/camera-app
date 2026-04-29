@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
@@ -48,8 +49,7 @@ import ua.com.radiokot.camerapp.ui.LeTextButton
 @Composable
 fun StampSaveScreen(
     modifier: Modifier = Modifier,
-    captionInputState: State<String>,
-    onCaptionInputChanged: (String) -> Unit,
+    captionInputState: TextFieldState,
     imageState: State<ImageBitmap>,
     onSaveAction: () -> Unit,
     adjustmentsControllerItems: ImmutableList<AdjustmentControllerItem>,
@@ -72,7 +72,6 @@ fun StampSaveScreen(
     ) {
         CaptionInput(
             inputState = captionInputState,
-            onInputChanged = onCaptionInputChanged,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)
@@ -190,7 +189,7 @@ private fun StampSaveScreenPreview(
         )
 
     val captionState = remember {
-        mutableStateOf("")
+        TextFieldState("")
     }
 
     val frameImage = remember {
@@ -202,7 +201,6 @@ private fun StampSaveScreenPreview(
 
     StampSaveScreen(
         captionInputState = captionState,
-        onCaptionInputChanged = captionState::value::set,
         imageState = frameImage.let(::mutableStateOf),
         onSaveAction = { },
         adjustmentsControllerItems = adjustmentsControllerItems,
