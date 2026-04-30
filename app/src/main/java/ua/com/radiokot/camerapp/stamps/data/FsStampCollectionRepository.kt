@@ -11,11 +11,15 @@ import com.ashampoo.xmp.XMPMeta
 import com.ashampoo.xmp.XMPMetaFactory
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.stamps.domain.StampCollection
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
@@ -30,6 +34,9 @@ class FsStampCollectionRepository(
 ) : StampCollectionRepository {
 
     private val log by lazyLogger("FsStampCollectionRepo")
+
+    private val coroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineName("FsStampCollectionRepo"))
 
     init {
         require(stampDirectory.exists()) {
@@ -141,7 +148,30 @@ class FsStampCollectionRepository(
         )
 
         if (directory.exists()) {
-            directory.deleteRecursively()
+            log.debug {
+                "deleteStampCollection(): deleting the collection directory in background:" +
+                        "\ndirectory=$directory"
+            }
+
+            coroutineScope.launch {
+                // Even if rm fails to delete all the files (read-only stamps),
+                // consider the collection deleted.
+                // It won't re-appear because the details file gets deleted.
+                
+                val rmCommand = "rm -rf -- ${directory.absolutePath}"
+                val exitCode =
+                    Runtime
+                        .getRuntime()
+                        .exec(rmCommand)
+                        .waitFor()
+
+                if (exitCode != 0) {
+                    log.warn {
+                        "deleteStampCollection(): rm didn't finish successfully:" +
+                                "\ncommand=$rmCommand"
+                    }
+                }
+            }
         }
 
         if (isCacheInitialized.load()) {
