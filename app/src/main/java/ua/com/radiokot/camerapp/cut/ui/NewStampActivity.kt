@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.SharedTransitionLayout
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.graphics.drawable.toDrawable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -146,6 +148,8 @@ private fun SharedTransitionScope.StampCutNavHost(
             }
             val imageAdjustmentsControllerViewModel: ImageAdjustmentsControllerViewModel =
                 viewModel.imageAdjustmentsControllerViewModel
+            val isDiscardConfirmationRequired
+                    by viewModel.isDiscardConfirmationRequired.collectAsState()
 
             StampSaveScreen(
                 captionInputState = viewModel.captionInput,
@@ -181,9 +185,36 @@ private fun SharedTransitionScope.StampCutNavHost(
                     }
                 }
             }
+
+            BackHandler(
+                enabled = isDiscardConfirmationRequired,
+            ) {
+                navController.navigate(
+                    route = ConfirmDiscardDestination,
+                ) {
+                    launchSingleTop = true
+                }
+            }
+        }
+
+        dialog(
+            route = ConfirmDiscardDestination,
+        ) {
+            StampDiscardConfirmationDialog(
+                onConfirmDiscard = {
+                    navController.popBackStack(
+                        route = CutDestination,
+                        inclusive = false,
+                    )
+                },
+                onCancel = {
+                    navController.navigateUp()
+                },
+            )
         }
     }
 }
 
 private const val CutDestination = "cut"
 private const val SaveDestination = "save"
+private const val ConfirmDiscardDestination = "discardConfirmation"

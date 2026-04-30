@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -78,6 +79,24 @@ class StampSaveScreenViewModel(
             )
 
     val captionInput: TextFieldState = TextFieldState(initialText = "")
+
+    val isDiscardConfirmationRequired: StateFlow<Boolean> =
+        combine(
+            snapshotFlow(captionInput::text)
+                .map(CharSequence::isNotEmpty),
+            combine(
+                imageAdjustmentsControllerViewModel.contrastValue,
+                imageAdjustmentsControllerViewModel.brightnessValue,
+                imageAdjustmentsControllerViewModel.vibranceValue,
+                transform = { contrast, brightness, vibrance ->
+                    contrast != 0 || brightness != 0 || vibrance != 0
+                }
+            ),
+            transform = { anyCaption, anyAdjustments ->
+                anyCaption || anyAdjustments
+            }
+        )
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _events: MutableSharedFlow<Event> = eventSharedFlow()
     val events: SharedFlow<Event> = _events

@@ -10,12 +10,12 @@
 - **UI Components (Compose):** `PascalCase` (e.g., `StampsScreen`, `StampsNavHost`).
 
 ### Trailing Commas
-- **ALWAYS** use trailing commas in multi-line parameter lists, argument lists, and collection literals.
+- Use trailing commas in multi-line parameter lists, argument lists, and collection literals.
 - This applies to:
   - Function declarations and calls.
   - Class constructors.
   - When using `listOf`, `setOf`, `mapOf`, etc.
-  - Jetpack Compose component arguments.
+  - Jetpack Compose component arguments **expect** the last modifier
 
 ### Logging Format
 - **Tool:** Use `kotlin-logging` (wrapper around Slf4j).
