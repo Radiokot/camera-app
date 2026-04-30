@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package ua.com.radiokot.camerapp.stamps.data
 
 import android.graphics.Bitmap
@@ -30,6 +32,8 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Optional
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.io.path.absolutePathString
 import kotlin.jvm.optionals.getOrNull
 
@@ -71,7 +75,7 @@ class FsStampRepository(
             .toPersistentList()
     }
 
-    private var isCacheInitialized = false
+    private val isCacheInitialized = AtomicBoolean(false)
     private val cache: MutableList<Stamp> = mutableListOf()
     private val sharedFlow: MutableSharedFlow<List<Stamp>> =
         MutableSharedFlow(
@@ -79,25 +83,19 @@ class FsStampRepository(
             extraBufferCapacity = 10,
         )
 
-    override fun getStampsFlow(): Flow<List<Stamp>> =
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                return@synchronized sharedFlow
+    override fun getStampsFlow(): Flow<List<Stamp>> = flow {
+
+        if (!isCacheInitialized.exchange(true)) {
+            cache += getStamps()
+            log.debug {
+                "getStampsFlow(): cache initialized:" +
+                        "\nsize=${cache.size}"
             }
-
-            flow {
-                cache += getStamps()
-                isCacheInitialized = true
-
-                log.debug {
-                    "getStampsFlow(): cache initialized:" +
-                            "\nsize=${cache.size}"
-                }
-
-                sharedFlow.emit(cache)
-                sharedFlow.collect(this)
-            }
+            sharedFlow.emit(cache)
         }
+
+        sharedFlow.collect(this)
+    }
 
     override suspend fun getStamp(
         id: String,
@@ -153,18 +151,16 @@ class FsStampRepository(
             exifBytes = null,
         )
 
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                cache += Stamp(
-                    id = id,
-                    collectionId = collectionId,
-                    caption = caption,
-                    imageUri = outputFile.toPath().toImageUri(),
-                    takenAtLocal = takenAtLocal,
-                    isReadOnly = false,
-                )
-                sharedFlow.tryEmit(cache)
-            }
+        if (isCacheInitialized.load()) {
+            cache += Stamp(
+                id = id,
+                collectionId = collectionId,
+                caption = caption,
+                imageUri = outputFile.toPath().toImageUri(),
+                takenAtLocal = takenAtLocal,
+                isReadOnly = false,
+            )
+            sharedFlow.tryEmit(cache)
         }
     }
 
@@ -217,11 +213,9 @@ class FsStampRepository(
             newCaption = captionToSet,
         )
 
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                cache[cache.indexOf(stamp)] = updatedStamp
-                sharedFlow.tryEmit(cache)
-            }
+        if (isCacheInitialized.load()) {
+            cache[cache.indexOf(stamp)] = updatedStamp
+            sharedFlow.tryEmit(cache)
         }
     }
 
@@ -238,11 +232,9 @@ class FsStampRepository(
             file.delete()
         }
 
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                cache -= stamp
-                sharedFlow.tryEmit(cache)
-            }
+        if (isCacheInitialized.load()) {
+            cache -= stamp
+            sharedFlow.tryEmit(cache)
         }
     }
 

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package ua.com.radiokot.camerapp.stamps.data
 
 import com.ashampoo.kim.format.webp.WebPImageParser
@@ -20,6 +22,8 @@ import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.util.lazyLogger
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 class FsStampCollectionRepository(
     private val stampDirectory: File,
@@ -55,7 +59,7 @@ class FsStampCollectionRepository(
             .toPersistentList()
     }
 
-    private var isCacheInitialized = false
+    private var isCacheInitialized = AtomicBoolean(false)
     private val cache: MutableList<StampCollection> = mutableListOf()
     private val sharedFlow: MutableSharedFlow<List<StampCollection>> =
         MutableSharedFlow(
@@ -63,25 +67,19 @@ class FsStampCollectionRepository(
             extraBufferCapacity = 10,
         )
 
-    override fun getStampCollectionsFlow(): Flow<List<StampCollection>> =
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                return@synchronized sharedFlow
+    override fun getStampCollectionsFlow(): Flow<List<StampCollection>> = flow {
+
+        if (!isCacheInitialized.exchange(true)) {
+            cache += getStampCollections()
+            log.debug {
+                "getStampCollectionsFlow(): cache initialized:" +
+                        "\nsize=${cache.size}"
             }
-
-            flow {
-                cache += getStampCollections()
-                isCacheInitialized = true
-
-                log.debug {
-                    "getStampCollectionsFlow(): cache initialized:" +
-                            "\nsize=${cache.size}"
-                }
-
-                sharedFlow.emit(cache)
-                sharedFlow.collect(this)
-            }
+            sharedFlow.emit(cache)
         }
+
+        sharedFlow.collect(this)
+    }
 
     override suspend fun getStampCollection(
         collectionId: String,
@@ -123,11 +121,7 @@ class FsStampCollectionRepository(
                 exifBytes = null,
             )
 
-        synchronized(cache) {
-            if (!isCacheInitialized) {
-                return@synchronized
-            }
-
+        if (isCacheInitialized.load()) {
             cache += StampCollection(
                 id = id,
                 name = name,
@@ -150,11 +144,9 @@ class FsStampCollectionRepository(
             directory.deleteRecursively()
         }
 
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                cache -= collection
-                sharedFlow.tryEmit(cache)
-            }
+        if (isCacheInitialized.load()) {
+            cache -= collection
+            sharedFlow.tryEmit(cache)
         }
     }
 
@@ -202,11 +194,9 @@ class FsStampCollectionRepository(
             newName = nameToSet,
         )
 
-        synchronized(cache) {
-            if (isCacheInitialized) {
-                cache[cache.indexOf(collection)] = updatedCollection
-                sharedFlow.tryEmit(cache)
-            }
+        if (isCacheInitialized.load()) {
+            cache[cache.indexOf(collection)] = updatedCollection
+            sharedFlow.tryEmit(cache)
         }
     }
 
