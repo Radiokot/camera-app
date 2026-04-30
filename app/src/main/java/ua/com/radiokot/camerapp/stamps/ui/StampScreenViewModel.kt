@@ -45,6 +45,8 @@ class StampScreenViewModel(
     private val _events: MutableSharedFlow<Event> = eventSharedFlow()
     val events: SharedFlow<Event> = _events
 
+    private var isDeleted = false
+
     fun onAddCaptionAction() {
         check(isEditable) {
             "Can't add a caption for a read-only stamp"
@@ -68,6 +70,7 @@ class StampScreenViewModel(
 
         viewModelScope.launch {
             stampRepository.deleteStamp(stamp)
+            isDeleted = true
             _events.emit(Event.Done)
         }
     }
@@ -102,7 +105,7 @@ class StampScreenViewModel(
     }
 
     override fun onCleared() {
-        if (isEditable) {
+        if (isEditable && !isDeleted) {
             runBlocking {
                 saveUpdates()
             }
