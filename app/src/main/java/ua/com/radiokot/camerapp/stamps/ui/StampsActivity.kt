@@ -214,12 +214,25 @@ private fun SharedTransitionScope.StampsNavHost(
             }
 
             CollectionActionsScreen(
-                collection = viewModel.collection,
+                collection = viewModel.collectionItem,
+                canDelete = viewModel.canDelete,
+                onMoveStampsAction = { /* stub for now */ },
+                onDeleteAction = viewModel::onDeleteAction,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
                 modifier = Modifier
                     .fillMaxSize()
             )
+
+            LaunchedEffect(viewModel) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is CollectionActionsScreenViewModel.Event.Done -> {
+                            navController.navigateUp()
+                        }
+                    }
+                }
+            }
         }
 
         composable(

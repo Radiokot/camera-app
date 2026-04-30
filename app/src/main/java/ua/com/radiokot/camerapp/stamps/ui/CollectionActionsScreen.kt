@@ -2,23 +2,152 @@ package ua.com.radiokot.camerapp.stamps.ui
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import ua.com.radiokot.camerapp.ui.podkovaFamily
 
 @Composable
 fun CollectionActionsScreen(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     collection: CollectionListItem,
+    canDelete: Boolean,
+    onMoveStampsAction: () -> Unit,
+    onDeleteAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
+) = Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+    modifier = modifier
+        .safeContentPadding()
 ) {
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+    val detailsAlpha = remember {
+        Animatable(0f)
+    }
 
+    LaunchedEffect(Unit) {
+        delay(100)
+        detailsAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(400),
+        )
+    }
+
+    CollectionView(
+        item = collection,
+        onClicked = {},
+        onLongClicked = {},
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+        modifier = Modifier
+            .width(StampSize.width * 1.6f)
+    )
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Actions(
+        canDelete = canDelete,
+        onMoveStamps = onMoveStampsAction,
+        onDelete = onDeleteAction,
+        modifier = Modifier
+            .width(StampSize.width * 2.5f)
+            .graphicsLayer {
+                alpha = detailsAlpha.value
+            }
+    )
+}
+
+@Composable
+private fun Actions(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 10.dp,
+    canDelete: Boolean,
+    onMoveStamps: () -> Unit,
+    onDelete: () -> Unit,
+) = Column(
+    modifier = modifier
+        .background(
+            color = Color(0xFFfff9eb),
+            shape = RoundedCornerShape(cornerRadius),
+        )
+        .border(
+            width = 2.dp,
+            color = Color(0xFF6B624B),
+            shape = RoundedCornerShape(cornerRadius),
+        )
+) {
+    val textStyle = remember {
+        TextStyle(
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center,
+            fontFamily = podkovaFamily,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+
+    BasicText(
+        text = "Move stamps",
+        style = textStyle,
+        modifier = Modifier
+            .clickable(
+                onClick = onMoveStamps,
+            )
+            .padding(
+                vertical = 20.dp,
+            )
+            .fillMaxWidth()
+    )
+
+    if (canDelete) {
+        Spacer(
+            modifier = Modifier
+                .height(1.dp)
+                .fillMaxWidth()
+                .background(Color(0xFFcbc4bb))
+        )
+
+        BasicText(
+            text = "Hold to delete",
+            style = textStyle.copy(
+                color = Color(0xFFD97D7D),
+            ),
+            modifier = Modifier
+                .holdToDeleteAction(
+                    roundedCornerRadius = cornerRadius,
+                    areTopCornersRounded = true,
+                    onDelete = onDelete,
+                )
+                .padding(
+                    vertical = 20.dp,
+                )
+                .fillMaxWidth()
+        )
     }
 }

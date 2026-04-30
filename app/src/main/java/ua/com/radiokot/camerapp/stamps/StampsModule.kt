@@ -85,6 +85,7 @@ val stampsModule = module {
 
     viewModel {
         CollectionActionsScreenViewModel(
+            collectionRepository = get(),
             getStampCollectionsWithSamplesUseCase = get(),
             parameters =
                 getOrNull()

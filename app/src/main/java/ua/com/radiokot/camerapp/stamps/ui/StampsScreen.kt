@@ -68,7 +68,7 @@ fun StampsScreen(
 
             with(sharedTransitionScope) {
                 sharedBounds(
-                    sharedContentState = rememberSharedContentState(collectionId),
+                    sharedContentState = rememberSharedContentState("$collectionId-box-front"),
                     animatedVisibilityScope = animatedVisibilityScope,
                     zIndexInOverlay = 10f,
                 )

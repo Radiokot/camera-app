@@ -5,6 +5,7 @@ package ua.com.radiokot.camerapp.stamps.domain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
@@ -12,17 +13,9 @@ class GetStampCollectionsWithSamplesUseCase(
     private val collectionRepository: StampCollectionRepository,
     private val stampRepository: StampRepository,
 ) {
-    operator fun invoke(
-        singleCollectionId: String? = null,
-    ): Flow<List<StampCollectionWithSamples>> =
+    operator fun invoke(): Flow<List<StampCollectionWithSamples>> =
         collectionRepository
             .getStampCollectionsFlow()
-            .map { collections ->
-                if (singleCollectionId != null)
-                    collections.filter { it.id == singleCollectionId }
-                else
-                    collections
-            }
             .flatMapLatest { collections ->
                 stampRepository
                     .getStampsFlow()
@@ -45,4 +38,11 @@ class GetStampCollectionsWithSamplesUseCase(
                         }
                     }
             }
+
+    suspend operator fun invoke(
+        singleCollectionId: String,
+    ): StampCollectionWithSamples? =
+        invoke()
+            .first()
+            .find { it.collection.id == singleCollectionId }
 }
