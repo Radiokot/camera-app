@@ -101,17 +101,20 @@ fun Modifier.holdToDeleteAction(
                         onDelete()
                     }
 
-                    awaitRelease()
-
-                    if (!pressingJob.isCompleted) {
-                        pressingJob.cancel()
-                        coroutineScope.launch {
-                            deleteAnimationProgress.animateTo(
-                                targetValue = 0f,
-                                animationSpec = spring(
-                                    stiffness = Spring.StiffnessHigh,
-                                ),
-                            )
+                    try {
+                        awaitRelease()
+                    } finally {
+                        // Either released or canceled.
+                        if (!pressingJob.isCompleted) {
+                            pressingJob.cancel()
+                            coroutineScope.launch {
+                                deleteAnimationProgress.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = spring(
+                                        stiffness = Spring.StiffnessHigh,
+                                    ),
+                                )
+                            }
                         }
                     }
                 }
