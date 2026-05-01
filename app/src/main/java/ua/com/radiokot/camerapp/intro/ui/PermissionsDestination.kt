@@ -10,6 +10,7 @@ import org.koin.compose.viewmodel.koinViewModel
 const val PermissionsDestination = "permissions"
 
 fun NavGraphBuilder.permissionsDestination(
+    modifier: Modifier = Modifier,
     onDone: () -> Unit,
 ) = composable(
     route = PermissionsDestination,
@@ -19,7 +20,7 @@ fun NavGraphBuilder.permissionsDestination(
     PermissionsScreen(
         permissions = viewModel.requiredPermissions,
         onAllPermissionsGranted = viewModel::onAllPermissionsGranted,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
     )
 

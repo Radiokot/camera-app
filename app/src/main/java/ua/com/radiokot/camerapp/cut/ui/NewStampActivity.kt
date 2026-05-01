@@ -22,7 +22,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.graphics.drawable.toDrawable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -43,7 +42,6 @@ class NewStampActivity : ComponentActivity() {
     private val permissionsScreenViewModel: PermissionsScreenViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        window.setBackgroundDrawable(android.graphics.Color.BLACK.toDrawable())
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0),
         )
@@ -125,7 +123,11 @@ private fun SharedTransitionScope.StampCutNavHost(
                     }
                     launchSingleTop = true
                 }
-            }
+            },
+            modifier = Modifier
+                .paperBackground(
+                    drawBackgroundColor = true,
+                )
         )
 
         composable(

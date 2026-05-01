@@ -8,4 +8,8 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
+
+    <style name="NewStampTheme" parent="CameraAppTheme">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
 </resources>
