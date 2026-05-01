@@ -5,8 +5,8 @@ package ua.com.radiokot.camerapp.stamps.ui
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -58,9 +58,10 @@ class StampsActivity : ComponentActivity() {
     private val permissionsScreenViewModel: PermissionsScreenViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.light(0, 0),
+        )
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
         val areAllPermissionsGranted =
             permissionsScreenViewModel.areAllPermissionsGranted(
