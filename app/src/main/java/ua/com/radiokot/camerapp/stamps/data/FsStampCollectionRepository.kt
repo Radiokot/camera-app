@@ -26,6 +26,7 @@ import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.util.lazyLogger
 import java.io.File
 import java.io.FileOutputStream
+import java.time.LocalDateTime
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -108,6 +109,7 @@ class FsStampCollectionRepository(
         val xmpMeta = XMPMetaFactory.create().setCollectionDetails(
             name = name,
         )
+        xmpMeta.setDateTimeOriginal(LocalDateTime.now().toString())
         WebPWriter
             .writeImage(
                 byteReader = ByteArrayByteReader(
@@ -157,7 +159,7 @@ class FsStampCollectionRepository(
                 // Even if rm fails to delete all the files (read-only stamps),
                 // consider the collection deleted.
                 // It won't re-appear because the details file gets deleted.
-                
+
                 val rmCommand = "rm -rf -- ${directory.absolutePath}"
                 val exitCode =
                     Runtime
