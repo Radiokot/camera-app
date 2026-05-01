@@ -27,11 +27,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import ua.com.radiokot.camerapp.intro.ui.PermissionsDestination
+import ua.com.radiokot.camerapp.intro.ui.PermissionsScreenViewModel
+import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.lazyLogger
 
 class NewStampActivity : ComponentActivity() {
+
+    private val log by lazyLogger("NewStampActivity")
+
+    private val permissionsScreenViewModel: PermissionsScreenViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         window.setBackgroundDrawable(android.graphics.Color.BLACK.toDrawable())
@@ -42,12 +51,23 @@ class NewStampActivity : ComponentActivity() {
 
         val collectionId: String? = intent.getStringExtra(COLLECTION_ID_EXTRA)
 
+        val areAllPermissionsGranted =
+            permissionsScreenViewModel.areAllPermissionsGranted(
+                context = this,
+            )
+
+        log.debug {
+            "onCreate(): permissions checked:" +
+                    "\nareAllPermissionsGranted=$areAllPermissionsGranted"
+        }
+
         setContent {
             SharedTransitionLayout(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
                 StampCutNavHost(
+                    startWithPermissions = !areAllPermissionsGranted,
                     collectionId = collectionId,
                     onDidSave = ::finish,
                     modifier = Modifier
@@ -75,6 +95,7 @@ class NewStampActivity : ComponentActivity() {
 @Composable
 private fun SharedTransitionScope.StampCutNavHost(
     modifier: Modifier = Modifier,
+    startWithPermissions: Boolean,
     collectionId: String?,
     onDidSave: () -> Unit,
 ) {
@@ -85,11 +106,28 @@ private fun SharedTransitionScope.StampCutNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = CutDestination,
+        startDestination =
+            if (startWithPermissions)
+                PermissionsDestination
+            else
+                CutDestination,
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },
         modifier = modifier
     ) {
+        permissionsDestination(
+            onDone = {
+                navController.navigate(
+                    route = CutDestination,
+                ) {
+                    popUpTo(PermissionsDestination) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        )
+
         composable(
             route = CutDestination,
         ) {

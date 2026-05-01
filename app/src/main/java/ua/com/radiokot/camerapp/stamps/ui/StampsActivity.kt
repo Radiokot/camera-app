@@ -40,18 +40,37 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.collections.immutable.persistentListOf
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.cut.ui.NewStampActivity
+import ua.com.radiokot.camerapp.intro.ui.PermissionsDestination
+import ua.com.radiokot.camerapp.intro.ui.PermissionsScreenViewModel
+import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.lazyLogger
 
 class StampsActivity : ComponentActivity() {
+
+    private val log by lazyLogger("StampsActivity")
+
+    private val permissionsScreenViewModel: PermissionsScreenViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+
+        val areAllPermissionsGranted =
+            permissionsScreenViewModel.areAllPermissionsGranted(
+                context = this,
+            )
+
+        log.debug {
+            "onCreate(): permissions checked:" +
+                    "\nareAllPermissionsGranted=$areAllPermissionsGranted"
+        }
 
         setContent {
             CompositionLocalProvider(
@@ -88,6 +107,7 @@ class StampsActivity : ComponentActivity() {
 
                 SharedTransitionLayout {
                     StampsNavHost(
+                        startWithPermissions = !areAllPermissionsGranted,
                         modifier = Modifier
                             .fillMaxSize()
                     )
@@ -100,6 +120,7 @@ class StampsActivity : ComponentActivity() {
 @Composable
 private fun SharedTransitionScope.StampsNavHost(
     modifier: Modifier = Modifier,
+    startWithPermissions: Boolean,
 ) {
     val navController = rememberNavController()
     val totalScrollOffsetState = remember {
@@ -132,7 +153,11 @@ private fun SharedTransitionScope.StampsNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = CollectionsDestination,
+        startDestination =
+            if (startWithPermissions)
+                PermissionsDestination
+            else
+                CollectionsDestination,
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },
         modifier = modifier
@@ -141,6 +166,19 @@ private fun SharedTransitionScope.StampsNavHost(
             )
             .nestedScroll(totalScrollOffsetCounter)
     ) {
+        permissionsDestination(
+            onDone = {
+                navController.navigate(
+                    route = CollectionsDestination,
+                ) {
+                    popUpTo(PermissionsDestination) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        )
+
         composable(
             route = CollectionsDestination,
         ) {

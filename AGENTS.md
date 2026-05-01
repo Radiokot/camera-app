@@ -58,5 +58,38 @@
 - Use `LaunchedEffect` for side effects.
 - Hoist state where possible.
 
-### Testing
-- You do not have access to bash. Do not try running any gradlew commands.
+## Project Overview
+- Camera app for capturing and managing stamp images with cut/crop functionality
+- MinSdk 26, TargetSdk 36, CompileSdk 36
+- Clean Architecture with feature-based modules
+- Each feature has its own Koin module (`*Module.kt`) for dependency registration
+- Feature structure: `domain/` (use cases, models, repository interfaces), `data/` (implementations), `ui/` (screens, ViewModels)
+
+## Project Structure
+```
+app/src/main/java/ua/com/radiokot/camerapp/
+├── cut/               # Image cutting/adjustment feature
+│   ├── CutModule.kt   # Koin DI module for cut feature
+│   └── ui/            # UI components and ViewModels
+├── stamps/            # Stamp collection management feature
+│   ├── StampsModule.kt
+│   ├── domain/        # Business logic (use cases, models, repository interfaces)
+│   ├── data/          # Repository implementations (filesystem storage)
+│   └── ui/            # Screens, ViewModels, UI components
+├── io/                # I/O utilities
+│   └── IoModule.kt
+├── ui/                # Shared UI components
+└── util/              # Utilities (logging, extensions)
+```
+
+## Key Dependencies
+- **CameraX** - Camera functionality
+- **Koin** - Dependency injection (BOM-based)
+- **Jetpack Compose** - UI framework. **No Material!**
+- **Navigation Compose** - Screen navigation
+- **Landscapist** - Image loading
+- **Kim** - WebP encoding/decoding
+- **kotlin-logging** - Logging with Slf4j backend
+
+## Build Commands
+You don't have bash access. Do not run gradlew commands.
