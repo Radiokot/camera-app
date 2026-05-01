@@ -7,13 +7,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class GetStampCollectionsWithSamplesUseCase(
     private val collectionRepository: StampCollectionRepository,
     private val stampRepository: StampRepository,
+    private val ensurePrimaryStampCollectionUseCase: EnsurePrimaryStampCollectionUseCase,
 ) {
-    operator fun invoke(): Flow<List<StampCollectionWithSamples>> =
+    operator fun invoke(): Flow<List<StampCollectionWithSamples>> = flow {
+
+        ensurePrimaryStampCollectionUseCase()
+
         collectionRepository
             .getStampCollectionsFlow()
             .flatMapLatest { collections ->
@@ -38,6 +43,8 @@ class GetStampCollectionsWithSamplesUseCase(
                         }
                     }
             }
+            .collect(this)
+    }
 
     suspend operator fun invoke(
         singleCollectionId: String,

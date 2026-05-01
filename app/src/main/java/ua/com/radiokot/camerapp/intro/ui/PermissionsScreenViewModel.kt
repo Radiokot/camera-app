@@ -27,6 +27,7 @@ class PermissionsScreenViewModel : ViewModel() {
 
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
                 add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 add(Manifest.permission.READ_MEDIA_IMAGES)
             }

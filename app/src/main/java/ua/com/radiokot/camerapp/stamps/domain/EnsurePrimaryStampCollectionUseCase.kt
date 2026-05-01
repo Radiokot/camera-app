@@ -1,14 +1,17 @@
 package ua.com.radiokot.camerapp.stamps.domain
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import ua.com.radiokot.camerapp.util.lazyLogger
 
 class EnsurePrimaryStampCollectionUseCase(
     private val collectionRepository: StampCollectionRepository,
 ) {
     private val log by lazyLogger("EnsurePrimaryStampCollectionUC")
+    private val leMutex = Mutex()
 
-    suspend operator fun invoke() {
+    suspend operator fun invoke() = leMutex.withLock {
         val primaryCollectionExists =
             collectionRepository
                 .getStampCollectionsFlow()

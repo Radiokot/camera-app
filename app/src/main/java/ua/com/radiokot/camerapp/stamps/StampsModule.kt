@@ -27,7 +27,9 @@ val stampsModule = module {
             "Stamps"
         ).also { dir ->
             if (!dir.exists()) {
-                dir.mkdirs()
+                check(dir.mkdirs()) {
+                    "Can't create the stamps directory"
+                }
             }
         }
     }
@@ -48,10 +50,11 @@ val stampsModule = module {
         GetStampCollectionsWithSamplesUseCase(
             collectionRepository = get(),
             stampRepository = get(),
+            ensurePrimaryStampCollectionUseCase = get(),
         )
     }
 
-    factory {
+    single {
         EnsurePrimaryStampCollectionUseCase(
             collectionRepository = get(),
         )
