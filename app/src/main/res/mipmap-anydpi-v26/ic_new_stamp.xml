@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/window_background" />
+    <foreground android:drawable="@drawable/viewfinder_by_gregor_cresnar_from_noun_project_108" />
+    <monochrome android:drawable="@drawable/viewfinder_by_gregor_cresnar_from_noun_project_108" />
+</adaptive-icon>

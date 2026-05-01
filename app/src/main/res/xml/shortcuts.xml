@@ -2,8 +2,8 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
         android:enabled="true"
-        android:icon="@drawable/ic_dots_grid"
-        android:shortcutId="stamps"
+        android:icon="@mipmap/ic_new_stamp"
+        android:shortcutId="new_stamp"
         android:shortcutShortLabel="@string/new_stamp_shortcut">
 
         <intent
