@@ -141,7 +141,7 @@ private fun Actions(
             modifier = Modifier
                 .holdToDeleteAction(
                     roundedCornerRadius = cornerRadius,
-                    areTopCornersRounded = true,
+                    areTopCornersRounded = false,
                     onDelete = onDelete,
                 )
                 .padding(
