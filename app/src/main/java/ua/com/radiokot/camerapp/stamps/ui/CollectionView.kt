@@ -235,8 +235,8 @@ fun CollectionView(
     }
 }
 
-private val LeftSampleRotationAngles = intArrayOf(3, 2, -2, -3)
-private val CenterSampleRotationAngles = intArrayOf(-4, -5, -6)
+private val LeftSampleRotationAngles = intArrayOf(-4, -5, -6)
+private val CenterSampleRotationAngles = intArrayOf(3, 2, -2, -3)
 private val RightSampleRotationAngles = intArrayOf(6, 5, 4)
 
 val CollectionViewNameStyle = TextStyle(
