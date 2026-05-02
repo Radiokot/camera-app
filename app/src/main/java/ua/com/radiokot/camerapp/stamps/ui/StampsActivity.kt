@@ -37,10 +37,13 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -257,7 +260,7 @@ private fun SharedTransitionScope.StampsNavHost(
             CollectionActionsScreen(
                 collection = viewModel.collectionItem,
                 canDelete = viewModel.canDelete,
-                onMoveStampsAction = { /* stub for now */ },
+                onMoveStampsAction = viewModel::onMoveStampsAction,
                 onDeleteAction = viewModel::onDeleteAction,
                 sharedTransitionScope = this@StampsNavHost,
                 animatedVisibilityScope = this@composable,
@@ -268,7 +271,74 @@ private fun SharedTransitionScope.StampsNavHost(
             LaunchedEffect(viewModel) {
                 viewModel.events.collect { event ->
                     when (event) {
+                        is CollectionActionsScreenViewModel.Event.ProceedToMoveDestinationCollectionSelection -> {
+                            navController.navigate(
+                                route = MoveDestinationCollectionSelectionDestination(
+                                    currentCollectionId = event.currentCollectionId,
+                                )
+                            ) {
+                                launchSingleTop = true
+                            }
+                        }
+
                         is CollectionActionsScreenViewModel.Event.Done -> {
+                            navController.navigateUp()
+                        }
+                    }
+                }
+            }
+
+            LaunchedEffect(viewModel) {
+                navEntry
+                    .savedStateHandle
+                    .getStateFlow(
+                        key = SelectedCollectionId,
+                        initialValue = null
+                    )
+                    .filterNotNull()
+                    .distinctUntilChanged()
+                    .collect(viewModel::onMoveDestinationCollectionSelected)
+            }
+        }
+
+        dialog(
+            route = MoveDestinationCollectionSelectionDestination,
+            arguments = listOf(
+                navArgument(CollectionDestinationCollectionId) {
+                    type = NavType.StringType
+                },
+            ),
+        ) { navEntry ->
+            val viewModel: MoveToCollectionDialogViewModel = koinViewModel {
+                parametersOf(
+                    MoveToCollectionDialogViewModel.Parameters(
+                        moveFromCollectionId =
+                            navEntry
+                                .arguments
+                                ?.getString(CollectionDestinationCollectionId)
+                                ?: error("No ID argument passed"),
+                    )
+                )
+            }
+
+            MoveToCollectionDialog(
+                collections = viewModel.collections,
+                onCollectionSelected = viewModel::onCollectionSelected,
+                onNewCollectionAction = viewModel::onNewCollectionAction,
+                onCancel = navController::navigateUp,
+            )
+
+            LaunchedEffect(viewModel) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is MoveToCollectionDialogViewModel.Event.CollectionSelected -> {
+                            navController
+                                .previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set(
+                                    key = SelectedCollectionId,
+                                    value = event.collectionId,
+                                )
                             navController.navigateUp()
                         }
                     }
@@ -415,6 +485,15 @@ private const val CollectionActionsDestination =
 private fun CollectionActionsDestination(
     collectionId: String,
 ) = "$CollectionsDestination/$collectionId/actions"
+
+private val MoveDestinationCollectionSelectionDestination =
+    "$CollectionsDestination/{$CollectionDestinationCollectionId}/move-from"
+
+private fun MoveDestinationCollectionSelectionDestination(
+    currentCollectionId: String,
+) = "$CollectionsDestination/$currentCollectionId/move-from"
+
+private const val SelectedCollectionId = "selectedCollectionId"
 
 private const val StampsDestination = "stamps"
 private const val StampDestinationStampId = "stampId"

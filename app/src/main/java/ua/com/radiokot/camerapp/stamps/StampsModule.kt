@@ -8,11 +8,13 @@ import org.koin.dsl.module
 import ua.com.radiokot.camerapp.stamps.data.FsStampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.data.FsStampRepository
 import ua.com.radiokot.camerapp.stamps.domain.EnsurePrimaryStampCollectionUseCase
+import ua.com.radiokot.camerapp.stamps.domain.GetSortedStampCollectionsUseCase
 import ua.com.radiokot.camerapp.stamps.domain.GetStampCollectionsWithSamplesUseCase
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
 import ua.com.radiokot.camerapp.stamps.ui.CollectionActionsScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.CollectionsScreenViewModel
+import ua.com.radiokot.camerapp.stamps.ui.MoveToCollectionDialogViewModel
 import ua.com.radiokot.camerapp.stamps.ui.StampScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.StampsScreenViewModel
 import java.io.File
@@ -46,11 +48,16 @@ val stampsModule = module {
         )
     } bind StampCollectionRepository::class
 
-    factory {
-        GetStampCollectionsWithSamplesUseCase(
+    single {
+        GetSortedStampCollectionsUseCase(
             collectionRepository = get(),
-            stampRepository = get(),
             ensurePrimaryStampCollectionUseCase = get(),
+        )
+    }
+    single {
+        GetStampCollectionsWithSamplesUseCase(
+            stampRepository = get(),
+            getSortedStampCollectionsUseCase = get(),
         )
     }
 
@@ -93,6 +100,16 @@ val stampsModule = module {
             parameters =
                 getOrNull()
                     ?: error("No CollectionActionsScreenViewModel.Parameters provided"),
+        )
+    }
+
+    viewModel {
+        MoveToCollectionDialogViewModel(
+            collectionRepository = get(),
+            getSortedStampCollectionsUseCase = get(),
+            parameters =
+                getOrNull()
+                    ?: error("No MoveToCollectionDialogViewModel.Parameters provided"),
         )
     }
 }

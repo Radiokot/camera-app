@@ -249,9 +249,7 @@ private fun SharedTransitionScope.StampCutNavHost(
                         inclusive = false,
                     )
                 },
-                onCancel = {
-                    navController.navigateUp()
-                },
+                onCancel = navController::navigateUp,
             )
         }
     }

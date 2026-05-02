@@ -16,11 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ua.com.radiokot.camerapp.stamps.domain.GetStampCollectionsWithSamplesUseCase
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
-import ua.com.radiokot.camerapp.stamps.domain.StampCollectionWithSamples
 import ua.com.radiokot.camerapp.util.eventSharedFlow
 import ua.com.radiokot.camerapp.util.lazyLogger
-import java.text.Collator
-import java.util.Locale
 
 class CollectionsScreenViewModel(
     private val collectionRepository: StampCollectionRepository,
@@ -32,18 +29,10 @@ class CollectionsScreenViewModel(
     private val _events: MutableSharedFlow<Event> = eventSharedFlow()
     val events: SharedFlow<Event> = _events
 
-    // First goes the primary collection, then other collections
-    // sorted alphabetically by name.
-    private val collator = Collator.getInstance(Locale.ROOT)
-    private val comparator: Comparator<StampCollectionWithSamples> =
-        compareByDescending<StampCollectionWithSamples> { it.collection.isPrimary }
-            .then { a, b -> collator.compare(a.collection.name, b.collection.name) }
-
     val items: StateFlow<ImmutableList<CollectionListItem>> = runBlocking {
         getStampCollectionsWithSamplesUseCase()
             .map { collectionsWithSamples ->
                 collectionsWithSamples
-                    .sortedWith(comparator)
                     .map(::CollectionListItem)
                     .toPersistentList()
             }

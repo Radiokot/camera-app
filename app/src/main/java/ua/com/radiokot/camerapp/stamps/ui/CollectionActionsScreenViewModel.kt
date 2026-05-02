@@ -74,7 +74,32 @@ class CollectionActionsScreenViewModel(
         _events.emit(Event.Done)
     }
 
+    fun onMoveStampsAction() {
+        log.debug {
+            "onMoveStampsAction(): proceeding to destination collection selection"
+        }
+
+        _events.tryEmit(
+            Event.ProceedToMoveDestinationCollectionSelection(
+                currentCollectionId = collection.id,
+            )
+        )
+    }
+
+    fun onMoveDestinationCollectionSelected(
+        destinationCollectionId: String,
+    ) {
+        log.debug {
+            "onMoveDestinationCollectionSelected(): moving stamps to collection:" +
+                    "\ndestinationCollectionId=$destinationCollectionId"
+        }
+    }
+
     sealed interface Event {
+        class ProceedToMoveDestinationCollectionSelection(
+            val currentCollectionId: String,
+        ) : Event
+
         object Done : Event
     }
 
