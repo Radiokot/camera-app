@@ -268,7 +268,7 @@ class FsStampCollectionRepository(
         .getOrNull()
 
     private companion object {
-        private const val DETAILS_FILE_NAME = "collection.webp"
+        private const val DETAILS_FILE_NAME = ".collection.webp"
         private const val DETAILS_FILE_STUB_HEX = """
             5249464676010000574542505650384C6A0100002F3FC00F100FF018F04BF51F
             057CF4E30172B4FD5324A5174DB9811FC2DD1A5232CF9C7E3AC3460A3B8143EA
