@@ -23,7 +23,7 @@
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
-        android:theme="@style/CameraAppTheme">
+        android:theme="@style/CameraAppStartingTheme">
 
         <activity
             android:name=".stamps.ui.StampsActivity"
@@ -44,7 +44,7 @@
         <activity
             android:name=".cut.ui.NewStampActivity"
             android:exported="true"
-            android:theme="@style/NewStampTheme"
+            android:theme="@style/NewStampStartingTheme"
             android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>
