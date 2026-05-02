@@ -146,12 +146,15 @@ private fun SharedTransitionScope.StampsNavHost(
     }
     val context = LocalContext.current
 
-    fun proceedToNewStamp(collectionId: String?) {
+    fun proceedToNewStamp(
+        collectionId: String?,
+    ) {
         val newStampIntent =
             Intent(context, NewStampActivity::class.java)
                 .putExtras(
                     NewStampActivity.getBundle(
                         collectionId = collectionId,
+                        showToastOnSave = false,
                     )
                 )
         context.startActivity(newStampIntent)
@@ -486,7 +489,7 @@ private fun CollectionActionsDestination(
     collectionId: String,
 ) = "$CollectionsDestination/$collectionId/actions"
 
-private val MoveDestinationCollectionSelectionDestination =
+private const val MoveDestinationCollectionSelectionDestination =
     "$CollectionsDestination/{$CollectionDestinationCollectionId}/move-from"
 
 private fun MoveDestinationCollectionSelectionDestination(

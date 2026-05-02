@@ -2,6 +2,7 @@ package ua.com.radiokot.camerapp.cut.ui
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -50,6 +52,7 @@ class NewStampActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val collectionId: String? = intent.getStringExtra(COLLECTION_ID_EXTRA)
+        val showToastOnSave = intent.getBooleanExtra(SHOW_TOAST_ON_SAVE_EXTRA, true)
 
         val areAllPermissionsGranted =
             permissionsScreenViewModel.areAllPermissionsGranted(
@@ -66,10 +69,21 @@ class NewStampActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxSize()
             ) {
+                val context = LocalContext.current
+
                 StampCutNavHost(
                     startWithPermissions = !areAllPermissionsGranted,
                     collectionId = collectionId,
-                    onDidSave = ::finish,
+                    onDidSave = {
+                        if (showToastOnSave) {
+                            Toast.makeText(
+                                context,
+                                "Stamp saved",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        finish()
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                 )
@@ -79,6 +93,7 @@ class NewStampActivity : ComponentActivity() {
 
     companion object {
         private const val COLLECTION_ID_EXTRA = "collectionId"
+        private const val SHOW_TOAST_ON_SAVE_EXTRA = "showToastOnSave"
 
         /**
          * @param collectionId ID of a specific collection to save the stamp into,
@@ -86,8 +101,10 @@ class NewStampActivity : ComponentActivity() {
          */
         fun getBundle(
             collectionId: String?,
+            showToastOnSave: Boolean,
         ) = Bundle().apply {
             putString(COLLECTION_ID_EXTRA, collectionId)
+            putBoolean(SHOW_TOAST_ON_SAVE_EXTRA, showToastOnSave)
         }
     }
 }
