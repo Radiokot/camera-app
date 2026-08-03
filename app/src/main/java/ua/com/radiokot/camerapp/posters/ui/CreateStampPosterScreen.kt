@@ -26,12 +26,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.draggable2D
-import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -47,19 +43,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.rotate
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
@@ -119,6 +112,7 @@ fun StampPosterCanvas(
                 awaitEachGesture {
                     val down = awaitFirstDown()
                     for (layer in layersState.value.asReversed()) {
+                        // TODO consider rotation.
                         if (down.position in layer.rect) {
                             activeLayer = layer
                             down.consume()
@@ -150,6 +144,15 @@ fun StampPosterCanvas(
         )
 
         for (layer in layersState.value) {
+            val center = layer.center.value
+            val rotationDegrees = layer.rotationDegrees.floatValue
+
+            drawContext.canvas.rotate(
+                degrees = rotationDegrees,
+                pivotX = center.x,
+                pivotY = center.y,
+            )
+
             when (layer) {
                 is UiStampPosterLayer.Stamp -> {
                     val rect = layer.rect
@@ -175,54 +178,20 @@ fun StampPosterCanvas(
                 center = layer.center.value,
                 radius = 12f,
             )
+
+            drawContext.canvas.rotate(
+                degrees = -rotationDegrees,
+                pivotX = center.x,
+                pivotY = center.y,
+            )
         }
     }
 }
-
-@Composable
-private fun StampPosterStampLayer(
-    stampLayer: UiStampPosterLayer.Stamp,
-) = Spacer(
-    modifier = Modifier
-        .offset()
-        .layout { m, _ ->
-            val center = stampLayer.center.value
-            val scale = stampLayer.scale.floatValue
-            val shapeSize = stampLayer.shape.size
-
-            val widthF = shapeSize.width.value * scale
-            val heightF = shapeSize.height.value * scale
-
-            val self = m.measure(
-                Constraints.fixed(
-                    width = widthF.fastRoundToInt(),
-                    height = heightF.fastRoundToInt(),
-                )
-            )
-
-            layout(self.width, self.height) {
-                self.place(
-                    x = (center.x - widthF / 2).fastRoundToInt(),
-                    y = (center.y - heightF / 2).fastRoundToInt(),
-                )
-            }
-        }
-        .background(Color.Magenta)
-        .graphicsLayer {
-            rotationZ = stampLayer.rotationDegrees.floatValue
-        }
-        .draggable2D(
-            state = rememberDraggable2DState { delta ->
-                stampLayer.center.value += delta
-            },
-        )
-)
 
 @PreviewLightDark
 @Composable
 private fun CreateStampPosterScreenPreview() {
     val fontFamilyResolver = LocalFontFamilyResolver.current
-    val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val textMeasurer = remember {
         TextMeasurer(
@@ -255,7 +224,7 @@ private fun CreateStampPosterScreenPreview() {
                         )
                     ),
                     scale = mutableFloatStateOf(1f),
-                    rotationDegrees = mutableFloatStateOf(0f),
+                    rotationDegrees = mutableFloatStateOf(45f),
                     textMeasurer = textMeasurer,
                 ),
                 UiStampPosterLayer.Text(
