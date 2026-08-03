@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -40,45 +42,59 @@ fun Modifier.paperBackground(
         val gridThickness = 1.dp.toPx()
 
         onDrawWithContent {
-            if (drawBackgroundColor) {
-                drawRect(backgroundColor)
-            }
 
-            var startY = (0 - gridSizePx / 2)
-            if (verticalOffset != null) {
-                startY += verticalOffset() % gridSizePx
-            }
-
-            for (y in (startY..size.height.toInt() step gridSizePx)) {
-                drawLine(
-                    color = lineColor,
-                    start = Offset(
-                        x = 0f,
-                        y = y.toFloat(),
-                    ),
-                    end = Offset(
-                        x = size.width,
-                        y = y.toFloat(),
-                    ),
-                    strokeWidth = gridThickness,
-                )
-            }
-            for (x in (0..size.width.toInt() step gridSizePx)) {
-                drawLine(
-                    color = lineColor,
-                    start = Offset(
-                        x = x.toFloat(),
-                        y = 0f,
-                    ),
-                    end = Offset(
-                        x = x.toFloat(),
-                        y = size.height,
-                    ),
-                    strokeWidth = gridThickness,
-                )
-            }
+            drawPaperBackground(
+                lineColor = lineColor,
+                backgroundColor = if (drawBackgroundColor) backgroundColor else null,
+                gridSizePx = gridSizePx,
+                gridThicknessPx = gridThickness,
+                verticalOffsetPx = if (verticalOffset != null) verticalOffset() else 0
+            )
 
             drawContent()
         }
+    }
+}
+
+fun DrawScope.drawPaperBackground(
+    lineColor: Color,
+    backgroundColor: Color?,
+    gridSizePx: Int,
+    gridThicknessPx: Float,
+    verticalOffsetPx: Int,
+) {
+    if (backgroundColor != null) {
+        drawRect(backgroundColor)
+    }
+
+    val startY = (0 - gridSizePx / 2) + verticalOffsetPx % gridSizePx
+
+    for (y in (startY..size.height.toInt() step gridSizePx)) {
+        drawLine(
+            color = lineColor,
+            start = Offset(
+                x = 0f,
+                y = y.toFloat(),
+            ),
+            end = Offset(
+                x = size.width,
+                y = y.toFloat(),
+            ),
+            strokeWidth = gridThicknessPx,
+        )
+    }
+    for (x in (0..size.width.toInt() step gridSizePx)) {
+        drawLine(
+            color = lineColor,
+            start = Offset(
+                x = x.toFloat(),
+                y = 0f,
+            ),
+            end = Offset(
+                x = x.toFloat(),
+                y = size.height,
+            ),
+            strokeWidth = gridThicknessPx,
+        )
     }
 }

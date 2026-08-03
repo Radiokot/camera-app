@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -55,6 +56,7 @@ fun AppTheme(
     )
 }
 
+@Immutable
 interface AppColors {
     val screenBackground: Color
     val paperBackgroundLine: Color
@@ -81,6 +83,7 @@ interface AppColors {
     val selectionEnvelopeRight: Color
 }
 
+@Immutable
 object LightAppColors : AppColors {
     override val screenBackground = Color(0xfffef6eb)
     override val paperBackgroundLine = Color(0xFFEEEDE6)
@@ -107,6 +110,7 @@ object LightAppColors : AppColors {
     override val selectionEnvelopeRight = Color(0xFFF1EBDB)
 }
 
+@Immutable
 object DarkAppColors : AppColors {
     override val screenBackground = Color(0xff111A10)
     override val paperBackgroundLine = Color(0xFF2D2A1C)
