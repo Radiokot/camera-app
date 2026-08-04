@@ -40,6 +40,7 @@ import ua.com.radiokot.camerapp.collectionselection.ui.SelectDestinationCollecti
 fun NavGraphBuilder.stampDestination(
     sharedTransitionScope: SharedTransitionScope?,
     selectDestinationCollectionContract: SelectDestinationCollectionContract,
+    onProceedToCreatePoster: (stampId: String) -> Unit,
     onDone: () -> Unit,
 ) = composable(
     route = StampRoute,
@@ -101,6 +102,10 @@ fun NavGraphBuilder.stampDestination(
                             "Send a stamp",
                         )
                     )
+                }
+
+                is StampScreenViewModel.Event.ProceedToCreatePoster -> {
+                    onProceedToCreatePoster(event.stampId)
                 }
 
                 is StampScreenViewModel.Event.Done -> {

@@ -20,13 +20,25 @@
 package ua.com.radiokot.camerapp.posters
 
 import org.koin.android.ext.koin.androidApplication
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import ua.com.radiokot.camerapp.posters.data.CpCreateSendStampPosterIntentUseCase
 import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntentUseCase
 import ua.com.radiokot.camerapp.posters.domain.CreateStampPosterUseCase
+import ua.com.radiokot.camerapp.posters.ui.CreateStampPosterScreenViewModel
 
 val postersModule = module {
+
+    viewModel {
+        CreateStampPosterScreenViewModel(
+            stampRepository = get(),
+            landscapist = get(),
+            parameters =
+                getOrNull()
+                    ?: error("No CreateStampPosterScreenViewModel.Parameters provided"),
+        )
+    }
 
     single {
         CreateStampPosterUseCase(

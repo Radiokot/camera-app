@@ -168,26 +168,11 @@ class StampScreenViewModel(
     }
 
     fun onSendAsPosterAction() {
-        val intent = createSendStampPosterIntentUseCase(
-            stamp = stamp,
-            options = StampPosterOptions(
-                scale = 1f,
-                withCaption = true,
-                colors = StampPosterOptions.Colors(
-                    paperBackground = LightAppColors.screenBackground.toArgb(),
-                    paperBackgroundLine = LightAppColors.paperBackgroundLine.toArgb(),
-                    stampShadow = LightAppColors.stampShadow.toArgb(),
-                    caption = LightAppColors.textPrimary.toArgb(),
-                ),
-            ),
-        )
-
         log.debug {
-            "onSendAsImageAction(): proceeding to send intent:" +
-                    "\nintent=$intent"
+            "onSendAsPosterAction(): proceeding to create poster"
         }
 
-        events.tryEmit(Event.ProceedToSendIntent(intent))
+        events.tryEmit(Event.ProceedToCreatePoster(stamp.id))
     }
 
     private suspend fun saveUpdates() {
@@ -239,6 +224,10 @@ class StampScreenViewModel(
 
         class ProceedToSendIntent(
             val intent: Intent,
+        ) : Event
+
+        class ProceedToCreatePoster(
+            val stampId: String,
         ) : Event
 
         object Done : Event

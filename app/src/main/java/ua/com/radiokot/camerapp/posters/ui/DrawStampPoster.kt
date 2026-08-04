@@ -19,11 +19,16 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import android.graphics.Paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rotate
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.unit.round
+import androidx.compose.ui.unit.roundToIntSize
 import androidx.compose.ui.util.fastRoundToInt
 import ua.com.radiokot.camerapp.ui.AppColors
 import ua.com.radiokot.camerapp.ui.drawPaperBackground
@@ -41,9 +46,18 @@ fun DrawScope.drawStampPoster(
         verticalOffsetPx = 0,
     )
 
+    val shadowPaint = stampPosterShadowPaint.apply {
+        setShadowLayer(
+            48f * density,
+            0f,
+            0f,
+            colors.stampShadow.toArgb()
+        )
+    }
+
     for (layer in layers) {
-        val center = layer.center.value * density
-        val rotationDegrees = layer.rotationDegrees.floatValue
+        val center = layer.center * density
+        val rotationDegrees = layer.rotationDegrees
 
         drawContext.canvas.rotate(
             degrees = rotationDegrees,
@@ -54,11 +68,29 @@ fun DrawScope.drawStampPoster(
         when (layer) {
             is UiStampPosterLayer.Stamp -> {
                 val rect = layer.rect
-                drawRect(
-                    color = Color.Magenta,
-                    topLeft = rect.topLeft * density,
-                    size = rect.size * density,
+                val imageBitmap = layer.imageBitmap
+
+                drawContext.canvas.nativeCanvas.drawRect(
+                    rect.left * density,
+                    rect.top * density,
+                    rect.right * density,
+                    rect.bottom * density,
+                    shadowPaint,
                 )
+
+                if (imageBitmap != null) {
+                    drawImage(
+                        image = imageBitmap,
+                        dstOffset = (rect.topLeft * density).round(),
+                        dstSize = (rect.size * density).roundToIntSize(),
+                    )
+                } else {
+                    drawRect(
+                        color = Color.Yellow,
+                        topLeft = rect.topLeft * density,
+                        size = rect.size * density,
+                    )
+                }
             }
 
             is UiStampPosterLayer.Text -> {
@@ -78,4 +110,9 @@ fun DrawScope.drawStampPoster(
             pivotY = center.y,
         )
     }
+}
+
+private val stampPosterShadowPaint = Paint().apply {
+    style = Paint.Style.FILL
+    color = android.graphics.Color.TRANSPARENT
 }

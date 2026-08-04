@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
-import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,7 +34,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -58,7 +56,6 @@ import ua.com.radiokot.camerapp.ui.AppColors
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.min
 
@@ -103,7 +100,7 @@ fun CreateStampPosterScreen(
 }
 
 @Composable
-fun StampPosterEditor(
+private fun StampPosterEditor(
     modifier: Modifier = Modifier,
     layersState: State<ImmutableList<UiStampPosterLayer>>,
     colors: AppColors,
@@ -125,8 +122,8 @@ fun StampPosterEditor(
                     for (layer in layersState.value.asReversed()) {
                         val relativePosition =
                             (down.position / density).rotateBy(
-                                degrees = -layer.rotationDegrees.floatValue,
-                                pivot = layer.center.value,
+                                degrees = -layer.rotationDegrees,
+                                pivot = layer.center,
                             )
 
                         if (relativePosition in layer.rect) {
@@ -144,9 +141,9 @@ fun StampPosterEditor(
                         val activeLayer = activeLayer
                             ?: return@onGesture
 
-                        activeLayer.center.value += pan / density
-                        activeLayer.scale.floatValue *= zoom
-                        activeLayer.rotationDegrees.floatValue += rotation
+                        activeLayer.center += pan / density
+                        activeLayer.scale *= zoom
+                        activeLayer.rotationDegrees += rotation
                     }
                 )
             }
@@ -166,39 +163,32 @@ private fun CreateStampPosterScreenPreview() {
         mutableStateOf(
             persistentListOf(
                 UiStampPosterLayer.Stamp(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageBitmap = null,
                     shape = UiStampShapeA,
-                    center = mutableStateOf(
-                        Offset(
-                            400f,
-                            900f,
-                        )
-                    ),
-                    scale = mutableFloatStateOf(1f),
-                    rotationDegrees = mutableFloatStateOf(0f),
-                ),
+                ).apply {
+                    center = Offset(
+                        400f,
+                        900f,
+                    )
+                },
                 UiStampPosterLayer.Text(
                     text = mutableStateOf("OLEG!"),
-                    center = mutableStateOf(
-                        Offset(
-                            300f,
-                            300f,
-                        )
-                    ),
-                    scale = mutableFloatStateOf(1f),
-                    rotationDegrees = mutableFloatStateOf(45f),
-                ),
+                ).apply {
+                    center = Offset(
+                        300f,
+                        300f,
+                    )
+                    rotationDegrees = 45f
+                },
                 UiStampPosterLayer.Text(
                     text = mutableStateOf("жжот"),
-                    center = mutableStateOf(
-                        Offset(
-                            300f,
-                            400f,
-                        )
-                    ),
-                    scale = mutableFloatStateOf(2f),
-                    rotationDegrees = mutableFloatStateOf(0f),
-                )
+                ).apply {
+                    center = Offset(
+                        300f,
+                        400f,
+                    )
+                    scale = 2f
+                }
             )
         )
     }

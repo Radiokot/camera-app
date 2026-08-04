@@ -19,17 +19,72 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.skydoves.landscapist.core.ImageRequest
+import com.skydoves.landscapist.core.Landscapist
+import com.skydoves.landscapist.core.model.ImageResult
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import ua.com.radiokot.camerapp.stamps.domain.Stamp
+import ua.com.radiokot.camerapp.stamps.domain.StampRepository
+import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 
 @Stable
-class CreateStampPosterScreenViewModel : ViewModel() {
+class CreateStampPosterScreenViewModel(
+    private val stampRepository: StampRepository,
+    private val landscapist: Landscapist,
+    parameters: Parameters,
+) : ViewModel() {
 
     val layers: StateFlow<PersistentList<UiStampPosterLayer>>
         field = MutableStateFlow(persistentListOf<UiStampPosterLayer>())
 
+    init {
+        viewModelScope.launch {
+            val firstStamp = stampRepository.getStamp(parameters.firstStampId)
+                ?: error("Stamp with id ${parameters.firstStampId} not found")
+
+            layers.value = persistentListOf(
+                UiStampPosterLayer.Stamp(
+                    imageBitmap = firstStamp.getImageBitmap(),
+                    shape = UiStampShape.fromShape(firstStamp.shape),
+                )
+            )
+        }
+    }
+
+    private suspend fun Stamp.getImageBitmap() =
+        landscapist
+            .load(
+                ImageRequest
+                    .builder()
+                    .model(imageUri.toUri())
+                    .progressiveEnabled(false)
+                    .build()
+            )
+            .filterIsInstance<ImageResult.Success>()
+            .firstOrNull()
+            ?.data
+            ?.let { it as? Bitmap }
+//            ?.let {
+//                if (it.config == Bitmap.Config.HARDWARE)
+//                    it.copy(Bitmap.Config.ARGB_8888, false)
+//                else
+//                    it
+//            }
+            ?.asImageBitmap()
+
+    data class Parameters(
+        val firstStampId: String,
+    )
 }

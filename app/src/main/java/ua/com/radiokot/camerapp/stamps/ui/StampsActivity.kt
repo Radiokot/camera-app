@@ -67,6 +67,8 @@ import ua.com.radiokot.camerapp.intro.ui.PermissionsRoute
 import ua.com.radiokot.camerapp.intro.ui.PermissionsScreenViewModel
 import ua.com.radiokot.camerapp.intro.ui.introDestination
 import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
+import ua.com.radiokot.camerapp.posters.ui.CreatePosterRoute
+import ua.com.radiokot.camerapp.posters.ui.createPosterDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -340,9 +342,20 @@ private fun SharedTransitionScope.StampsNavHost(
             onDone = navController::navigateUp,
         )
 
+        createPosterDestination()
+
         stampDestination(
             sharedTransitionScope = this@StampsNavHost,
             selectDestinationCollectionContract = selectDestinationCollectionContract,
+            onProceedToCreatePoster = {
+                navController.navigate(
+                    route = CreatePosterRoute(
+                        firstStampId = it,
+                    )
+                ) {
+                    launchSingleTop = true
+                }
+            },
             onDone = navController::navigateUp,
         )
 
