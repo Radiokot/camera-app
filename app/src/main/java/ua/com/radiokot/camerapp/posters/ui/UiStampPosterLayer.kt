@@ -4,9 +4,6 @@ import android.net.Uri
 import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -39,50 +36,55 @@ sealed class UiStampPosterLayer(
         rotationDegrees: MutableFloatState,
     ) : UiStampPosterLayer(center, scale, rotationDegrees) {
 
-        override val rect: Rect by derivedStateOf {
-            val shapeSize = shape.size * 5.4f
-            val size = Size(
-                width = shapeSize.width.value * scale.floatValue,
-                height = shapeSize.height.value * scale.floatValue,
-            )
-            Rect(
-                offset = center.value - size.center,
-                size = size,
-            )
-        }
+        override val rect: Rect
+            get() {
+                val size = Size(
+                    width = 5.4f * shape.size.width.value * scale.floatValue,
+                    height = 5.4f * shape.size.height.value * scale.floatValue,
+                )
+                return Rect(
+                    offset = center.value - size.center,
+                    size = size,
+                )
+            }
     }
 
     @Stable
     class Text(
-        val text: String,
-        private val textMeasurer: TextMeasurer,
+        val text: MutableState<String>,
         center: MutableState<Offset>,
         scale: MutableFloatState,
         rotationDegrees: MutableFloatState,
     ) : UiStampPosterLayer(center, scale, rotationDegrees) {
 
-        val rectAndLayout: Pair<Rect, TextLayoutResult> by derivedStateOf {
-            val textLayout = textMeasurer.measure(
-                text = text,
-                style = TextStyle(
-                    fontFamily = PodkovaFamily,
-                    fontSize = 72.sp * scale.floatValue,
-                    textAlign = TextAlign.Center,
-                ),
-                constraints = Constraints(),
-            )
-            val size = textLayout.size.toSize()
-            Pair(
-                Rect(
-                    offset = center.value - size.center,
-                    size = size,
-                ),
-                textLayout,
-            )
-        }
+        var textMeasurer: TextMeasurer? = null
 
-        override val rect: Rect by derivedStateOf {
-            rectAndLayout.first
-        }
+        val rectAndLayout: Pair<Rect, TextLayoutResult>
+            get() {
+                val textMeasurer = textMeasurer
+                    ?: error("textMeasurer with the actual density must be set")
+
+                val textLayout = textMeasurer.measure(
+                    text = text.value,
+                    style = TextStyle(
+                        fontFamily = PodkovaFamily,
+                        fontSize = 72.sp * scale.floatValue,
+                        textAlign = TextAlign.Center,
+                    ),
+                    constraints = Constraints(),
+                )
+                val size = textLayout.size.toSize() / textLayout.layoutInput.density.density
+
+                return Pair(
+                    Rect(
+                        offset = center.value - size.center,
+                        size = size,
+                    ),
+                    textLayout,
+                )
+            }
+
+        override val rect: Rect
+            get() = rectAndLayout.first
     }
 }

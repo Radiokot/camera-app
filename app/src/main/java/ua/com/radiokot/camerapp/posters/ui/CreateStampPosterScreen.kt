@@ -27,6 +27,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,19 +38,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -60,48 +58,59 @@ import ua.com.radiokot.camerapp.ui.AppColors
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
-import ua.com.radiokot.camerapp.ui.drawPaperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.rotateBy
+import kotlin.math.min
 
 @Composable
 fun CreateStampPosterScreen(
     modifier: Modifier = Modifier,
     isDark: Boolean,
     layersState: State<ImmutableList<UiStampPosterLayer>>,
-) = Box(
+) = BoxWithConstraints(
     modifier = modifier,
 ) {
+    val canvasScale = min(
+        maxWidth.value / StampPosterWidth,
+        maxHeight.value / StampPosterHeight,
+    ) * 0.85f
+    val realDensity = LocalDensity.current.density
     val canvasDensity = Density(
-        density = 1f,
+        density = realDensity * canvasScale,
         fontScale = 1f,
     )
-    CompositionLocalProvider(
-        LocalDensity provides canvasDensity,
-    ) {
-        val canvasShape = RoundedCornerShape(10.dp)
+    val canvasShape = RoundedCornerShape(10.dp)
 
-        StampPosterCanvas(
-            layersState = layersState,
-            colors = if (isDark) DarkAppColors else LightAppColors,
-            modifier = Modifier
-                .border(
-                    width = 2.dp,
-                    color = LocalColors.current.componentStroke,
-                    shape = canvasShape,
-                )
-                .clip(canvasShape)
-        )
+    Box(
+        modifier = Modifier
+            .border(
+                width = 2.dp,
+                color = LocalColors.current.componentStroke,
+                shape = canvasShape,
+            )
+            .clip(canvasShape)
+            .align(Alignment.TopCenter)
+    ) {
+        CompositionLocalProvider(
+            LocalDensity provides canvasDensity,
+        ) {
+            StampPosterEditor(
+                layersState = layersState,
+                colors = if (isDark) DarkAppColors else LightAppColors,
+            )
+        }
     }
 }
 
 @Composable
-fun StampPosterCanvas(
+fun StampPosterEditor(
     modifier: Modifier = Modifier,
     layersState: State<ImmutableList<UiStampPosterLayer>>,
     colors: AppColors,
 ) {
     var activeLayer: UiStampPosterLayer? by retain { mutableStateOf(null) }
+    val density by rememberUpdatedState(LocalDensity.current.density)
+    val textMeasurer = rememberTextMeasurer()
 
     Canvas(
         modifier = modifier
@@ -115,7 +124,7 @@ fun StampPosterCanvas(
 
                     for (layer in layersState.value.asReversed()) {
                         val relativePosition =
-                            down.position.rotateBy(
+                            (down.position / density).rotateBy(
                                 degrees = -layer.rotationDegrees.floatValue,
                                 pivot = layer.center.value,
                             )
@@ -135,78 +144,24 @@ fun StampPosterCanvas(
                         val activeLayer = activeLayer
                             ?: return@onGesture
 
-                        activeLayer.center.value += pan
+                        activeLayer.center.value += pan / density
                         activeLayer.scale.floatValue *= zoom
                         activeLayer.rotationDegrees.floatValue += rotation
                     }
                 )
             }
     ) {
-        drawPaperBackground(
-            lineColor = colors.paperBackgroundLine,
-            backgroundColor = colors.componentBackground,
-            gridSizePx = 57,
-            gridThicknessPx = 3.6f,
-            verticalOffsetPx = 0,
+        drawStampPoster(
+            layers = layersState.value,
+            colors = colors,
+            textMeasurer = textMeasurer
         )
-
-        for (layer in layersState.value) {
-            val center = layer.center.value
-            val rotationDegrees = layer.rotationDegrees.floatValue
-
-            drawContext.canvas.rotate(
-                degrees = rotationDegrees,
-                pivotX = center.x,
-                pivotY = center.y,
-            )
-
-            when (layer) {
-                is UiStampPosterLayer.Stamp -> {
-                    val rect = layer.rect
-                    drawRect(
-                        color = Color.Magenta,
-                        topLeft = rect.topLeft,
-                        size = rect.size,
-                    )
-                }
-
-                is UiStampPosterLayer.Text -> {
-                    val (rect, textLayout) = layer.rectAndLayout
-                    drawText(
-                        textLayoutResult = textLayout,
-                        topLeft = rect.topLeft,
-                        color = colors.textPrimary,
-                    )
-                }
-            }
-
-            drawContext.canvas.rotate(
-                degrees = -rotationDegrees,
-                pivotX = center.x,
-                pivotY = center.y,
-            )
-
-            drawCircle(
-                color = Color.Cyan,
-                center = layer.center.value,
-                radius = 12f,
-            )
-        }
     }
 }
 
 @PreviewLightDark
 @Composable
 private fun CreateStampPosterScreenPreview() {
-    val fontFamilyResolver = LocalFontFamilyResolver.current
-    val layoutDirection = LocalLayoutDirection.current
-    val textMeasurer = remember {
-        TextMeasurer(
-            defaultFontFamilyResolver = fontFamilyResolver,
-            defaultDensity = Density(1f, 1f),
-            defaultLayoutDirection = layoutDirection,
-        )
-    }
     val layersState: State<ImmutableList<UiStampPosterLayer>> = remember {
         mutableStateOf(
             persistentListOf(
@@ -223,7 +178,7 @@ private fun CreateStampPosterScreenPreview() {
                     rotationDegrees = mutableFloatStateOf(0f),
                 ),
                 UiStampPosterLayer.Text(
-                    text = "OLEG!",
+                    text = mutableStateOf("OLEG!"),
                     center = mutableStateOf(
                         Offset(
                             300f,
@@ -232,10 +187,9 @@ private fun CreateStampPosterScreenPreview() {
                     ),
                     scale = mutableFloatStateOf(1f),
                     rotationDegrees = mutableFloatStateOf(45f),
-                    textMeasurer = textMeasurer,
                 ),
                 UiStampPosterLayer.Text(
-                    text = "жжот",
+                    text = mutableStateOf("жжот"),
                     center = mutableStateOf(
                         Offset(
                             300f,
@@ -244,7 +198,6 @@ private fun CreateStampPosterScreenPreview() {
                     ),
                     scale = mutableFloatStateOf(2f),
                     rotationDegrees = mutableFloatStateOf(0f),
-                    textMeasurer = textMeasurer,
                 )
             )
         )
