@@ -62,6 +62,7 @@ import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.drawPaperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.rotateBy
 
 @Composable
 fun CreateStampPosterScreen(
@@ -111,9 +112,15 @@ fun StampPosterCanvas(
             .pointerInput(Unit) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
+
                     for (layer in layersState.value.asReversed()) {
-                        // TODO consider rotation.
-                        if (down.position in layer.rect) {
+                        val relativePosition =
+                            down.position.rotateBy(
+                                degrees = -layer.rotationDegrees.floatValue,
+                                pivot = layer.center.value,
+                            )
+
+                        if (relativePosition in layer.rect) {
                             activeLayer = layer
                             down.consume()
                             return@awaitEachGesture
@@ -173,16 +180,16 @@ fun StampPosterCanvas(
                 }
             }
 
-            drawCircle(
-                color = Color.Cyan,
-                center = layer.center.value,
-                radius = 12f,
-            )
-
             drawContext.canvas.rotate(
                 degrees = -rotationDegrees,
                 pivotX = center.x,
                 pivotY = center.y,
+            )
+
+            drawCircle(
+                color = Color.Cyan,
+                center = layer.center.value,
+                radius = 12f,
             )
         }
     }
