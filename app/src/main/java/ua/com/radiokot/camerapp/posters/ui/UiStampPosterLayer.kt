@@ -1,6 +1,5 @@
 package ua.com.radiokot.camerapp.posters.ui
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -43,7 +42,8 @@ sealed class UiStampPosterLayer {
     /**
      * Positive for clockwise rotation around [center].
      */
-    var rotationDegrees: Float by mutableFloatStateOf(0f)
+    var rotationDegrees: Float by mutableFloatStateOf(360f)
+    //                                                starts at 360 and kept positive for convenience.
 
     /**
      * In full-size poster coordinates, with center at [center].
@@ -71,9 +71,10 @@ sealed class UiStampPosterLayer {
 
     @Stable
     class Text(
-        val text: MutableState<String>,
+        text: String,
     ) : UiStampPosterLayer() {
 
+        var text: String by mutableStateOf(text)
         var textMeasurer: TextMeasurer? = null
 
         /**
@@ -87,7 +88,7 @@ sealed class UiStampPosterLayer {
                     ?: error("textMeasurer with the actual density must be set")
 
                 val textLayout = textMeasurer.measure(
-                    text = text.value,
+                    text = text,
                     style = TextStyle(
                         fontFamily = PodkovaFamily,
                         fontSize = 72.sp * scale,

@@ -43,8 +43,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
@@ -57,6 +59,7 @@ import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.util.rotateBy
+import kotlin.math.absoluteValue
 import kotlin.math.min
 
 @Composable
@@ -108,6 +111,7 @@ private fun StampPosterEditor(
     var activeLayer: UiStampPosterLayer? by retain { mutableStateOf(null) }
     val density by rememberUpdatedState(LocalDensity.current.density)
     val textMeasurer = rememberTextMeasurer()
+    val hapticFeedback = LocalHapticFeedback.current
 
     Canvas(
         modifier = modifier
@@ -141,9 +145,55 @@ private fun StampPosterEditor(
                         val activeLayer = activeLayer
                             ?: return@onGesture
 
-                        activeLayer.center += pan / density
+                        if (pan != Offset.Zero) {
+                            var newCenterX = activeLayer.center.x + pan.x / density
+                            var newCenterY = activeLayer.center.y + pan.y / density
+
+                            val posterCenterDx = newCenterX - StampPosterWidth / 2f
+                            val posterCenterDy = newCenterY - StampPosterHeight / 2f
+
+                            // Snap to center lines.
+                            if (posterCenterDx.absoluteValue < 4f) {
+                                newCenterX -= posterCenterDx
+                                if (newCenterX != activeLayer.center.x) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                                }
+                            }
+                            if (posterCenterDy.absoluteValue < 4f) {
+                                newCenterY -= posterCenterDy
+                                if (newCenterY != activeLayer.center.y) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                                }
+                            }
+
+                            activeLayer.center = Offset(
+                                x = newCenterX,
+                                y = newCenterY,
+                            )
+                        }
+
                         activeLayer.scale *= zoom
-                        activeLayer.rotationDegrees += rotation
+
+                        if (rotation != 0f) {
+                            var newRotation =
+                                360f + (activeLayer.rotationDegrees + rotation) % 360f
+
+                            // Snap to quarters.
+                            val rem90 = newRotation % 90f
+                            if (rem90 > 89.5f) {
+                                newRotation += (90f - rem90)
+                                if (newRotation != activeLayer.rotationDegrees) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                                }
+                            } else if (rem90 < 0.5f) {
+                                newRotation -= rem90
+                                if (newRotation != activeLayer.rotationDegrees) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
+                                }
+                            }
+
+                            activeLayer.rotationDegrees = newRotation
+                        }
                     }
                 )
             }
@@ -172,7 +222,7 @@ private fun CreateStampPosterScreenPreview() {
                     )
                 },
                 UiStampPosterLayer.Text(
-                    text = mutableStateOf("OLEG!"),
+                    text = "OLEG!",
                 ).apply {
                     center = Offset(
                         300f,
@@ -181,7 +231,7 @@ private fun CreateStampPosterScreenPreview() {
                     rotationDegrees = 45f
                 },
                 UiStampPosterLayer.Text(
-                    text = mutableStateOf("жжот"),
+                    text = "жжот",
                 ).apply {
                     center = Offset(
                         300f,

@@ -30,6 +30,7 @@ import com.skydoves.landscapist.core.Landscapist
 import com.skydoves.landscapist.core.model.ImageResult
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -54,13 +55,33 @@ class CreateStampPosterScreenViewModel(
             val firstStamp = stampRepository.getStamp(parameters.firstStampId)
                 ?: error("Stamp with id ${parameters.firstStampId} not found")
 
-            layers.value = persistentListOf(
-                UiStampPosterLayer.Stamp(
-                    imageBitmap = firstStamp.getImageBitmap(),
-                    shape = UiStampShape.fromShape(firstStamp.shape),
-                )
-            )
+            initLayersWithStamp(firstStamp)
         }
+    }
+
+    private suspend fun initLayersWithStamp(
+        stamp: Stamp,
+    ) {
+        val stampLayers = mutableListOf<UiStampPosterLayer>()
+
+        stampLayers +=
+            UiStampPosterLayer.Stamp(
+                imageBitmap = stamp.getImageBitmap(),
+                shape = UiStampShape.fromShape(stamp.shape),
+            )
+
+        if (stamp.caption != null) {
+            stampLayers +=
+                UiStampPosterLayer.Text(
+                    text = stamp.caption,
+                ).apply {
+                    center = center.copy(
+                        y = StampPosterHeight / 4f,
+                    )
+                }
+        }
+
+        layers.value = stampLayers.toPersistentList()
     }
 
     private suspend fun Stamp.getImageBitmap() =
