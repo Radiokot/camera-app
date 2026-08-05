@@ -20,12 +20,10 @@
 package ua.com.radiokot.camerapp.posters.domain
 
 import android.content.Intent
-import ua.com.radiokot.camerapp.stamps.domain.Stamp
 
-interface CreateSendStampPosterIntentUseCase {
+fun interface CreateSendStampPosterIntent {
 
     operator fun invoke(
-        stamp: Stamp,
-        options: StampPosterOptions,
+        options: SendStampPosterOptions,
     ): Intent
 }

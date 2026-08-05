@@ -19,16 +19,23 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.safeGesturesPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -45,18 +52,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
+import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
+import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
+import ua.com.radiokot.camerapp.posters.domain.drawStampPoster
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
-import ua.com.radiokot.camerapp.ui.AppColors
-import ua.com.radiokot.camerapp.ui.DarkAppColors
-import ua.com.radiokot.camerapp.ui.LightAppColors
+import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.absoluteValue
@@ -66,51 +76,98 @@ import kotlin.math.min
 fun CreateStampPosterScreen(
     modifier: Modifier = Modifier,
     isDark: Boolean,
-    layersState: State<ImmutableList<UiStampPosterLayer>>,
-) = BoxWithConstraints(
-    modifier = modifier,
+    layersState: State<ImmutableList<StampPosterLayer>>,
+    onSendAction: () -> Unit,
 ) {
-    val canvasScale = min(
-        maxWidth.value / StampPosterWidth,
-        maxHeight.value / StampPosterHeight,
-    ) * 0.85f
-    val realDensity = LocalDensity.current.density
-    val canvasDensity = Density(
-        density = realDensity * canvasScale,
-        fontScale = 1f,
-    )
-    val canvasShape = RoundedCornerShape(10.dp)
-
-    Box(
-        modifier = Modifier
-            .border(
-                width = 2.dp,
-                color = LocalColors.current.componentStroke,
-                shape = canvasShape,
-            )
-            .clip(canvasShape)
-            .align(Alignment.TopCenter)
-    ) {
-        CompositionLocalProvider(
-            LocalDensity provides canvasDensity,
+    val configuration = LocalConfiguration.current
+    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .background(LocalColors.current.screenBackground)
+                // IME is handled in the composition.
+                .safeGesturesPadding()
+                .displayCutoutPadding()
+                .padding(24.dp)
         ) {
-            StampPosterEditor(
+            CreateStampPosterScreenLayoutContent(
+                isDark = isDark,
                 layersState = layersState,
-                colors = if (isDark) DarkAppColors else LightAppColors,
+                onSendAction = onSendAction,
+            )
+        }
+    } else {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
+                .background(LocalColors.current.screenBackground)
+                // IME is handled in the composition.
+                .safeGesturesPadding()
+                .displayCutoutPadding()
+                .padding(24.dp)
+        ) {
+            CreateStampPosterScreenLayoutContent(
+                isDark = isDark,
+                layersState = layersState,
+                onSendAction = onSendAction,
             )
         }
     }
 }
 
 @Composable
+private fun CreateStampPosterScreenLayoutContent(
+    isDark: Boolean,
+    layersState: State<ImmutableList<StampPosterLayer>>,
+    onSendAction: () -> Unit,
+) {
+    val editorShape = RoundedCornerShape(10.dp)
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .border(
+                width = 2.dp,
+                color = LocalColors.current.componentStroke,
+                shape = editorShape,
+            )
+            .clip(editorShape)
+    ) {
+        val editorScale = min(
+            maxWidth.value / StampPosterWidth,
+            maxHeight.value / StampPosterHeight,
+        )
+        val realDensity = LocalDensity.current.density
+        val editorDensity = Density(
+            density = realDensity * editorScale,
+            fontScale = 1f,
+        )
+
+        CompositionLocalProvider(
+            LocalDensity provides editorDensity,
+        ) {
+            StampPosterEditor(
+                isDark = isDark,
+                layersState = layersState,
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.size(24.dp))
+
+    LeTextButton(
+        text = "Send",
+        onClick = onSendAction,
+    )
+}
+
+@Composable
 private fun StampPosterEditor(
     modifier: Modifier = Modifier,
-    layersState: State<ImmutableList<UiStampPosterLayer>>,
-    colors: AppColors,
+    isDark: Boolean,
+    layersState: State<ImmutableList<StampPosterLayer>>,
 ) {
-    var activeLayer: UiStampPosterLayer? by retain { mutableStateOf(null) }
+    var activeLayer: StampPosterLayer? by retain { mutableStateOf(null) }
     val density by rememberUpdatedState(LocalDensity.current.density)
-    val textMeasurer = rememberTextMeasurer()
     val hapticFeedback = LocalHapticFeedback.current
 
     Canvas(
@@ -200,8 +257,7 @@ private fun StampPosterEditor(
     ) {
         drawStampPoster(
             layers = layersState.value,
-            colors = colors,
-            textMeasurer = textMeasurer
+            isDark = isDark,
         )
     }
 }
@@ -209,10 +265,11 @@ private fun StampPosterEditor(
 @PreviewLightDark
 @Composable
 private fun CreateStampPosterScreenPreview() {
-    val layersState: State<ImmutableList<UiStampPosterLayer>> = remember {
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    val layersState: State<ImmutableList<StampPosterLayer>> = remember {
         mutableStateOf(
             persistentListOf(
-                UiStampPosterLayer.Stamp(
+                StampPosterLayer.Stamp(
                     imageBitmap = null,
                     shape = UiStampShapeA,
                 ).apply {
@@ -221,8 +278,9 @@ private fun CreateStampPosterScreenPreview() {
                         900f,
                     )
                 },
-                UiStampPosterLayer.Text(
+                StampPosterLayer.Text(
                     text = "OLEG!",
+                    fontFamilyResolver = fontFamilyResolver,
                 ).apply {
                     center = Offset(
                         300f,
@@ -230,8 +288,9 @@ private fun CreateStampPosterScreenPreview() {
                     )
                     rotationDegrees = 45f
                 },
-                UiStampPosterLayer.Text(
+                StampPosterLayer.Text(
                     text = "жжот",
+                    fontFamilyResolver = fontFamilyResolver,
                 ).apply {
                     center = Offset(
                         300f,
@@ -246,8 +305,8 @@ private fun CreateStampPosterScreenPreview() {
     CreateStampPosterScreen(
         layersState = layersState,
         isDark = false,
+        onSendAction = {},
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColors.current.screenBackground)
     )
 }

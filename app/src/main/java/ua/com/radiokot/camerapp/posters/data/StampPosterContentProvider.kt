@@ -23,24 +23,43 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.media.Image
+import android.media.ImageReader
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.toSize
+import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
-import org.koin.android.ext.android.inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import ua.com.radiokot.camerapp.BuildConfig
-import ua.com.radiokot.camerapp.posters.domain.CreateStampPosterUseCase
-import ua.com.radiokot.camerapp.stamps.domain.Stamp
-import ua.com.radiokot.camerapp.posters.domain.StampPosterOptions
+import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
+import ua.com.radiokot.camerapp.posters.domain.StampPosterDensity
+import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
+import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
+import ua.com.radiokot.camerapp.posters.domain.drawStampPoster
 import ua.com.radiokot.camerapp.util.MatrixCursor
+import ua.com.radiokot.camerapp.util.lazyLogger
 import ua.com.radiokot.camerapp.util.openPipeHelper
+import java.io.OutputStream
+import kotlin.time.measureTime
 
 class StampPosterContentProvider :
     ContentProvider(),
     KoinComponent {
 
-    private val createStampPosterUseCase: CreateStampPosterUseCase by inject()
+    private val log by lazyLogger("StampPosterCP")
 
     override fun onCreate(): Boolean {
         return true
@@ -51,22 +70,105 @@ class StampPosterContentProvider :
         mode: String,
     ): ParcelFileDescriptor {
 
-        val (stamp, posterOptions) =
-            stampsAndOptionsByUri[uri]
-                ?: error("Requested URI is not provided")
+        val options = optionsByUri[uri]
+            ?: error("Requested URI is not provided")
 
         return openPipeHelper { outputStream ->
-            val bitmap =
-                createStampPosterUseCase(
-                    stamp = stamp,
-                    options = posterOptions,
+            val elapsed = measureTime {
+                createAndSendPoster(
+                    options = options,
+                    outputStream = outputStream,
                 )
-            bitmap.compress(
-                Bitmap.CompressFormat.PNG,
-                100,
-                outputStream,
-            )
-            bitmap.recycle()
+            }
+
+            log.debug {
+                "openFile(): poster sent:" +
+                        "\ntook=$elapsed"
+            }
+        }
+    }
+
+    private suspend fun createAndSendPoster(
+        options: SendStampPosterOptions,
+        outputStream: OutputStream,
+    ) = withContext(Dispatchers.Default) {
+
+        val size = IntSize(StampPosterWidth.toInt(), StampPosterHeight.toInt())
+
+        val imageReader = ImageReader.newInstance(
+            size.width,
+            size.height,
+            PixelFormat.RGBA_8888,
+            2,
+        )
+
+        val rawBitmap = imageReader.use { imageReader ->
+            val hardwareCanvas = imageReader.surface.lockHardwareCanvas()
+
+            CanvasDrawScope().draw(
+                density = StampPosterDensity,
+                layoutDirection = LayoutDirection.Ltr,
+                canvas = Canvas(hardwareCanvas),
+                size = size.toSize(),
+            ) {
+                drawStampPoster(
+                    layers = options.layers,
+                    isDark = options.isDark,
+                )
+            }
+
+            imageReader.surface.unlockCanvasAndPost(hardwareCanvas)
+
+            val image = imageReader.awaitImage()
+            val imagePlane = image.planes.first()
+
+            createBitmap(
+                width = imagePlane.rowStride / imagePlane.pixelStride,
+                height = size.height,
+                config = Bitmap.Config.ARGB_8888,
+            ).apply {
+                copyPixelsFromBuffer(imagePlane.buffer)
+            }
+        }
+
+        val resultBitmap = createBitmap(
+            width = size.width,
+            height = size.height,
+            config = Bitmap.Config.RGB_565,
+        )
+        val resultRect =
+            Rect(0, 0, resultBitmap.width, resultBitmap.height)
+        android.graphics.Canvas(resultBitmap).drawBitmap(
+            rawBitmap,
+            resultRect,
+            resultRect,
+            null,
+        )
+        rawBitmap.recycle()
+
+        resultBitmap.compress(
+            Bitmap.CompressFormat.PNG,
+            100,
+            outputStream,
+        )
+        resultBitmap.recycle()
+    }
+
+    suspend fun ImageReader.awaitImage(
+
+    ): Image = suspendCancellableCoroutine { continuation ->
+
+        val handler = Handler(Looper.getMainLooper())
+
+        setOnImageAvailableListener({
+            setOnImageAvailableListener(null, null)
+            continuation.resume(acquireLatestImage()!!) { _, image, _ ->
+                image.close()
+            }
+        }, handler)
+
+        continuation.invokeOnCancellation {
+            setOnImageAvailableListener(null, null)
         }
     }
 
@@ -83,19 +185,16 @@ class StampPosterContentProvider :
         sortOrder: String?,
     ): Cursor {
 
-        val (stamp, posterOptions) =
-            stampsAndOptionsByUri[uri]
-                ?: error("Requested URI is not provided")
+        val options = optionsByUri[uri]
+            ?: error("Requested URI is not provided")
 
         return MatrixCursor(
             valuesByColumnName = mapOf(
-                OpenableColumns.DISPLAY_NAME to getPosterFileName(
-                    stampId = stamp.id,
-                ),
+                OpenableColumns.DISPLAY_NAME to getPosterFileName(options),
                 // Gmail WANTS this!
                 // It is actually shown in the attachment section.
                 // Doesn't need to be the exact size though.
-                OpenableColumns.SIZE to (500 * 1024 * posterOptions.scale).toInt(),
+                OpenableColumns.SIZE to 500 * 1024,
             ),
         )
     }
@@ -114,20 +213,19 @@ class StampPosterContentProvider :
         const val POSTER_FILE_CONTENT_TYPE = "image/png"
         private const val PNG_EXTENSION = "png"
 
-        private val stampsAndOptionsByUri = mutableMapOf<Uri, Pair<Stamp, StampPosterOptions>>()
+        private val optionsByUri = mutableMapOf<Uri, SendStampPosterOptions>()
 
         fun provide(
-            stamp: Stamp,
-            posterOptions: StampPosterOptions,
+            options: SendStampPosterOptions,
         ): Uri {
-            val uri = "content://$AUTHORITY/${getPosterFileName(stamp.id)}".toUri()
-            stampsAndOptionsByUri[uri] = stamp to posterOptions
+            val uri = "content://$AUTHORITY/${getPosterFileName(options)}".toUri()
+            optionsByUri[uri] = options
             return uri
         }
 
         private fun getPosterFileName(
-            stampId: String,
+            options: SendStampPosterOptions,
         ): String =
-            "${stampId}.$PNG_EXTENSION"
+            "${options.id}.$PNG_EXTENSION"
     }
 }

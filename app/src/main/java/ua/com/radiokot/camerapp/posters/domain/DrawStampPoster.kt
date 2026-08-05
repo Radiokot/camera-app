@@ -17,7 +17,7 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ua.com.radiokot.camerapp.posters.ui
+package ua.com.radiokot.camerapp.posters.domain
 
 import android.graphics.Paint
 import androidx.compose.ui.graphics.Color
@@ -25,19 +25,20 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rotate
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.roundToIntSize
 import androidx.compose.ui.util.fastRoundToInt
-import ua.com.radiokot.camerapp.ui.AppColors
+import ua.com.radiokot.camerapp.ui.DarkAppColors
+import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.drawPaperBackground
 
 fun DrawScope.drawStampPoster(
-    layers: Collection<UiStampPosterLayer>,
-    colors: AppColors,
-    textMeasurer: TextMeasurer,
+    layers: Collection<StampPosterLayer>,
+    isDark: Boolean,
 ) {
+    val colors = if (isDark) DarkAppColors else LightAppColors
+
     drawPaperBackground(
         lineColor = colors.paperBackgroundLine,
         backgroundColor = colors.componentBackground,
@@ -66,7 +67,7 @@ fun DrawScope.drawStampPoster(
         )
 
         when (layer) {
-            is UiStampPosterLayer.Stamp -> {
+            is StampPosterLayer.Stamp -> {
                 val rect = layer.rect
                 val imageBitmap = layer.imageBitmap
 
@@ -93,12 +94,13 @@ fun DrawScope.drawStampPoster(
                 }
             }
 
-            is UiStampPosterLayer.Text -> {
-                layer.textMeasurer = textMeasurer
-                val (rect, textLayout) = layer.rectAndLayout
+            is StampPosterLayer.Text -> {
                 drawText(
-                    textLayoutResult = textLayout,
-                    topLeft = rect.topLeft * density,
+                    textLayoutResult =
+                        layer.getTextLayoutToDraw(
+                            drawDensity = density,
+                        ),
+                    topLeft = layer.rect.topLeft * density,
                     color = colors.textPrimary,
                 )
             }

@@ -20,31 +20,21 @@
 package ua.com.radiokot.camerapp.posters.data
 
 import android.content.Intent
-import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntentUseCase
-import ua.com.radiokot.camerapp.stamps.domain.Stamp
-import ua.com.radiokot.camerapp.posters.domain.StampPosterOptions
+import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
+import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
 
-class CpCreateSendStampPosterIntentUseCase : CreateSendStampPosterIntentUseCase {
+class CpCreateSendStampPosterIntent : CreateSendStampPosterIntent {
 
     override fun invoke(
-        stamp: Stamp,
-        options: StampPosterOptions,
+        options: SendStampPosterOptions,
     ): Intent {
         val uri = StampPosterContentProvider.provide(
-            stamp = stamp,
-            posterOptions = options,
+            options = options,
         )
 
         return Intent(Intent.ACTION_SEND)
             .setDataAndType(uri, StampPosterContentProvider.POSTER_FILE_CONTENT_TYPE)
             .putExtra(Intent.EXTRA_STREAM, uri)
-            .putExtra(
-                Intent.EXTRA_TEXT,
-                if (options.withCaption)
-                    stamp.caption
-                else
-                    null
-            )
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 }

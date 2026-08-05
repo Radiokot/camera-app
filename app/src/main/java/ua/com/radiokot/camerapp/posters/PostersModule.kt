@@ -19,21 +19,30 @@
 
 package ua.com.radiokot.camerapp.posters
 
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.createFontFamilyResolver
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import ua.com.radiokot.camerapp.posters.data.CpCreateSendStampPosterIntentUseCase
-import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntentUseCase
-import ua.com.radiokot.camerapp.posters.domain.CreateStampPosterUseCase
+import ua.com.radiokot.camerapp.posters.data.CpCreateSendStampPosterIntent
+import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
 import ua.com.radiokot.camerapp.posters.ui.CreateStampPosterScreenViewModel
 
 val postersModule = module {
+
+    single {
+        createFontFamilyResolver(
+            context = androidApplication(),
+        )
+    } bind FontFamily.Resolver::class
 
     viewModel {
         CreateStampPosterScreenViewModel(
             stampRepository = get(),
             landscapist = get(),
+            fontFamilyResolver = get(),
+            createSendStampPosterIntent = get(),
             parameters =
                 getOrNull()
                     ?: error("No CreateStampPosterScreenViewModel.Parameters provided"),
@@ -41,13 +50,6 @@ val postersModule = module {
     }
 
     single {
-        CreateStampPosterUseCase(
-            landscapist = get(),
-            context = androidApplication(),
-        )
-    }
-
-    single {
-        CpCreateSendStampPosterIntentUseCase()
-    } bind CreateSendStampPosterIntentUseCase::class
+        CpCreateSendStampPosterIntent()
+    } bind CreateSendStampPosterIntent::class
 }

@@ -1,6 +1,7 @@
-package ua.com.radiokot.camerapp.posters.ui
+package ua.com.radiokot.camerapp.posters.domain
 
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -13,15 +14,18 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 
 @Stable
-sealed class UiStampPosterLayer {
+sealed class StampPosterLayer {
 
     /**
      * Anchor point of this layer,
@@ -54,7 +58,7 @@ sealed class UiStampPosterLayer {
     class Stamp(
         val imageBitmap: ImageBitmap?,
         val shape: UiStampShape,
-    ) : UiStampPosterLayer() {
+    ) : StampPosterLayer() {
 
         override val rect: Rect
             get() {
@@ -72,42 +76,48 @@ sealed class UiStampPosterLayer {
     @Stable
     class Text(
         text: String,
-    ) : UiStampPosterLayer() {
+        fontFamilyResolver: FontFamily.Resolver,
+    ) : StampPosterLayer() {
+
+        private val posterTextMeasurer = TextMeasurer(
+            defaultDensity = StampPosterDensity,
+            defaultFontFamilyResolver = fontFamilyResolver,
+            defaultLayoutDirection = LayoutDirection.Ltr,
+        )
 
         var text: String by mutableStateOf(text)
-        var textMeasurer: TextMeasurer? = null
 
         /**
-         * [TextLayoutResult] is density-dependant,
-         * while [Rect] remains in full-size poster coordinates,
-         * with center at [center].
+         * @param drawDensity the actual density at which the poster
+         * is currently being drawn, for sharp text.
          */
-        val rectAndLayout: Pair<Rect, TextLayoutResult>
-            get() {
-                val textMeasurer = textMeasurer
-                    ?: error("textMeasurer with the actual density must be set")
+        fun getTextLayoutToDraw(
+            drawDensity: Float,
+        ): TextLayoutResult =
+            posterTextMeasurer.measure(
+                text = text,
+                style = TextStyle(
+                    fontFamily = PodkovaFamily,
+                    fontSize = 72.sp * scale,
+                    textAlign = TextAlign.Center,
+                ),
+                constraints = Constraints(),
+                density = Density(
+                    density = drawDensity,
+                    fontScale = StampPosterDensity.fontScale,
+                ),
+            )
 
-                val textLayout = textMeasurer.measure(
-                    text = text,
-                    style = TextStyle(
-                        fontFamily = PodkovaFamily,
-                        fontSize = 72.sp * scale,
-                        textAlign = TextAlign.Center,
-                    ),
-                    constraints = Constraints(),
-                )
-                val size = textLayout.size.toSize() / textLayout.layoutInput.density.density
+        override val rect: Rect by derivedStateOf {
+            val textLayout = getTextLayoutToDraw(
+                drawDensity = 1f,
+            )
+            val size = textLayout.size.toSize()
 
-                return Pair(
-                    Rect(
-                        offset = center - size.center,
-                        size = size,
-                    ),
-                    textLayout,
-                )
-            }
-
-        override val rect: Rect
-            get() = rectAndLayout.first
+            Rect(
+                offset = center - size.center,
+                size = size,
+            )
+        }
     }
 }

@@ -17,9 +17,14 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ua.com.radiokot.camerapp.posters.ui
+package ua.com.radiokot.camerapp.posters.domain
+
+import androidx.compose.ui.unit.Density
 
 const val StampPosterWidth = 1080f
 const val StampPosterHeight = 1920f
 
-const val StampPosterStampWidth = StampPosterWidth / 2f
+val StampPosterDensity = Density(
+    density = 1f,
+    fontScale = 1f,
+)

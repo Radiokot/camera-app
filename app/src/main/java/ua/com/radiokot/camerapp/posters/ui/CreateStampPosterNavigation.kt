@@ -21,12 +21,15 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import android.content.Intent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -63,9 +66,27 @@ fun NavGraphBuilder.createPosterDestination(
         )
     }
 
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is CreateStampPosterScreenViewModel.Event.ProceedToSendIntent -> {
+                    context.startActivity(
+                        Intent.createChooser(
+                            event.intent,
+                            "Send a poster",
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     CreateStampPosterScreen(
         isDark = false,
         layersState = viewModel.layers.collectAsState(),
+        onSendAction = viewModel::onSendAction,
         modifier = Modifier
             .fillMaxSize()
     )

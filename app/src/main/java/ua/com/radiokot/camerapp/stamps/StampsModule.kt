@@ -146,7 +146,6 @@ val stampsModule = module {
         StampScreenViewModel(
             stampRepository = get(),
             createSendStampIntentUseCase = get(),
-            createSendStampPosterIntentUseCase = get(),
             parameters =
                 getOrNull()
                     ?: error("No StampScreenViewModel.Parameters provided"),

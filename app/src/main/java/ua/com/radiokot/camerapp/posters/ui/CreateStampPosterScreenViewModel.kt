@@ -19,9 +19,11 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.font.FontFamily
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,23 +34,37 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
+import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
+import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
+import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
+import ua.com.radiokot.camerapp.util.eventSharedFlow
+import ua.com.radiokot.camerapp.util.lazyLogger
 
 @Stable
 class CreateStampPosterScreenViewModel(
     private val stampRepository: StampRepository,
     private val landscapist: Landscapist,
+    private val fontFamilyResolver: FontFamily.Resolver,
+    private val createSendStampPosterIntent: CreateSendStampPosterIntent,
     parameters: Parameters,
 ) : ViewModel() {
 
-    val layers: StateFlow<PersistentList<UiStampPosterLayer>>
-        field = MutableStateFlow(persistentListOf<UiStampPosterLayer>())
+    private val log by lazyLogger("CreateStampPosterScreenVM")
+
+    private val posterId = System.currentTimeMillis().toString()
+    val layers: StateFlow<PersistentList<StampPosterLayer>>
+        field = MutableStateFlow(persistentListOf<StampPosterLayer>())
+    val events: SharedFlow<Event>
+        field = eventSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -62,18 +78,19 @@ class CreateStampPosterScreenViewModel(
     private suspend fun initLayersWithStamp(
         stamp: Stamp,
     ) {
-        val stampLayers = mutableListOf<UiStampPosterLayer>()
+        val stampLayers = mutableListOf<StampPosterLayer>()
 
         stampLayers +=
-            UiStampPosterLayer.Stamp(
+            StampPosterLayer.Stamp(
                 imageBitmap = stamp.getImageBitmap(),
                 shape = UiStampShape.fromShape(stamp.shape),
             )
 
         if (stamp.caption != null) {
             stampLayers +=
-                UiStampPosterLayer.Text(
+                StampPosterLayer.Text(
                     text = stamp.caption,
+                    fontFamilyResolver = fontFamilyResolver,
                 ).apply {
                     center = center.copy(
                         y = StampPosterHeight / 4f,
@@ -82,6 +99,24 @@ class CreateStampPosterScreenViewModel(
         }
 
         layers.value = stampLayers.toPersistentList()
+    }
+
+    fun onSendAction() {
+        val layers = layers.value
+        val options = SendStampPosterOptions(
+            id = posterId,
+            layers = layers,
+            isDark = false, // TODO: implement dark mode support
+        )
+        val intent = createSendStampPosterIntent(options)
+
+        log.debug {
+            "onSendAction(): proceeding to send:" +
+                    "\noptions=$options," +
+                    "\nintent=$intent"
+        }
+
+        events.tryEmit(Event.ProceedToSendIntent(intent))
     }
 
     private suspend fun Stamp.getImageBitmap() =
@@ -97,15 +132,15 @@ class CreateStampPosterScreenViewModel(
             .firstOrNull()
             ?.data
             ?.let { it as? Bitmap }
-//            ?.let {
-//                if (it.config == Bitmap.Config.HARDWARE)
-//                    it.copy(Bitmap.Config.ARGB_8888, false)
-//                else
-//                    it
-//            }
             ?.asImageBitmap()
 
     data class Parameters(
         val firstStampId: String,
     )
+
+    sealed interface Event {
+        class ProceedToSendIntent(
+            val intent: Intent,
+        ) : Event
+    }
 }
