@@ -63,6 +63,8 @@ class CreateStampPosterScreenViewModel(
     private val posterId = System.currentTimeMillis().toString()
     val layers: StateFlow<PersistentList<StampPosterLayer>>
         field = MutableStateFlow(persistentListOf<StampPosterLayer>())
+    val isDark: StateFlow<Boolean>
+        field = MutableStateFlow(false)
     val events: SharedFlow<Event>
         field = eventSharedFlow()
 
@@ -101,12 +103,16 @@ class CreateStampPosterScreenViewModel(
         layers.value = stampLayers.toPersistentList()
     }
 
+    fun onToggleIsDarkAction() {
+        isDark.value = !isDark.value
+    }
+
     fun onSendAction() {
         val layers = layers.value
         val options = SendStampPosterOptions(
             id = posterId,
             layers = layers,
-            isDark = false, // TODO: implement dark mode support
+            isDark = isDark.value,
         )
         val intent = createSendStampPosterIntent(options)
 

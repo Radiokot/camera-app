@@ -239,18 +239,13 @@ private fun ItemSelector2(
 private fun AdjustmentsControllerPreview() {
     AppTheme {
         val items = remember {
-            val brightnessValueState = mutableIntStateOf(0)
-            val contrastValueState = mutableIntStateOf(22)
-            val vibranceValueState = mutableIntStateOf(33)
-
             persistentListOf(
                 AdjustmentsControllerItem.Dial(
                     title = "Brightness",
                     defaultValue = 0,
                     minValue = -100,
                     maxValue = 100,
-                    valueState = brightnessValueState,
-                    onValueChanged = brightnessValueState::intValue::set,
+                    valueState = mutableIntStateOf(0),
                     key = "b",
                 ),
                 AdjustmentsControllerItem.Dial(
@@ -258,8 +253,7 @@ private fun AdjustmentsControllerPreview() {
                     defaultValue = 0,
                     minValue = -100,
                     maxValue = 100,
-                    valueState = contrastValueState,
-                    onValueChanged = contrastValueState::intValue::set,
+                    valueState = mutableIntStateOf(22),
                     key = "c",
                 ),
                 AdjustmentsControllerItem.Dial(
@@ -267,8 +261,7 @@ private fun AdjustmentsControllerPreview() {
                     defaultValue = 0,
                     minValue = -100,
                     maxValue = 100,
-                    valueState = vibranceValueState,
-                    onValueChanged = vibranceValueState::intValue::set,
+                    valueState = mutableIntStateOf(33),
                     key = "v",
                 )
             )

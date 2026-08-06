@@ -35,9 +35,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.IntState
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -76,8 +76,7 @@ interface AdjustmentsControllerItem {
         val defaultValue: Int,
         val minValue: Int,
         val maxValue: Int,
-        val valueState: IntState,
-        val onValueChanged: (Int) -> Unit,
+        val valueState: MutableIntState,
         override val key: Any,
     ) : AdjustmentsControllerItem {
 
@@ -118,7 +117,6 @@ interface AdjustmentsControllerItem {
                 minValue = minValue,
                 maxValue = maxValue,
                 valueState = valueState,
-                onValueChanged = onValueChanged,
                 modifier = Modifier
                     .padding(
                         top = 8.dp
@@ -128,7 +126,7 @@ interface AdjustmentsControllerItem {
         }
 
         override fun resetValue() {
-            onValueChanged(defaultValue)
+            valueState.intValue = defaultValue
         }
 
         override fun equals(other: Any?): Boolean {
@@ -156,8 +154,7 @@ interface AdjustmentsControllerItem {
     @Stable
     class Theme(
         val isDarkByDefault: Boolean,
-        val isDarkState: State<Boolean>,
-        val onIsDarkChanged: (Boolean) -> Unit,
+        val isDarkState: MutableState<Boolean>,
     ) : AdjustmentsControllerItem {
         override val title: String =
             "Theme"
@@ -166,7 +163,7 @@ interface AdjustmentsControllerItem {
             "theme"
 
         override fun resetValue() {
-            onIsDarkChanged(isDarkByDefault)
+            isDarkState.value = isDarkByDefault
         }
 
         @Composable
@@ -206,7 +203,7 @@ interface AdjustmentsControllerItem {
                             )
                             .clickable(
                                 onClick = {
-                                    onIsDarkChanged(isDark)
+                                    isDarkState.value = isDark
                                 }
                             )
                     ) {

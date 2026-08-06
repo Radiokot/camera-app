@@ -31,8 +31,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,8 +53,7 @@ fun ValueDial(
     modifier: Modifier = Modifier,
     minValue: Int,
     maxValue: Int,
-    valueState: IntState,
-    onValueChanged: (Int) -> Unit,
+    valueState: MutableIntState,
 ) = BoxWithConstraints(
     contentAlignment = Alignment.BottomCenter,
     modifier = modifier
@@ -100,7 +99,7 @@ fun ValueDial(
     LaunchedEffect(internalValueFlow) {
         internalValueFlow.collect { newInternalValue ->
             if (newInternalValue != valueState.intValue) {
-                onValueChanged(newInternalValue)
+                valueState.intValue = newInternalValue
                 hapticFeedback.performHapticFeedback(
                     HapticFeedbackType.GestureEnd
                 )

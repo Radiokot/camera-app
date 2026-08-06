@@ -84,9 +84,10 @@ fun NavGraphBuilder.createPosterDestination(
     }
 
     CreateStampPosterScreen(
-        isDark = false,
         layersState = viewModel.layers.collectAsState(),
         onSendAction = viewModel::onSendAction,
+        isDarkState = viewModel.isDark.collectAsState(),
+        onToggleIsDarkAction = viewModel::onToggleIsDarkAction,
         modifier = Modifier
             .fillMaxSize()
     )

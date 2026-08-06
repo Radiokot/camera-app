@@ -23,20 +23,29 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
@@ -56,9 +65,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
@@ -66,8 +77,13 @@ import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
 import ua.com.radiokot.camerapp.posters.domain.drawStampPoster
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
+import ua.com.radiokot.camerapp.ui.AppTheme
+import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LeTextButton
+import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
+import ua.com.radiokot.camerapp.ui.PodkovaFamily
+import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -75,8 +91,9 @@ import kotlin.math.min
 @Composable
 fun CreateStampPosterScreen(
     modifier: Modifier = Modifier,
-    isDark: Boolean,
     layersState: State<ImmutableList<StampPosterLayer>>,
+    isDarkState: State<Boolean>,
+    onToggleIsDarkAction: () -> Unit,
     onSendAction: () -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -91,7 +108,10 @@ fun CreateStampPosterScreen(
                 .padding(24.dp)
         ) {
             CreateStampPosterScreenLayoutContent(
-                isDark = isDark,
+                row = this,
+                column = null,
+                isDarkState = isDarkState,
+                onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
                 onSendAction = onSendAction,
             )
@@ -107,7 +127,10 @@ fun CreateStampPosterScreen(
                 .padding(24.dp)
         ) {
             CreateStampPosterScreenLayoutContent(
-                isDark = isDark,
+                row = null,
+                column = this,
+                isDarkState = isDarkState,
+                onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
                 onSendAction = onSendAction,
             )
@@ -117,7 +140,10 @@ fun CreateStampPosterScreen(
 
 @Composable
 private fun CreateStampPosterScreenLayoutContent(
-    isDark: Boolean,
+    row: RowScope?,
+    column: ColumnScope?,
+    isDarkState: State<Boolean>,
+    onToggleIsDarkAction: () -> Unit,
     layersState: State<ImmutableList<StampPosterLayer>>,
     onSendAction: () -> Unit,
 ) {
@@ -125,12 +151,23 @@ private fun CreateStampPosterScreenLayoutContent(
 
     BoxWithConstraints(
         modifier = Modifier
-            .border(
-                width = 2.dp,
-                color = LocalColors.current.componentStroke,
-                shape = editorShape,
+            .run {
+                if (column != null) {
+                    with(column) {
+                        weight(1f)
+                    }
+                } else {
+                    with(row!!) {
+                        weight(1f)
+                    }
+                }
+            }
+            .padding(
+                top = 0.dp,
+                start = if (row != null) 24.dp else 0.dp,
+                end = if (row != null) 24.dp else 0.dp,
+                bottom = if (column != null) 24.dp else 0.dp,
             )
-            .clip(editorShape)
     ) {
         val editorScale = min(
             maxWidth.value / StampPosterWidth,
@@ -142,28 +179,144 @@ private fun CreateStampPosterScreenLayoutContent(
             fontScale = 1f,
         )
 
-        CompositionLocalProvider(
-            LocalDensity provides editorDensity,
+        Box(
+            modifier = Modifier
+                .border(
+                    width = 2.dp,
+                    color = LocalColors.current.componentStroke,
+                    shape = editorShape,
+                )
+                .clip(editorShape)
+                .align(Alignment.Center)
         ) {
-            StampPosterEditor(
-                isDark = isDark,
-                layersState = layersState,
-            )
+            CompositionLocalProvider(
+                LocalDensity provides editorDensity,
+            ) {
+                StampPosterEditor(
+                    isDarkState = isDarkState,
+                    layersState = layersState,
+                )
+            }
         }
     }
 
-    Spacer(modifier = Modifier.size(24.dp))
+    Column(
+        modifier = Modifier
+            .run {
+                if (row != null) {
+                    this
+                        .fillMaxWidth(0.65f)
+                        .padding(
+                            horizontal = 24.dp,
+                        )
+                } else {
+                    this
+                }
+            }
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(
+                space = 16.dp,
+                alignment = Alignment.CenterHorizontally,
+            ),
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth()
+        ) {
+            DarkLightButton(
+                isDarkState = isDarkState,
+                onToggleIsDarkAction = onToggleIsDarkAction,
+            )
 
-    LeTextButton(
-        text = "Send",
-        onClick = onSendAction,
+            AddTextButton(
+                onAddTextAction = {},
+            )
+        }
+
+        Spacer(
+            modifier = Modifier
+                .height(24.dp)
+        )
+
+        LeTextButton(
+            text = "Send",
+            onClick = onSendAction,
+        )
+    }
+}
+
+@Composable
+private fun posterActionButtonTextStyle() =
+    TextStyle(
+        fontFamily = PodkovaFamily,
+        color = LocalColors.current.textPrimary,
+        fontSize = 22.sp,
+    )
+
+@Composable
+private fun PosterActionButton(
+    onClick: () -> Unit,
+    content: @Composable BoxScope.() -> Unit,
+) = Box(
+    contentAlignment = Alignment.Center,
+    content = content,
+    modifier = Modifier
+        .size(48.dp)
+        .clip(
+            shape = RoundedCornerShape(8.dp),
+        )
+        .clickable(
+            onClick = onClick,
+        )
+        .border(
+            width = 2.dp,
+            color = LocalColors.current.componentStroke,
+            shape = RoundedCornerShape(8.dp),
+        )
+)
+
+@Composable
+private fun DarkLightButton(
+    isDarkState: State<Boolean>,
+    onToggleIsDarkAction: () -> Unit,
+) = PosterActionButton(
+    onClick = onToggleIsDarkAction,
+) {
+    CompositionLocalProvider(
+        LocalColors provides if (isDarkState.value) DarkAppColors else LightAppColors,
+    ) {
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+                .paperBackground(
+                    drawBackgroundColor = true,
+                    gridSize = 10.dp,
+                )
+        )
+
+        BasicText(
+            text = if (isDarkState.value) "D" else "L",
+            style = posterActionButtonTextStyle(),
+        )
+    }
+}
+
+@Composable
+private fun AddTextButton(
+    onAddTextAction: () -> Unit,
+) = PosterActionButton(
+    onClick = onAddTextAction,
+) {
+    BasicText(
+        text = "Aa",
+        style = posterActionButtonTextStyle(),
     )
 }
 
 @Composable
 private fun StampPosterEditor(
     modifier: Modifier = Modifier,
-    isDark: Boolean,
+    isDarkState: State<Boolean>,
     layersState: State<ImmutableList<StampPosterLayer>>,
 ) {
     var activeLayer: StampPosterLayer? by retain { mutableStateOf(null) }
@@ -257,7 +410,7 @@ private fun StampPosterEditor(
     ) {
         drawStampPoster(
             layers = layersState.value,
-            isDark = isDark,
+            isDark = isDarkState.value,
         )
     }
 }
@@ -302,11 +455,14 @@ private fun CreateStampPosterScreenPreview() {
         )
     }
 
-    CreateStampPosterScreen(
-        layersState = layersState,
-        isDark = false,
-        onSendAction = {},
-        modifier = Modifier
-            .fillMaxSize()
-    )
+    AppTheme {
+        CreateStampPosterScreen(
+            layersState = layersState,
+            onSendAction = {},
+            isDarkState = false.let(::mutableStateOf),
+            onToggleIsDarkAction = {},
+            modifier = Modifier
+                .fillMaxSize()
+        )
+    }
 }

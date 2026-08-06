@@ -57,7 +57,6 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
             minValue = -100,
             maxValue = 100,
             valueState = brightnessValueState,
-            onValueChanged = brightnessValueState::value::set,
             key = "b",
         ),
         AdjustmentsControllerItem.Dial(
@@ -66,7 +65,6 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
             minValue = -100,
             maxValue = 100,
             valueState = contrastValueState,
-            onValueChanged = contrastValueState::value::set,
             key = "c",
         ),
         AdjustmentsControllerItem.Dial(
@@ -75,7 +73,6 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
             minValue = -100,
             maxValue = 100,
             valueState = vibranceValueState,
-            onValueChanged = vibranceValueState::value::set,
             key = "v",
         ),
         AdjustmentsControllerItem.Dial(
@@ -84,7 +81,6 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
             minValue = -100,
             maxValue = 100,
             valueState = temperatureValueState,
-            onValueChanged = temperatureValueState::value::set,
             key = "t",
         ),
         AdjustmentsControllerItem.Dial(
@@ -93,7 +89,6 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
             minValue = 0,
             maxValue = 100,
             valueState = glitchValueState,
-            onValueChanged = glitchValueState::value::set,
             key = "g",
         )
     )

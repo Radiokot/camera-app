@@ -57,8 +57,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import ua.com.radiokot.camerapp.adjustments.ui.AdjustmentsControllerItem
 import ua.com.radiokot.camerapp.adjustments.ui.AdjustmentsController
+import ua.com.radiokot.camerapp.adjustments.ui.AdjustmentsControllerItem
 import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
 import ua.com.radiokot.camerapp.ui.AppTheme
@@ -191,18 +191,13 @@ fun StampSaveScreen(
 @Composable
 private fun StampSaveScreenPreview() {
     val adjustmentsControllerItems = remember {
-        val brightnessValueState = mutableIntStateOf(0)
-        val contrastValueState = mutableIntStateOf(22)
-        val vibranceValueState = mutableIntStateOf(33)
-
         persistentListOf(
             AdjustmentsControllerItem.Dial(
                 title = "Brightness",
                 defaultValue = 0,
                 minValue = -100,
                 maxValue = 100,
-                valueState = brightnessValueState,
-                onValueChanged = brightnessValueState::intValue::set,
+                valueState = mutableIntStateOf(0),
                 key = "b",
             ),
             AdjustmentsControllerItem.Dial(
@@ -210,8 +205,7 @@ private fun StampSaveScreenPreview() {
                 defaultValue = 0,
                 minValue = -100,
                 maxValue = 100,
-                valueState = contrastValueState,
-                onValueChanged = contrastValueState::intValue::set,
+                valueState = mutableIntStateOf(22),
                 key = "c",
             ),
             AdjustmentsControllerItem.Dial(
@@ -219,8 +213,7 @@ private fun StampSaveScreenPreview() {
                 defaultValue = 0,
                 minValue = -100,
                 maxValue = 100,
-                valueState = vibranceValueState,
-                onValueChanged = vibranceValueState::intValue::set,
+                valueState = mutableIntStateOf(0),
                 key = "v",
             )
         )
