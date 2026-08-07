@@ -94,6 +94,7 @@ fun CreateStampPosterScreen(
     layersState: State<ImmutableList<StampPosterLayer>>,
     isDarkState: State<Boolean>,
     onToggleIsDarkAction: () -> Unit,
+    onAddTextAction: () -> Unit,
     onSendAction: () -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -114,6 +115,7 @@ fun CreateStampPosterScreen(
                 onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
                 onSendAction = onSendAction,
+                onAddTextAction = onAddTextAction,
             )
         }
     } else {
@@ -133,6 +135,7 @@ fun CreateStampPosterScreen(
                 onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
                 onSendAction = onSendAction,
+                onAddTextAction = onAddTextAction,
             )
         }
     }
@@ -146,6 +149,7 @@ private fun CreateStampPosterScreenLayoutContent(
     onToggleIsDarkAction: () -> Unit,
     layersState: State<ImmutableList<StampPosterLayer>>,
     onSendAction: () -> Unit,
+    onAddTextAction: () -> Unit,
 ) {
     val editorShape = RoundedCornerShape(10.dp)
 
@@ -229,7 +233,7 @@ private fun CreateStampPosterScreenLayoutContent(
             )
 
             AddTextButton(
-                onAddTextAction = {},
+                onAddTextAction = onAddTextAction,
             )
         }
 
@@ -461,6 +465,7 @@ private fun CreateStampPosterScreenPreview() {
             onSendAction = {},
             isDarkState = false.let(::mutableStateOf),
             onToggleIsDarkAction = {},
+            onAddTextAction = {},
             modifier = Modifier
                 .fillMaxSize()
         )

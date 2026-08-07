@@ -88,6 +88,7 @@ fun NavGraphBuilder.createPosterDestination(
         onSendAction = viewModel::onSendAction,
         isDarkState = viewModel.isDark.collectAsState(),
         onToggleIsDarkAction = viewModel::onToggleIsDarkAction,
+        onAddTextAction = viewModel::onAddTextAction,
         modifier = Modifier
             .fillMaxSize()
     )

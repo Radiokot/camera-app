@@ -107,6 +107,14 @@ class CreateStampPosterScreenViewModel(
         isDark.value = !isDark.value
     }
 
+    fun onAddTextAction() {
+        val newLayer = StampPosterLayer.Text(
+            text = "TODO text",
+            fontFamilyResolver = fontFamilyResolver,
+        )
+        layers.value = layers.value.adding(newLayer)
+    }
+
     fun onSendAction() {
         val layers = layers.value
         val options = SendStampPosterOptions(
