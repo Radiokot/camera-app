@@ -87,6 +87,7 @@ fun NavGraphBuilder.createPosterDestination(
         layersState = viewModel.layers.collectAsState(),
         onSendAction = viewModel::onSendAction,
         isDarkState = viewModel.isDark.collectAsState(),
+        onBeginInteractionWithLayer = viewModel::onBeginInteractionWithLayer,
         onToggleIsDarkAction = viewModel::onToggleIsDarkAction,
         onAddTextAction = viewModel::onAddTextAction,
         modifier = Modifier

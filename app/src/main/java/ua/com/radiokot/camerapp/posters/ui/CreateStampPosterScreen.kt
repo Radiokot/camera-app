@@ -93,6 +93,7 @@ fun CreateStampPosterScreen(
     modifier: Modifier = Modifier,
     layersState: State<ImmutableList<StampPosterLayer>>,
     isDarkState: State<Boolean>,
+    onBeginInteractionWithLayer: (StampPosterLayer) -> Unit,
     onToggleIsDarkAction: () -> Unit,
     onAddTextAction: () -> Unit,
     onSendAction: () -> Unit,
@@ -114,6 +115,7 @@ fun CreateStampPosterScreen(
                 isDarkState = isDarkState,
                 onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
+                onBeginInteractionWithLayer = onBeginInteractionWithLayer,
                 onSendAction = onSendAction,
                 onAddTextAction = onAddTextAction,
             )
@@ -134,6 +136,7 @@ fun CreateStampPosterScreen(
                 isDarkState = isDarkState,
                 onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
+                onBeginInteractionWithLayer = onBeginInteractionWithLayer,
                 onSendAction = onSendAction,
                 onAddTextAction = onAddTextAction,
             )
@@ -146,12 +149,13 @@ private fun CreateStampPosterScreenLayoutContent(
     row: RowScope?,
     column: ColumnScope?,
     isDarkState: State<Boolean>,
+    onBeginInteractionWithLayer: (StampPosterLayer) -> Unit,
     onToggleIsDarkAction: () -> Unit,
     layersState: State<ImmutableList<StampPosterLayer>>,
     onSendAction: () -> Unit,
     onAddTextAction: () -> Unit,
 ) {
-    val editorShape = RoundedCornerShape(10.dp)
+    val canvasShape = RoundedCornerShape(10.dp)
 
     BoxWithConstraints(
         modifier = Modifier
@@ -173,13 +177,13 @@ private fun CreateStampPosterScreenLayoutContent(
                 bottom = if (column != null) 24.dp else 0.dp,
             )
     ) {
-        val editorScale = min(
+        val canvasScale = min(
             maxWidth.value / StampPosterWidth,
             maxHeight.value / StampPosterHeight,
         )
         val realDensity = LocalDensity.current.density
-        val editorDensity = Density(
-            density = realDensity * editorScale,
+        val canvasDensity = Density(
+            density = realDensity * canvasScale,
             fontScale = 1f,
         )
 
@@ -188,17 +192,18 @@ private fun CreateStampPosterScreenLayoutContent(
                 .border(
                     width = 2.dp,
                     color = LocalColors.current.componentStroke,
-                    shape = editorShape,
+                    shape = canvasShape,
                 )
-                .clip(editorShape)
+                .clip(canvasShape)
                 .align(Alignment.Center)
         ) {
             CompositionLocalProvider(
-                LocalDensity provides editorDensity,
+                LocalDensity provides canvasDensity,
             ) {
-                StampPosterEditor(
+                StampPosterCanvas(
                     isDarkState = isDarkState,
                     layersState = layersState,
+                    onBeginInteractionWithLayer = onBeginInteractionWithLayer,
                 )
             }
         }
@@ -318,10 +323,11 @@ private fun AddTextButton(
 }
 
 @Composable
-private fun StampPosterEditor(
+private fun StampPosterCanvas(
     modifier: Modifier = Modifier,
     isDarkState: State<Boolean>,
     layersState: State<ImmutableList<StampPosterLayer>>,
+    onBeginInteractionWithLayer: (StampPosterLayer) -> Unit,
 ) {
     var activeLayer: StampPosterLayer? by retain { mutableStateOf(null) }
     val density by rememberUpdatedState(LocalDensity.current.density)
@@ -346,6 +352,7 @@ private fun StampPosterEditor(
 
                         if (relativePosition in layer.rect) {
                             activeLayer = layer
+                            onBeginInteractionWithLayer(layer)
                             down.consume()
                             return@awaitEachGesture
                         }
@@ -464,6 +471,7 @@ private fun CreateStampPosterScreenPreview() {
             layersState = layersState,
             onSendAction = {},
             isDarkState = false.let(::mutableStateOf),
+            onBeginInteractionWithLayer = {},
             onToggleIsDarkAction = {},
             onAddTextAction = {},
             modifier = Modifier

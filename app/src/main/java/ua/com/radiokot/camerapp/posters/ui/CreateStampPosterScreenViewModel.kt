@@ -115,6 +115,27 @@ class CreateStampPosterScreenViewModel(
         layers.value = layers.value.adding(newLayer)
     }
 
+    fun onBeginInteractionWithLayer(
+        layer: StampPosterLayer,
+    ) {
+        val layers = this.layers.value
+        val layerIndex = layers.indexOf(layer)
+
+        if (layerIndex == layers.size - 1) {
+            return
+        }
+
+        log.debug {
+            "onBeginInteractionWithLayer(): moving layer to the top:" +
+                    "\nlayer=$layer"
+        }
+
+        this.layers.value =
+            layers
+                .removingAt(layerIndex)
+                .adding(layer)
+    }
+
     fun onSendAction() {
         val layers = layers.value
         val options = SendStampPosterOptions(
