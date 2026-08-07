@@ -21,6 +21,7 @@
 
 package ua.com.radiokot.camerapp.stamps.data
 
+import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.os.Build
 import android.util.Size
@@ -591,4 +592,4 @@ class FsStampRepository(
 }
 
 private fun String.toImageUri(): String =
-    "file://$this"
+    "${ContentResolver.SCHEME_FILE}://$this"
