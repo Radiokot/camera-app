@@ -98,7 +98,6 @@ import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -637,17 +636,10 @@ private fun StampScreenLayoutContent(
                 height = maxHeight,
             )
         }
-        val density = LocalDensity.current
-        val stampImageLoadingOptions = remember(shape, density) {
-            shape.getPreviewImageLoadingOptions(
-                density = density,
-            )
-        }
 
         LandscapistImage(
             imageModel = imageUri::value,
-            requestBuilder = stampImageLoadingOptions.requestBuilder,
-            imageOptions = stampImageLoadingOptions.imageOptions,
+            imageOptions = shape.rememberPreviewImageOptions(),
             component = EmptyImageComponent,
             modifier = Modifier
                 .size(size)

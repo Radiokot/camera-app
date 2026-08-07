@@ -161,7 +161,6 @@ fun StampsScreen(
             stiffness = Spring.StiffnessMedium,
         )
     }
-    val density = LocalDensity.current
 
     LazyVerticalGrid(
         columns = GridCells.FixedSize(StampContainerBaseSize.width * 1.15f),
@@ -252,17 +251,14 @@ fun StampsScreen(
                             0f,
                     animationSpec = selectionAnimationSpec,
                 )
-                val stampImageLoadingOptions =
+                val stampImageOptions =
                     stamp
                         .shape
-                        .getListImageLoadingOptions(
-                            density = density,
-                        )
+                        .rememberListImageOptions()
 
                 LandscapistImage(
                     imageModel = stamp.imageUri::value,
-                    requestBuilder = stampImageLoadingOptions.requestBuilder,
-                    imageOptions = stampImageLoadingOptions.imageOptions,
+                    imageOptions = stampImageOptions,
                     component = EmptyImageComponent,
                     modifier = Modifier
                         .size(stamp.shape.size * stamp.shape.fitContainerSizeScale)

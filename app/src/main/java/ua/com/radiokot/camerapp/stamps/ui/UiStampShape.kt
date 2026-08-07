@@ -30,18 +30,20 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.skydoves.landscapist.ImageOptions
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShape
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeA
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeOneStamp
@@ -51,8 +53,6 @@ import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeOneStampSmallLands
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeOneStampSquare
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeOneStampWithoutCorners
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeOneStampWithoutCornersLandscape
-import java.util.Objects
-import java.util.concurrent.ConcurrentHashMap
 
 @Immutable
 interface UiStampShape {
@@ -63,57 +63,33 @@ interface UiStampShape {
     val fitContainerSizeScale: Float
         get() = 1f
 
-    fun getListImageLoadingOptions(
-        density: Density,
-    ): StampImageLoadingOptions =
-        imageLoadingOptionsCache.computeIfAbsent(
-            getImageLoadingOptionsCacheKey(
-                size = size,
-                density = density,
-                isList = true,
-            )
-        ) {
-            StampImageLoadingOptions(
-                imageSize = IntSize(
-                    width = (UiStampShapeA.size.width.value * density.density).toInt(),
-                    height = (UiStampShapeA.size.height.value * density.density).toInt(),
+    @Composable
+    fun rememberListImageOptions(): ImageOptions {
+        val density = LocalDensity.current
+        return remember(density) {
+            ImageOptions(
+                requestSize = IntSize(
+                    width = (size.width.value * density.density).toInt(),
+                    height = (size.height.value * density.density).toInt(),
                 )
             )
         }
+    }
 
-    fun getPreviewImageLoadingOptions(
-        density: Density,
-    ): StampImageLoadingOptions =
-        imageLoadingOptionsCache.computeIfAbsent(
-            getImageLoadingOptionsCacheKey(
-                size = size,
-                density = density,
-                isList = false,
-            )
-        ) {
-            StampImageLoadingOptions(
-                imageSize = IntSize(
-                    width = (UiStampShapeA.size.width.value * 2f * density.density).toInt(),
-                    height = (UiStampShapeA.size.height.value * 2f * density.density).toInt(),
+    @Composable
+    fun rememberPreviewImageOptions(): ImageOptions {
+        val density = LocalDensity.current
+        return remember(density) {
+            ImageOptions(
+                requestSize = IntSize(
+                    width = (size.width.value * 2f * density.density).toInt(),
+                    height = (size.height.value * 2f * density.density).toInt(),
                 )
             )
         }
+    }
 
     companion object {
-        private val imageLoadingOptionsCache: MutableMap<Int, StampImageLoadingOptions> =
-            ConcurrentHashMap(2)
-
-        private fun getImageLoadingOptionsCacheKey(
-            size: DpSize,
-            density: Density,
-            isList: Boolean,
-        ): Int =
-            Objects.hash(
-                size,
-                density.density,
-                isList,
-            )
-
         fun fromShape(
             shape: StampShape,
         ): UiStampShape = when (shape) {

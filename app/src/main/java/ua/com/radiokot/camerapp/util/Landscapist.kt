@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.ui.unit.IntSize
 import com.skydoves.landscapist.components.ImagePluginComponent
 import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.LandscapistConfig
@@ -17,17 +16,6 @@ import com.skydoves.landscapist.core.network.FetchResult
 import com.skydoves.landscapist.core.network.ImageFetcher
 import java.io.File
 import kotlin.math.max
-
-fun noProgressive(
-    size: IntSize,
-) =
-    fun ImageRequest.Builder.() {
-        size(
-            width = size.width,
-            height = size.height,
-        )
-        progressiveEnabled(false)
-    }
 
 val EmptyImageComponent = ImagePluginComponent()
 

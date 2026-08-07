@@ -44,7 +44,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -52,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.util.EmptyImageComponent
@@ -252,9 +252,9 @@ fun StampBoxView(
     }
 }
 
-private val LeftSampleRotationAngles = floatArrayOf(-4f, -5f, -6f)
-private val CenterSampleRotationAngles = floatArrayOf(3f, 2f, -2f, -3f)
-private val RightSampleRotationAngles = floatArrayOf(6f, 5f, 4f)
+private val LeftSampleRotationAngles = persistentListOf(-4f, -5f, -6f)
+private val CenterSampleRotationAngles = persistentListOf(3f, 2f, -2f, -3f)
+private val RightSampleRotationAngles = persistentListOf(6f, 5f, 4f)
 
 val CollectionViewSize = DpSize(
     width = StampContainerBaseSize.width * 1.55f,
@@ -267,54 +267,44 @@ private fun StampSampleView(
     modifier: Modifier = Modifier,
     fallbackColor: Color,
     sample: StampSampleItem,
-    possibleRotationAngles: FloatArray,
+    possibleRotationAngles: ImmutableList<Float>,
     order: Int,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-) {
-    val stampImageLoadingOptions =
-        sample
-            .shape
-            .getListImageLoadingOptions(
-                density = LocalDensity.current,
-            )
-
-    LandscapistImage(
-        imageModel = sample.imageUri::value,
-        requestBuilder = stampImageLoadingOptions.requestBuilder,
-        imageOptions = stampImageLoadingOptions.imageOptions,
-        component = EmptyImageComponent,
-        modifier = modifier
-            .size(sample.shape.size * 0.85f)
-            .run {
-                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                    return@run this
-                }
-
-                with(sharedTransitionScope) {
-                    sharedElement(
-                        sharedContentState = rememberSharedContentState(sample.key),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        zIndexInOverlay = 1f + order,
-                    )
-                }
+) = LandscapistImage(
+    imageModel = sample.imageUri::value,
+    imageOptions = sample.shape.rememberListImageOptions(),
+    component = EmptyImageComponent,
+    modifier = modifier
+        .size(sample.shape.size * 0.85f)
+        .run {
+            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
+                return@run this
             }
-            .rotate(
-                (possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size])
-            )
-            .dropShadow(
-                shape = RectangleShape,
-                shadow = Shadow(
-                    radius = 4.dp,
-                    color = LocalColors.current.stampShadow,
+
+            with(sharedTransitionScope) {
+                sharedElement(
+                    sharedContentState = rememberSharedContentState(sample.key),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    zIndexInOverlay = 1f + order,
                 )
-            )
-            .run {
-                if (sample.imageUri.value !== Uri.EMPTY) {
-                    return@run this
-                }
-
-                background(fallbackColor)
             }
-    )
-}
+        }
+        .rotate(
+            (possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size])
+        )
+        .dropShadow(
+            shape = RectangleShape,
+            shadow = Shadow(
+                radius = 4.dp,
+                color = LocalColors.current.stampShadow,
+            )
+        )
+        .run {
+            if (sample.imageUri.value !== Uri.EMPTY) {
+                return@run this
+            }
+
+            background(fallbackColor)
+        }
+)
