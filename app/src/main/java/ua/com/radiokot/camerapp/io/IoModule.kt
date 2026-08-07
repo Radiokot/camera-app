@@ -21,25 +21,18 @@ package ua.com.radiokot.camerapp.io
 
 import com.skydoves.landscapist.core.Landscapist
 import com.skydoves.landscapist.core.LandscapistConfig
-import com.skydoves.landscapist.core.cache.TwoTierMemoryCache
 import kotlinx.coroutines.Dispatchers
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import ua.com.radiokot.camerapp.util.FileUriDecodingImageFetcher
 import ua.com.radiokot.camerapp.util.NoOpImageDecoder
-import ua.com.radiokot.camerapp.util.SizeAgnosticMemoryCache
 
 val ioModule = module {
 
     single<Landscapist> {
         val config = LandscapistConfig(
             diskCacheSize = 0L,
-            memoryCache = SizeAgnosticMemoryCache(
-                delegate = TwoTierMemoryCache(
-                    _maxSize = 200, // *images*
-                    weakReferencesEnabled = true,
-                )
-            ),
+            memoryCacheSize = 1073741824, // 1 GB (Hardware bitmaps)
         )
 
         Landscapist.Builder()

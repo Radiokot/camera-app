@@ -10,9 +10,6 @@ import androidx.compose.ui.unit.IntSize
 import com.skydoves.landscapist.components.ImagePluginComponent
 import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.LandscapistConfig
-import com.skydoves.landscapist.core.cache.CacheKey
-import com.skydoves.landscapist.core.cache.CachedImage
-import com.skydoves.landscapist.core.cache.MemoryCache
 import com.skydoves.landscapist.core.decoder.DecodeResult
 import com.skydoves.landscapist.core.decoder.ImageDecoder
 import com.skydoves.landscapist.core.model.DataSource
@@ -33,18 +30,6 @@ fun noProgressive(
     }
 
 val EmptyImageComponent = ImagePluginComponent()
-
-class SizeAgnosticMemoryCache(
-    private val delegate: MemoryCache,
-) : MemoryCache by delegate {
-
-    override fun set(key: CacheKey, image: CachedImage) {
-        // Size = count.
-        delegate[key] = image.copy(
-            sizeBytes = 1,
-        )
-    }
-}
 
 private fun interface FileDecoder {
     operator fun invoke(
