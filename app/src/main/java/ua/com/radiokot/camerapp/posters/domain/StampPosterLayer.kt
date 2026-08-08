@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.util.fastRoundToInt
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 
@@ -101,7 +102,10 @@ sealed class StampPosterLayer {
                     fontSize = 72.sp * scale,
                     textAlign = TextAlign.Center,
                 ),
-                constraints = Constraints(),
+                constraints = Constraints(
+                    maxWidth = (StampPosterWidth * drawDensity).fastRoundToInt(),
+                    maxHeight = (StampPosterHeight * drawDensity).fastRoundToInt(),
+                ),
                 density = Density(
                     density = drawDensity,
                     fontScale = StampPosterDensity.fontScale,

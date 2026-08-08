@@ -137,6 +137,23 @@ class CreateStampPosterScreenViewModel(
                 .adding(layer)
     }
 
+    fun onLayerTap(layer: StampPosterLayer) {
+        if (layer is StampPosterLayer.Text) {
+            textLayerToEdit = layer
+
+            log.debug {
+                "onLayerTap(): proceeding to edit text layer:" +
+                        "\nlayer=$layer"
+            }
+
+            events.tryEmit(
+                Event.ProceedToEditText(
+                    currentText = layer.text,
+                )
+            )
+        }
+    }
+
     fun onSendAction() {
         val layers = layers.value
         val options = SendStampPosterOptions(
@@ -163,6 +180,11 @@ class CreateStampPosterScreenViewModel(
         when {
             // When adding text.
             textLayerToEdit == null && text != null -> {
+                log.debug {
+                    "onDoneEditingText(): adding new text layer:" +
+                            "\ntext=$text"
+                }
+
                 layers.value = layers.value.adding(
                     StampPosterLayer.Text(
                         text = text,
@@ -173,11 +195,22 @@ class CreateStampPosterScreenViewModel(
 
             // When editing text.
             textLayerToEdit != null && text != null -> {
+                log.debug {
+                    "onDoneEditingText(): editing text layer:" +
+                            "\ntextLayerToEdit=$textLayerToEdit," +
+                            "\nnewText=$text"
+                }
+
                 textLayerToEdit.text = text
             }
 
             // When erasing text through editing.
             textLayerToEdit != null && text == null -> {
+                log.debug {
+                    "onDoneEditingText(): removing text layer:" +
+                            "\ntextLayerToEdit=$textLayerToEdit"
+                }
+
                 layers.value = layers.value.removing(textLayerToEdit)
             }
         }

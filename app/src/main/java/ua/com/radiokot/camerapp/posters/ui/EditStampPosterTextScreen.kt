@@ -22,7 +22,7 @@ package ua.com.radiokot.camerapp.posters.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.unit.dp
 import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
@@ -50,7 +49,6 @@ fun EditStampPosterTextScreen(
     contentAlignment = Alignment.Center,
     modifier = Modifier
         .safeContentPadding()
-        .padding(24.dp)
 ) {
     val focusRequester = remember(::FocusRequester)
     var doneOnFocusLoss by remember { mutableStateOf(false) }
@@ -62,7 +60,9 @@ fun EditStampPosterTextScreen(
             hint = "A text",
             inputState = inputState,
             focusRequester = focusRequester,
+            isSingleLine = false,
             modifier = Modifier
+                .fillMaxWidth()
                 .onFocusChanged {
                     if (!it.hasFocus && doneOnFocusLoss) {
                         onDone()
