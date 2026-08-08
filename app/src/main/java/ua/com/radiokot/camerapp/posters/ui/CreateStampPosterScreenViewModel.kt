@@ -61,6 +61,7 @@ class CreateStampPosterScreenViewModel(
     private val log by lazyLogger("CreateStampPosterScreenVM")
 
     private val posterId = System.currentTimeMillis().toString()
+    private var textLayerToEdit: StampPosterLayer.Text? = null
     val layers: StateFlow<PersistentList<StampPosterLayer>>
         field = MutableStateFlow(persistentListOf<StampPosterLayer>())
     val isDark: StateFlow<Boolean>
@@ -108,11 +109,11 @@ class CreateStampPosterScreenViewModel(
     }
 
     fun onAddTextAction() {
-        val newLayer = StampPosterLayer.Text(
-            text = "TODO text",
-            fontFamilyResolver = fontFamilyResolver,
+        events.tryEmit(
+            Event.ProceedToEditText(
+                currentText = null,
+            )
         )
-        layers.value = layers.value.adding(newLayer)
     }
 
     fun onBeginInteractionWithLayer(
@@ -154,6 +155,34 @@ class CreateStampPosterScreenViewModel(
         events.tryEmit(Event.ProceedToSendIntent(intent))
     }
 
+    fun onDoneEditingText(
+        text: String?,
+    ) {
+        val textLayerToEdit = this.textLayerToEdit
+
+        when {
+            // When adding text.
+            textLayerToEdit == null && text != null -> {
+                layers.value = layers.value.adding(
+                    StampPosterLayer.Text(
+                        text = text,
+                        fontFamilyResolver = fontFamilyResolver,
+                    )
+                )
+            }
+
+            // When editing text.
+            textLayerToEdit != null && text != null -> {
+                textLayerToEdit.text = text
+            }
+
+            // When erasing text through editing.
+            textLayerToEdit != null && text == null -> {
+                layers.value = layers.value.removing(textLayerToEdit)
+            }
+        }
+    }
+
     private suspend fun Stamp.getImageBitmap() =
         landscapist
             .load(
@@ -176,6 +205,10 @@ class CreateStampPosterScreenViewModel(
     sealed interface Event {
         class ProceedToSendIntent(
             val intent: Intent,
+        ) : Event
+
+        class ProceedToEditText(
+            val currentText: String?,
         ) : Event
     }
 }

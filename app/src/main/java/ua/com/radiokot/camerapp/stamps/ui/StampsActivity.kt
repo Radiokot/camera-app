@@ -68,7 +68,9 @@ import ua.com.radiokot.camerapp.intro.ui.PermissionsScreenViewModel
 import ua.com.radiokot.camerapp.intro.ui.introDestination
 import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
 import ua.com.radiokot.camerapp.posters.ui.CreatePosterRoute
+import ua.com.radiokot.camerapp.posters.ui.EditStampPosterTextContract
 import ua.com.radiokot.camerapp.posters.ui.createPosterDestination
+import ua.com.radiokot.camerapp.posters.ui.editPosterTextDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -168,9 +170,16 @@ private fun SharedTransitionScope.StampsNavHost(
             }
         }
     }
-    val selectDestinationCollectionContract = SelectDestinationCollectionContract(
-        navController = navController,
-    )
+    val selectDestinationCollectionContract = remember(navController) {
+        SelectDestinationCollectionContract(
+            navController = navController,
+        )
+    }
+    val editStampPosterTextContract = remember(navController) {
+        EditStampPosterTextContract(
+            navController = navController,
+        )
+    }
     val context = LocalContext.current
 
     fun proceedToNewStamp(
@@ -326,10 +335,10 @@ private fun SharedTransitionScope.StampsNavHost(
                     launchSingleTop = true
                 }
             },
-            onProceedToSendEnvelope = {
+            onProceedToSendEnvelope = { stampSelectionIndex ->
                 navController.navigate(
                     route = SendEnvelopeRoute(
-                        stampSelectionIndex = it,
+                        stampSelectionIndex = stampSelectionIndex,
                     )
                 ) {
                     launchSingleTop = true
@@ -342,15 +351,21 @@ private fun SharedTransitionScope.StampsNavHost(
             onDone = navController::navigateUp,
         )
 
-        createPosterDestination()
+        createPosterDestination(
+            editStampPosterTextContract = editStampPosterTextContract,
+        )
+
+        editPosterTextDestination(
+            contract = editStampPosterTextContract,
+        )
 
         stampDestination(
             sharedTransitionScope = this@StampsNavHost,
             selectDestinationCollectionContract = selectDestinationCollectionContract,
-            onProceedToCreatePoster = {
+            onProceedToCreatePoster = { firstStampId ->
                 navController.navigate(
                     route = CreatePosterRoute(
-                        firstStampId = it,
+                        firstStampId = firstStampId,
                     )
                 ) {
                     launchSingleTop = true

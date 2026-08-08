@@ -38,7 +38,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 fun NavGraphBuilder.createPosterDestination(
-
+    editStampPosterTextContract: EditStampPosterTextContract,
 ) = composable(
     route = CreatePosterRoute,
     arguments = listOf(
@@ -79,6 +79,12 @@ fun NavGraphBuilder.createPosterDestination(
                         )
                     )
                 }
+
+                is CreateStampPosterScreenViewModel.Event.ProceedToEditText -> {
+                    editStampPosterTextContract.proceedToEditText(
+                        currentText = event.currentText,
+                    )
+                }
             }
         }
     }
@@ -93,6 +99,12 @@ fun NavGraphBuilder.createPosterDestination(
         modifier = Modifier
             .fillMaxSize()
     )
+
+    LaunchedEffect(editStampPosterTextContract, viewModel) {
+        editStampPosterTextContract
+            .getEditedTextFlow()
+            .collect(viewModel::onDoneEditingText)
+    }
 }
 
 private const val FirstStampId = "firstStampId"

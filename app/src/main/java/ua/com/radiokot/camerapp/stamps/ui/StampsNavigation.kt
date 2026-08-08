@@ -21,7 +21,6 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
-import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.fillMaxSize

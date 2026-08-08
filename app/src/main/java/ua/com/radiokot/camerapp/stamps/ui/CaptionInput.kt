@@ -38,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -110,12 +113,21 @@ fun CaptionInput(
         ),
         lineLimits = TextFieldLineLimits.SingleLine,
         onKeyboardAction = {
+            // Done.
             focusManager.clearFocus()
         },
         cursorBrush = SolidColor(colors.textInputCursor),
         enabled = isEnabled,
         readOnly = !isEnabled,
         modifier = Modifier
+            .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                if (keyEvent.key == Key.Back) {
+                    // Done.
+                    focusManager.clearFocus()
+                    return@onPreInterceptKeyBeforeSoftKeyboard true
+                }
+                false
+            }
             .focusRequester(focusRequester)
     )
 }
