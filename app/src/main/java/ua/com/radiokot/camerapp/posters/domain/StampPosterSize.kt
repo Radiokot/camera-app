@@ -19,10 +19,20 @@
 
 package ua.com.radiokot.camerapp.posters.domain
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.Density
 
 const val StampPosterWidth = 1080f
 const val StampPosterHeight = 1920f
+
+val StampPosterSize = Size(StampPosterWidth, StampPosterHeight)
+
+val StampPosterRect = Rect(
+    offset = Offset.Zero,
+    size = StampPosterSize,
+)
 
 val StampPosterDensity = Density(
     density = 1f,

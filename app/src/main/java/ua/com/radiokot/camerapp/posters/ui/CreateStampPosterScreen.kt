@@ -27,7 +27,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -86,6 +85,7 @@ import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.detectTransformGestures
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -96,6 +96,7 @@ fun CreateStampPosterScreen(
     layersState: State<ImmutableList<StampPosterLayer>>,
     isDarkState: State<Boolean>,
     onBeginInteractionWithLayer: (StampPosterLayer) -> Unit,
+    onEndInteractionWithLayer: (StampPosterLayer) -> Unit,
     onToggleIsDarkAction: () -> Unit,
     onAddTextAction: () -> Unit,
     onSendAction: () -> Unit,
@@ -117,6 +118,7 @@ fun CreateStampPosterScreen(
                 column = null,
                 isDarkState = isDarkState,
                 onBeginInteractionWithLayer = onBeginInteractionWithLayer,
+                onEndInteractionWithLayer = onEndInteractionWithLayer,
                 onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
                 onSendAction = onSendAction,
@@ -139,6 +141,7 @@ fun CreateStampPosterScreen(
                 column = this,
                 isDarkState = isDarkState,
                 onBeginInteractionWithLayer = onBeginInteractionWithLayer,
+                onEndInteractionWithLayer = onEndInteractionWithLayer,
                 onToggleIsDarkAction = onToggleIsDarkAction,
                 layersState = layersState,
                 onSendAction = onSendAction,
@@ -155,6 +158,7 @@ private fun CreateStampPosterScreenLayoutContent(
     column: ColumnScope?,
     isDarkState: State<Boolean>,
     onBeginInteractionWithLayer: (StampPosterLayer) -> Unit,
+    onEndInteractionWithLayer: (StampPosterLayer) -> Unit,
     onToggleIsDarkAction: () -> Unit,
     layersState: State<ImmutableList<StampPosterLayer>>,
     onSendAction: () -> Unit,
@@ -210,6 +214,7 @@ private fun CreateStampPosterScreenLayoutContent(
                     isDarkState = isDarkState,
                     layersState = layersState,
                     onBeginInteractionWithLayer = onBeginInteractionWithLayer,
+                    onEndInteractionWithLayer = onEndInteractionWithLayer,
                     onLayerTap = onLayerTap,
                 )
             }
@@ -335,6 +340,7 @@ private fun StampPosterCanvas(
     isDarkState: State<Boolean>,
     layersState: State<ImmutableList<StampPosterLayer>>,
     onBeginInteractionWithLayer: (StampPosterLayer) -> Unit,
+    onEndInteractionWithLayer: (StampPosterLayer) -> Unit,
     onLayerTap: (StampPosterLayer) -> Unit,
 ) {
     var activeLayer: StampPosterLayer? by retain { mutableStateOf(null) }
@@ -353,6 +359,8 @@ private fun StampPosterCanvas(
                         pass = PointerEventPass.Initial,
                     )
 
+                    activeLayer = null
+
                     for (layer in layersState.value.asReversed()) {
                         val relativePosition =
                             (down.position / density).rotateBy(
@@ -366,7 +374,6 @@ private fun StampPosterCanvas(
                             return@awaitEachGesture
                         }
                     }
-                    activeLayer = null
                 }
             }
             .pointerInput(Unit) {
@@ -432,6 +439,13 @@ private fun StampPosterCanvas(
 
                             activeLayer.rotationDegrees = newRotation
                         }
+                    },
+                    onGestureEnd = onGestureEnd@{
+                        val previouslyActiveLayer = activeLayer
+                            ?: return@onGestureEnd
+
+                        activeLayer = null
+                        onEndInteractionWithLayer(previouslyActiveLayer)
                     }
                 )
             }
@@ -489,6 +503,7 @@ private fun CreateStampPosterScreenPreview() {
             onSendAction = {},
             isDarkState = false.let(::mutableStateOf),
             onBeginInteractionWithLayer = {},
+            onEndInteractionWithLayer = {},
             onToggleIsDarkAction = {},
             onAddTextAction = {},
             onLayerTap = {},

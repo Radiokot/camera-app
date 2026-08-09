@@ -34,8 +34,8 @@ import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.unit.toSize
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
@@ -46,8 +46,7 @@ import org.koin.core.component.KoinComponent
 import ua.com.radiokot.camerapp.BuildConfig
 import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
 import ua.com.radiokot.camerapp.posters.domain.StampPosterDensity
-import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
-import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
+import ua.com.radiokot.camerapp.posters.domain.StampPosterSize
 import ua.com.radiokot.camerapp.posters.domain.drawStampPoster
 import ua.com.radiokot.camerapp.util.MatrixCursor
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -93,7 +92,7 @@ class StampPosterContentProvider :
         outputStream: OutputStream,
     ) = withContext(Dispatchers.Default) {
 
-        val size = IntSize(StampPosterWidth.toInt(), StampPosterHeight.toInt())
+        val size = StampPosterSize.toIntSize()
 
         val imageReader = ImageReader.newInstance(
             size.width,

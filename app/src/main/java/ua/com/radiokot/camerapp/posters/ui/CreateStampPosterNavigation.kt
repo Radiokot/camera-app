@@ -49,7 +49,8 @@ fun NavGraphBuilder.createPosterDestination(
             nullable = true
         },
         navArgument(StampSelectionIndex) {
-            type = NavType.IntType
+            type = NavType.StringType
+            nullable = true
         }
     ),
     enterTransition = {
@@ -70,8 +71,8 @@ fun NavGraphBuilder.createPosterDestination(
                 stampSelectionIndex =
                     navEntry
                         .arguments
-                        ?.getInt(StampSelectionIndex, -1)
-                        ?.takeIf { it >= 0 },
+                        ?.getString(StampSelectionIndex)
+                        ?.toInt(),
             )
         )
     }
@@ -113,6 +114,7 @@ fun NavGraphBuilder.createPosterDestination(
         onSendAction = viewModel::onSendAction,
         isDarkState = viewModel.isDark.collectAsState(),
         onBeginInteractionWithLayer = viewModel::onBeginInteractionWithLayer,
+        onEndInteractionWithLayer = viewModel::onEndInteractionWithLayer,
         onLayerTap = viewModel::onLayerTap,
         onToggleIsDarkAction = viewModel::onToggleIsDarkAction,
         onAddTextAction = viewModel::onAddTextAction,

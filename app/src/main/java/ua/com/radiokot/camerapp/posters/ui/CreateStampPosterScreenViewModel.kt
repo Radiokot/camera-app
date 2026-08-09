@@ -45,6 +45,7 @@ import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
 import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
+import ua.com.radiokot.camerapp.posters.domain.StampPosterRect
 import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
@@ -118,7 +119,7 @@ class CreateStampPosterScreenViewModel(
                     text = stamp.caption,
                     fontFamilyResolver = fontFamilyResolver,
                 ).apply {
-                    center = center.copy(
+                    center = StampPosterRect.center.copy(
                         y = StampPosterHeight / 4f,
                     )
                 }
@@ -291,6 +292,19 @@ class CreateStampPosterScreenViewModel(
             layers
                 .removingAt(layerIndex)
                 .adding(layer)
+    }
+
+    fun onEndInteractionWithLayer(
+        layer: StampPosterLayer,
+    ) {
+        if (layer.isOutOfBounds) {
+            log.debug {
+                "onEndInteractionWithLayer(): removing out-of-bounds layer:" +
+                        "\nlayer=$layer"
+            }
+
+            layers.value = layers.value.removing(layer)
+        }
     }
 
     fun onLayerTap(layer: StampPosterLayer) {

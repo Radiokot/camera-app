@@ -32,12 +32,7 @@ sealed class StampPosterLayer {
      * Anchor point of this layer,
      * in full-size poster coordinates.
      */
-    var center: Offset by mutableStateOf(
-        Offset(
-            x = StampPosterWidth / 2f,
-            y = StampPosterHeight / 2f,
-        )
-    )
+    var center: Offset by mutableStateOf(StampPosterRect.center)
 
     /**
      * XY scale from [center].
@@ -49,6 +44,9 @@ sealed class StampPosterLayer {
      */
     var rotationDegrees: Float by mutableFloatStateOf(360f)
     //                                                starts at 360 and kept positive for convenience.
+
+    val isOutOfBounds: Boolean
+        get() = !rect.overlaps(StampPosterRect)
 
     /**
      * In full-size poster coordinates, with center at [center].
