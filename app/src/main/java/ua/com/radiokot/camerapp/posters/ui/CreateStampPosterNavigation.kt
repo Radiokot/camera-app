@@ -22,12 +22,14 @@
 package ua.com.radiokot.camerapp.posters.ui
 
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
@@ -37,10 +39,13 @@ import androidx.navigation.navArgument
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.cut.ui.showToast
+import ua.com.radiokot.camerapp.discardchanges.ui.ConfirmDiscardChangesContract
 import ua.com.radiokot.camerapp.ui.LocalColors
 
 fun NavGraphBuilder.createPosterDestination(
     editStampPosterTextContract: EditStampPosterTextContract,
+    confirmDiscardChangesContract: ConfirmDiscardChangesContract,
+    onDone: () -> Unit,
 ) = composable(
     route = CreatePosterRoute,
     arguments = listOf(
@@ -76,6 +81,7 @@ fun NavGraphBuilder.createPosterDestination(
             )
         )
     }
+    val isDiscardConfirmationRequired by viewModel.isDiscardConfirmationRequired.collectAsState()
 
     val context = LocalContext.current
     val colors = LocalColors.current
@@ -126,6 +132,24 @@ fun NavGraphBuilder.createPosterDestination(
         editStampPosterTextContract
             .getEditedTextFlow()
             .collect(viewModel::onDoneEditingText)
+    }
+
+    BackHandler(
+        enabled = isDiscardConfirmationRequired,
+    ) {
+        confirmDiscardChangesContract.proceedToConfirmDiscardChanges(
+            message = "Discard this poster?",
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        confirmDiscardChangesContract
+            .getDiscardChangesDecisionFlow()
+            .collect { toDiscard ->
+                if (toDiscard) {
+                    onDone()
+                }
+            }
     }
 }
 

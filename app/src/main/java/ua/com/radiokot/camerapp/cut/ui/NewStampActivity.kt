@@ -46,12 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.adjustments.ui.ImageAdjustmentsControllerViewModel
+import ua.com.radiokot.camerapp.discardchanges.ui.ConfirmDiscardChangesContract
+import ua.com.radiokot.camerapp.discardchanges.ui.confirmDiscardChangesDestination
 import ua.com.radiokot.camerapp.intro.ui.PermissionsRoute
 import ua.com.radiokot.camerapp.intro.ui.PermissionsScreenViewModel
 import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
@@ -147,6 +148,9 @@ private fun SharedTransitionScope.StampCutNavHost(
     onDidSave: () -> Unit,
 ) {
     val navController = rememberNavController()
+    val confirmDiscardChangesContract = remember(navController) {
+        ConfirmDiscardChangesContract(navController)
+    }
     var stampImageBitmapToSave by remember {
         mutableStateOf<Bitmap?>(null)
     }
@@ -274,30 +278,30 @@ private fun SharedTransitionScope.StampCutNavHost(
             BackHandler(
                 enabled = isDiscardConfirmationRequired,
             ) {
-                navController.navigate(
-                    route = ConfirmDiscardDestination,
-                ) {
-                    launchSingleTop = true
-                }
+                confirmDiscardChangesContract.proceedToConfirmDiscardChanges(
+                    message = "Discard this stamp?",
+                )
+            }
+
+            LaunchedEffect(Unit) {
+                confirmDiscardChangesContract
+                    .getDiscardChangesDecisionFlow()
+                    .collect { toDiscard ->
+                        if (toDiscard) {
+                            navController.popBackStack(
+                                route = CutDestination,
+                                inclusive = false,
+                            )
+                        }
+                    }
             }
         }
 
-        dialog(
-            route = ConfirmDiscardDestination,
-        ) {
-            StampDiscardConfirmationDialog(
-                onConfirmDiscard = {
-                    navController.popBackStack(
-                        route = CutDestination,
-                        inclusive = false,
-                    )
-                },
-                onCancel = navController::navigateUp,
-            )
-        }
+        confirmDiscardChangesDestination(
+            contract = confirmDiscardChangesContract,
+        )
     }
 }
 
 private const val CutDestination = "cut"
 private const val SaveDestination = "save"
-private const val ConfirmDiscardDestination = "discardConfirmation"

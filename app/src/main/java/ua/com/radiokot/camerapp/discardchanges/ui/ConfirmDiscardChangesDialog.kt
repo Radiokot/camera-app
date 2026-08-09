@@ -17,7 +17,7 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ua.com.radiokot.camerapp.cut.ui
+package ua.com.radiokot.camerapp.discardchanges.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,11 +42,13 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 
 @Composable
-fun StampDiscardConfirmationDialog(
-    onConfirmDiscard: () -> Unit,
-    onCancel: () -> Unit,
+fun ConfirmDiscardChangesDialog(
+    confirmationMessage: String,
+    onDecision: (toDiscard: Boolean) -> Unit,
 ) = Dialog(
-    onDismissRequest = onCancel,
+    onDismissRequest = {
+        onDecision(false)
+    },
 ) {
     val colors = LocalColors.current
     val actionTextStyle = remember(colors) {
@@ -69,7 +71,7 @@ fun StampDiscardConfirmationDialog(
             )
     ) {
         BasicText(
-            text = "Discard this stamp?",
+            text = confirmationMessage,
             style = actionTextStyle.copy(
                 fontWeight = FontWeight.Normal,
             ),
@@ -92,7 +94,9 @@ fun StampDiscardConfirmationDialog(
             style = actionTextStyle,
             modifier = Modifier
                 .clickable(
-                    onClick = onCancel,
+                    onClick = {
+                        onDecision(false)
+                    },
                 )
                 .padding(
                     vertical = 20.dp,
@@ -111,7 +115,11 @@ fun StampDiscardConfirmationDialog(
             text = "Yes, discard",
             style = actionTextStyle,
             modifier = Modifier
-                .clickable(onClick = onConfirmDiscard)
+                .clickable(
+                    onClick = {
+                        onDecision(true)
+                    },
+                )
                 .padding(
                     vertical = 20.dp,
                 )
@@ -119,4 +127,3 @@ fun StampDiscardConfirmationDialog(
         )
     }
 }
-

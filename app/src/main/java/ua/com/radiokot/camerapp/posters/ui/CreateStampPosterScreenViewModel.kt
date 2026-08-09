@@ -67,12 +67,19 @@ class CreateStampPosterScreenViewModel(
 
     private val posterId = System.currentTimeMillis().toString()
     private var textLayerToEdit: StampPosterLayer.Text? = null
+    private var anyChanges: Boolean = false
+        set(value) {
+            field = value
+            isDiscardConfirmationRequired.value = true
+        }
     val layers: StateFlow<PersistentList<StampPosterLayer>>
         field = MutableStateFlow(persistentListOf<StampPosterLayer>())
     val isDark: StateFlow<Boolean>
         field = MutableStateFlow(false)
     val events: SharedFlow<Event>
         field = eventSharedFlow()
+    val isDiscardConfirmationRequired: StateFlow<Boolean>
+        field = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
@@ -305,6 +312,8 @@ class CreateStampPosterScreenViewModel(
 
             layers.value = layers.value.removing(layer)
         }
+
+        anyChanges = true
     }
 
     fun onLayerTap(layer: StampPosterLayer) {
@@ -361,6 +370,8 @@ class CreateStampPosterScreenViewModel(
                         fontFamilyResolver = fontFamilyResolver,
                     )
                 )
+
+                anyChanges = true
             }
 
             // When editing text.
@@ -372,6 +383,8 @@ class CreateStampPosterScreenViewModel(
                 }
 
                 textLayerToEdit.text = text
+
+                anyChanges = true
             }
 
             // When erasing text through editing.
@@ -382,6 +395,8 @@ class CreateStampPosterScreenViewModel(
                 }
 
                 layers.value = layers.value.removing(textLayerToEdit)
+
+                anyChanges = true
             }
         }
     }

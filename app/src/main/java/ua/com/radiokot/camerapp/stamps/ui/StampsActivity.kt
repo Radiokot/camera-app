@@ -59,6 +59,8 @@ import ua.com.radiokot.camerapp.about.ui.aboutDestination
 import ua.com.radiokot.camerapp.collectionselection.ui.SelectDestinationCollectionContract
 import ua.com.radiokot.camerapp.collectionselection.ui.selectDestinationCollectionDestination
 import ua.com.radiokot.camerapp.cut.ui.NewStampActivity
+import ua.com.radiokot.camerapp.discardchanges.ui.ConfirmDiscardChangesContract
+import ua.com.radiokot.camerapp.discardchanges.ui.confirmDiscardChangesDestination
 import ua.com.radiokot.camerapp.envelopes.ui.SendEnvelopeRoute
 import ua.com.radiokot.camerapp.envelopes.ui.sendEnvelopeDestination
 import ua.com.radiokot.camerapp.intro.domain.OnboardingPreferences
@@ -177,6 +179,11 @@ private fun SharedTransitionScope.StampsNavHost(
     }
     val editStampPosterTextContract = remember(navController) {
         EditStampPosterTextContract(
+            navController = navController,
+        )
+    }
+    val confirmDiscardChangesContract = remember(navController) {
+        ConfirmDiscardChangesContract(
             navController = navController,
         )
     }
@@ -362,10 +369,16 @@ private fun SharedTransitionScope.StampsNavHost(
 
         createPosterDestination(
             editStampPosterTextContract = editStampPosterTextContract,
+            confirmDiscardChangesContract = confirmDiscardChangesContract,
+            onDone = navController::navigateUp,
         )
 
         editPosterTextDestination(
             contract = editStampPosterTextContract,
+        )
+
+        confirmDiscardChangesDestination(
+            contract = confirmDiscardChangesContract,
         )
 
         stampDestination(
