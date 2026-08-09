@@ -94,6 +94,7 @@ import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import ua.com.radiokot.camerapp.R
+import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
@@ -117,7 +118,8 @@ fun StampsScreen(
     onStampLongClicked: (StampsScreenItem) -> Unit,
     selectedCountState: IntState,
     onMoveSelectedAction: () -> Unit,
-    onSendSelectedAction: () -> Unit,
+    onSendSelectedAsEnvelopeAction: () -> Unit,
+    onSendSelectedAsPosterAction: () -> Unit,
     onDeleteSelectedAction: () -> Unit,
     onNewStampAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
@@ -353,13 +355,18 @@ fun StampsScreen(
             .width(StampContainerBaseSize.width * 2.5f)
     ) {
         SelectionActions(
+            selectedCount = visibleSelectedCount,
             onMove = {
                 areSelectionActionsVisible = false
                 onMoveSelectedAction()
             },
-            onSend = {
+            onSendAsEnvelope = {
                 areSelectionActionsVisible = false
-                onSendSelectedAction()
+                onSendSelectedAsEnvelopeAction()
+            },
+            onSendAsPoster = {
+                areSelectionActionsVisible = false
+                onSendSelectedAsPosterAction()
             },
             onDelete = {
                 areSelectionActionsVisible = false
@@ -532,8 +539,10 @@ private fun SelectionControllerPreview() {
 private fun SelectionActions(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 10.dp,
+    selectedCount: Int,
     onMove: () -> Unit,
-    onSend: () -> Unit,
+    onSendAsEnvelope: () -> Unit,
+    onSendAsPoster: () -> Unit,
     onDelete: () -> Unit,
 ) = Column(
     modifier = modifier
@@ -558,62 +567,181 @@ private fun SelectionActions(
         )
     }
 
-    BasicText(
-        text = "Move",
-        style = textStyle,
-        modifier = Modifier
-            .clickable(
-                onClick = onMove,
-            )
-            .padding(
-                vertical = 20.dp,
-            )
-            .fillMaxWidth()
-    )
+    var submenu by remember {
+        mutableIntStateOf(0)
+    }
 
-    Spacer(
+    AnimatedContent(
+        targetState = submenu,
         modifier = Modifier
-            .height(1.dp)
             .fillMaxWidth()
-            .background(colors.componentDivider)
-    )
+    ) { currentSubmenu ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            if (currentSubmenu == 1) {
+                BasicText(
+                    text = "Send stamps as",
+                    style = textStyle.copy(
+                        fontWeight = FontWeight.Normal,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            vertical = 20.dp,
+                        )
+                )
 
-    BasicText(
-        text = "Send",
-        style = textStyle,
-        modifier = Modifier
-            .clickable(
-                onClick = onSend,
-            )
-            .padding(
-                vertical = 20.dp,
-            )
-            .fillMaxWidth()
-    )
+                Spacer(
+                    modifier = Modifier
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(colors.componentDivider)
+                )
 
-    Spacer(
-        modifier = Modifier
-            .height(1.dp)
-            .fillMaxWidth()
-            .background(colors.componentDivider)
-    )
+                BasicText(
+                    text = "An envelope",
+                    style = textStyle,
+                    modifier = Modifier
+                        .clickable(
+                            onClick = onSendAsEnvelope,
+                        )
+                        .padding(
+                            vertical = 20.dp,
+                        )
+                        .fillMaxWidth()
+                )
 
-    BasicText(
-        text = "Hold to delete",
-        style = textStyle.copy(
-            color = colors.textDanger,
-        ),
-        modifier = Modifier
-            .holdToDeleteAction(
-                roundedCornerRadius = cornerRadius,
-                areTopCornersRounded = false,
-                onDelete = onDelete,
+                Spacer(
+                    modifier = Modifier
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(colors.componentDivider)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .clickable(
+                            onClick = onSendAsPoster,
+                        )
+                ) {
+                    BasicText(
+                        text = "A poster",
+                        style = textStyle,
+                        modifier = Modifier
+                            .padding(
+                                top = 20.dp,
+                            )
+                            .fillMaxWidth()
+                    )
+                    if (selectedCount > StampPosterMaxStamps) {
+                        BasicText(
+                            text = "But only $StampPosterMaxStamps of them",
+                            style = TextStyle(
+                                fontFamily = PodkovaFamily,
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                color = LocalColors.current.textSecondary,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    top = 2.dp,
+                                    bottom = 20.dp,
+                                )
+                        )
+                    } else {
+                        Spacer(Modifier.height(20.dp))
+                    }
+                }
+
+                BackHandler { submenu = 0 }
+
+                return@Column
+            }
+            BasicText(
+                text = "Move",
+                style = textStyle,
+                modifier = Modifier
+                    .clickable(
+                        onClick = onMove,
+                    )
+                    .padding(
+                        vertical = 20.dp,
+                    )
+                    .fillMaxWidth()
             )
-            .padding(
-                vertical = 20.dp,
+
+            Spacer(
+                modifier = Modifier
+                    .height(1.dp)
+                    .fillMaxWidth()
+                    .background(colors.componentDivider)
             )
-            .fillMaxWidth()
-    )
+
+            BasicText(
+                text = "Send",
+                style = textStyle,
+                modifier = Modifier
+                    .clickable(
+                        onClick = {
+                            submenu = 1
+                        },
+                    )
+                    .padding(
+                        vertical = 20.dp,
+                    )
+                    .fillMaxWidth()
+            )
+
+            Spacer(
+                modifier = Modifier
+                    .height(1.dp)
+                    .fillMaxWidth()
+                    .background(colors.componentDivider)
+            )
+
+            BasicText(
+                text = "Hold to delete",
+                style = textStyle.copy(
+                    color = colors.textDanger,
+                ),
+                modifier = Modifier
+                    .holdToDeleteAction(
+                        roundedCornerRadius = cornerRadius,
+                        areTopCornersRounded = false,
+                        onDelete = onDelete,
+                    )
+                    .padding(
+                        vertical = 20.dp,
+                    )
+                    .fillMaxWidth()
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SelectionActionsPreview() {
+    AppTheme {
+        Box(
+            modifier = Modifier
+                .paperBackground(
+                    drawBackgroundColor = true,
+                )
+                .padding(24.dp)
+        ) {
+            SelectionActions(
+                onMove = {},
+                onSendAsEnvelope = {},
+                onSendAsPoster = {},
+                selectedCount = 24,
+                onDelete = {},
+            )
+        }
+    }
 }
 
 @Composable
@@ -643,7 +771,8 @@ fun StampsScreenDummy(
         onStampLongClicked = { },
         selectedCountState = 0.let(::mutableIntStateOf),
         onMoveSelectedAction = { },
-        onSendSelectedAction = { },
+        onSendSelectedAsEnvelopeAction = { },
+        onSendSelectedAsPosterAction = { },
         onDeleteSelectedAction = { },
         onNewStampAction = { },
         sharedTransitionScope = null,

@@ -344,6 +344,15 @@ private fun SharedTransitionScope.StampsNavHost(
                     launchSingleTop = true
                 }
             },
+            onProceedToCreatePoster = { stampSelectionIndex ->
+                navController.navigate(
+                    route = CreatePosterRoute(
+                        stampSelectionIndex = stampSelectionIndex,
+                    )
+                ) {
+                    launchSingleTop = true
+                }
+            },
             onDone = navController::navigateUp,
         )
 

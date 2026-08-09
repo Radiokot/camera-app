@@ -28,3 +28,5 @@ val StampPosterDensity = Density(
     density = 1f,
     fontScale = 1f,
 )
+
+const val StampPosterMaxStamps = 16

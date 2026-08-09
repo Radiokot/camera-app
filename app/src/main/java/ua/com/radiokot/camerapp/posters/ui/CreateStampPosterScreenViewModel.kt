@@ -22,6 +22,7 @@ package ua.com.radiokot.camerapp.posters.ui
 import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.net.toUri
@@ -43,8 +44,11 @@ import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
 import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
 import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
+import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
+import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
+import ua.com.radiokot.camerapp.stamps.domain.StampSelections
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.util.eventSharedFlow
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -71,10 +75,29 @@ class CreateStampPosterScreenViewModel(
 
     init {
         viewModelScope.launch {
-            val firstStamp = stampRepository.getStamp(parameters.firstStampId)
-                ?: error("Stamp with id ${parameters.firstStampId} not found")
+            when {
+                parameters.firstStampId != null -> {
+                    initLayersWithStamp(
+                        stamp =
+                            stampRepository.getStamp(parameters.firstStampId)
+                                ?: error("Stamp with id ${parameters.firstStampId} not found"),
+                    )
+                }
 
-            initLayersWithStamp(firstStamp)
+                parameters.stampSelectionIndex != null -> {
+                    val stampIds = StampSelections[parameters.stampSelectionIndex]
+                    val stamps =
+                        stampRepository
+                            .getStamps()
+                            .filter { it.id in stampIds }
+
+                    if (stamps.size == 1) {
+                        initLayersWithStamp(stamps.first())
+                    } else {
+                        initLayersWithStamps(stamps)
+                    }
+                }
+            }
         }
     }
 
@@ -99,6 +122,139 @@ class CreateStampPosterScreenViewModel(
                         y = StampPosterHeight / 4f,
                     )
                 }
+        }
+
+        layers.value = stampLayers.toPersistentList()
+    }
+
+    private suspend fun initLayersWithStamps(
+        stamps: List<Stamp>,
+    ) {
+        require(stamps.size <= StampPosterMaxStamps) {
+            "That should have been handled before this screen"
+        }
+
+        val stampLayers = mutableListOf<StampPosterLayer>()
+
+        when (stamps.size) {
+            2 -> {
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[0].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[0].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.5f,
+                        y = StampPosterHeight * 0.3f,
+                    )
+                }
+
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[1].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[1].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.5f,
+                        y = StampPosterHeight * 0.7f,
+                    )
+                }
+            }
+
+            3 -> {
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[0].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[0].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.33f,
+                        y = StampPosterHeight * 0.25f,
+                    )
+                }
+
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[1].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[1].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.33f,
+                        y = StampPosterHeight * 0.75f,
+                    )
+                }
+
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[2].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[2].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.66f,
+                        y = StampPosterHeight * 0.5f,
+                    )
+                }
+            }
+
+            4 -> {
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[0].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[0].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.33f,
+                        y = StampPosterHeight * 0.23f,
+                    )
+                }
+
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[1].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[1].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.66f,
+                        y = StampPosterHeight * 0.33f,
+                    )
+                }
+
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[2].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[2].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.33f,
+                        y = StampPosterHeight * 0.7f,
+                    )
+                }
+
+                stampLayers += StampPosterLayer.Stamp(
+                    imageBitmap = stamps[3].getImageBitmap(),
+                    shape = UiStampShape.fromShape(stamps[3].shape),
+                ).apply {
+                    center = Offset(
+                        x = StampPosterWidth * 0.66f,
+                        y = StampPosterHeight * 0.8f,
+                    )
+                }
+            }
+
+            else -> {
+                // Stack stamps on top of each other with slight offset.
+                val centerStep = Offset(
+                    x = StampPosterWidth * 0.05f * StampPosterMaxStamps / stamps.size,
+                    y = StampPosterWidth * 0.08f * StampPosterMaxStamps / stamps.size,
+                )
+                var nextStampCenter = Offset(
+                    x = StampPosterWidth * 0.28f,
+                    y = StampPosterHeight * 0.2f,
+                )
+
+                for (stamp in stamps) {
+                    stampLayers += StampPosterLayer.Stamp(
+                        imageBitmap = stamp.getImageBitmap(),
+                        shape = UiStampShape.fromShape(stamp.shape),
+                    ).apply {
+                        center = nextStampCenter
+                    }
+
+                    nextStampCenter += centerStep
+                }
+            }
         }
 
         layers.value = stampLayers.toPersistentList()
@@ -232,7 +388,8 @@ class CreateStampPosterScreenViewModel(
             ?.asImageBitmap()
 
     data class Parameters(
-        val firstStampId: String,
+        val firstStampId: String?,
+        val stampSelectionIndex: Int?,
     )
 
     sealed interface Event {
@@ -243,5 +400,7 @@ class CreateStampPosterScreenViewModel(
         class ProceedToEditText(
             val currentText: String?,
         ) : Event
+
+        object ShowTooManyStampsWarning : Event
     }
 }

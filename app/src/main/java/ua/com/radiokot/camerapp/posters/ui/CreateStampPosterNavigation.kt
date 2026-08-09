@@ -36,6 +36,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import ua.com.radiokot.camerapp.cut.ui.showToast
+import ua.com.radiokot.camerapp.ui.LocalColors
 
 fun NavGraphBuilder.createPosterDestination(
     editStampPosterTextContract: EditStampPosterTextContract,
@@ -44,6 +46,10 @@ fun NavGraphBuilder.createPosterDestination(
     arguments = listOf(
         navArgument(FirstStampId) {
             type = NavType.StringType
+            nullable = true
+        },
+        navArgument(StampSelectionIndex) {
+            type = NavType.IntType
         }
     ),
     enterTransition = {
@@ -60,13 +66,18 @@ fun NavGraphBuilder.createPosterDestination(
                 firstStampId =
                     navEntry
                         .arguments
-                        ?.getString(FirstStampId)
-                        ?: error("No $FirstStampId argument passed")
+                        ?.getString(FirstStampId),
+                stampSelectionIndex =
+                    navEntry
+                        .arguments
+                        ?.getInt(StampSelectionIndex, -1)
+                        ?.takeIf { it >= 0 },
             )
         )
     }
 
     val context = LocalContext.current
+    val colors = LocalColors.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -83,6 +94,14 @@ fun NavGraphBuilder.createPosterDestination(
                 is CreateStampPosterScreenViewModel.Event.ProceedToEditText -> {
                     editStampPosterTextContract.proceedToEditText(
                         currentText = event.currentText,
+                    )
+                }
+
+                is CreateStampPosterScreenViewModel.Event.ShowTooManyStampsWarning -> {
+                    showToast(
+                        context = context,
+                        text = "That's too many for a poster",
+                        colors = colors,
                     )
                 }
             }
@@ -109,10 +128,17 @@ fun NavGraphBuilder.createPosterDestination(
 }
 
 private const val FirstStampId = "firstStampId"
+private const val StampSelectionIndex = "stampSelectionIndex"
 
-const val CreatePosterRoute = "createPoster?firstStampId={$FirstStampId}"
+const val CreatePosterRoute = "createPoster?firstStampId={$FirstStampId}" +
+        "&stampSelectionIndex={$StampSelectionIndex}"
 
 fun CreatePosterRoute(
     firstStampId: String,
 ) =
     "createPoster?firstStampId=$firstStampId"
+
+fun CreatePosterRoute(
+    stampSelectionIndex: Int,
+) =
+    "createPoster?stampSelectionIndex=$stampSelectionIndex"

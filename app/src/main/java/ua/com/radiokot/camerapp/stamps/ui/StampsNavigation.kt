@@ -28,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.asIntState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -49,6 +48,7 @@ fun NavGraphBuilder.stampsDestination(
         stampSelectionIndex: Int,
     ) -> Unit,
     onProceedToSendEnvelope: (stampSelectionIndex: Int) -> Unit,
+    onProceedToCreatePoster: (stampSelectionIndex: Int) -> Unit,
     onDone: () -> Unit,
 ) = composable(
     route = StampsRoute,
@@ -93,7 +93,8 @@ fun NavGraphBuilder.stampsDestination(
                 .collectAsState()
                 .asIntState(),
         onMoveSelectedAction = viewModel::onMoveSelectedAction,
-        onSendSelectedAction = viewModel::onSendSelectedAction,
+        onSendSelectedAsEnvelopeAction = viewModel::onSendSelectedAsEnvelopeAction,
+        onSendSelectedAsPosterAction = viewModel::onSendSelectedAsPosterAction,
         onDeleteSelectedAction = viewModel::onDeleteSelectedAction,
         onNewStampAction = viewModel::onNewStampAction,
         sharedTransitionScope = sharedTransitionScope,
@@ -101,8 +102,6 @@ fun NavGraphBuilder.stampsDestination(
         modifier = Modifier
             .fillMaxSize()
     )
-
-    val context = LocalContext.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -138,6 +137,12 @@ fun NavGraphBuilder.stampsDestination(
 
                 is StampsScreenViewModel.Event.ProceedToSendEnvelope -> {
                     onProceedToSendEnvelope(
+                        event.stampSelectionIndex,
+                    )
+                }
+
+                is StampsScreenViewModel.Event.ProceedToCreatePosterEnvelope -> {
+                    onProceedToCreatePoster(
                         event.stampSelectionIndex,
                     )
                 }

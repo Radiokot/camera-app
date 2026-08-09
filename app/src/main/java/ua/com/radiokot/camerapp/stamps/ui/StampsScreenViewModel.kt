@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ua.com.radiokot.camerapp.intro.domain.OnboardingPreferences
+import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.stamps.domain.StampCollectionRepository
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
@@ -231,7 +232,7 @@ class StampsScreenViewModel(
         }
     }
 
-    fun onSendSelectedAction() {
+    fun onSendSelectedAsEnvelopeAction() {
         if (selectedStampIds.value.isEmpty()) {
             return
         }
@@ -243,13 +244,41 @@ class StampsScreenViewModel(
         val selectionIndex = StampSelections + stampToShareIds
 
         log.debug {
-            "onSendSelectedAction(): proceeding to sending an envelope:" +
+            "onSendSelectedAsEnvelopeAction(): proceeding to sending an envelope:" +
                     "\nstampToShareIds=${stampToShareIds.size}" +
                     "\nselectionIndex=$selectionIndex"
         }
 
         events.tryEmit(
             Event.ProceedToSendEnvelope(
+                stampSelectionIndex = selectionIndex,
+            )
+        )
+    }
+
+    fun onSendSelectedAsPosterAction() {
+        if (selectedStampIds.value.isEmpty()) {
+            return
+        }
+
+        val stampToShareIds =
+            selectedStampIds
+                .value
+                .take(StampPosterMaxStamps)
+                .toSet()
+
+        clearSelection()
+
+        val selectionIndex = StampSelections + stampToShareIds
+
+        log.debug {
+            "onSendSelectedAsPosterAction(): proceeding to creating a poster:" +
+                    "\nstampToShareIds=${stampToShareIds.size}" +
+                    "\nselectionIndex=$selectionIndex"
+        }
+
+        events.tryEmit(
+            Event.ProceedToCreatePosterEnvelope(
                 stampSelectionIndex = selectionIndex,
             )
         )
@@ -376,6 +405,10 @@ class StampsScreenViewModel(
         ) : Event
 
         class ProceedToSendEnvelope(
+            val stampSelectionIndex: Int,
+        ) : Event
+
+        class ProceedToCreatePosterEnvelope(
             val stampSelectionIndex: Int,
         ) : Event
 
