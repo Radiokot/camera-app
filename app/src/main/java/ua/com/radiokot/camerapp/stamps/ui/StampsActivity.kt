@@ -34,13 +34,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -51,6 +52,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.skydoves.landscapist.image.LocalLandscapist
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.koinInject
@@ -75,20 +78,29 @@ import ua.com.radiokot.camerapp.posters.ui.createPosterDestination
 import ua.com.radiokot.camerapp.posters.ui.editPosterTextDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.fadeOutExit
+import ua.com.radiokot.camerapp.util.keepWhile
 import ua.com.radiokot.camerapp.util.lazyLogger
+import kotlin.time.Duration.Companion.milliseconds
 
+@Stable
 class StampsActivity : ComponentActivity() {
 
     private val log by lazyLogger("StampsActivity")
 
     private val permissionsScreenViewModel: PermissionsScreenViewModel by viewModel()
     private val onboardingPreferences: OnboardingPreferences by inject()
+    private var isSplashScreenVisible = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+            .keepWhile(::isSplashScreenVisible)
+            .fadeOutExit()
+
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0),
         )
+
         super.onCreate(savedInstanceState)
 
         val isPermissionActionRequired = permissionsScreenViewModel.isActionRequired
@@ -116,30 +128,12 @@ class StampsActivity : ComponentActivity() {
             AppTheme(
                 LocalLandscapist provides koinInject(),
             ) {
-                var isStampsScreenWarmupShown by remember {
-                    mutableStateOf(true)
-                }
-
-                // First appearance of the stamps screen is slow,
-                // there's something with the mere existence of a LazyVerticalGrid in it.
-                // Until I find the cause, making the screen appear invisible for the first time
-                // makes further appearance and animation smooth.
-                if (isStampsScreenWarmupShown) {
-                    StampsScreenDummy(
-                        modifier = Modifier
-                            .alpha(0.01f)
-                    )
-
-                    LaunchedEffect(Unit) {
-                        isStampsScreenWarmupShown = false
-                    }
-                }
-
                 SharedTransitionLayout {
                     StampsNavHost(
                         arePermissionsNeeded = isPermissionActionRequired,
                         isIntroNeeded = !isIntroSeen,
                         onIntroSeen = remember { onboardingPreferences::introSeen },
+                        onStartDestinationReached = { isSplashScreenVisible = false },
                         modifier = Modifier
                             .fillMaxSize()
                     )
@@ -155,8 +149,36 @@ private fun SharedTransitionScope.StampsNavHost(
     arePermissionsNeeded: Boolean,
     isIntroNeeded: Boolean,
     onIntroSeen: () -> Unit,
+    onStartDestinationReached: () -> Unit,
 ) {
     val navController = rememberNavController()
+    val startDestination =
+        if (isIntroNeeded)
+            IntroRoute
+        else if (arePermissionsNeeded)
+            PermissionsRoute
+        else
+            CollectionsRoute
+    var startDestinationEverReached by retain { mutableStateOf(false) }
+    LaunchedEffect(navController) {
+        if (startDestinationEverReached) {
+            return@LaunchedEffect
+        }
+
+        navController
+            .currentBackStackEntryFlow
+            .first { it.destination.route == startDestination }
+
+        if (startDestination == CollectionsRoute) {
+            // Here goes magic delay ✨
+            // (give enough time for the images to load).
+            delay(50.milliseconds)
+        }
+
+        startDestinationEverReached = true
+        onStartDestinationReached()
+    }
+
     val totalScrollOffsetState = remember {
         mutableIntStateOf(0)
     }
@@ -205,13 +227,7 @@ private fun SharedTransitionScope.StampsNavHost(
 
     NavHost(
         navController = navController,
-        startDestination =
-            if (isIntroNeeded)
-                IntroRoute
-            else if (arePermissionsNeeded)
-                PermissionsRoute
-            else
-                CollectionsRoute,
+        startDestination = startDestination,
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },
         modifier = modifier

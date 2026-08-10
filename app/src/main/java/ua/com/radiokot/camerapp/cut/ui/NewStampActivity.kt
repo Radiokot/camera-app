@@ -60,6 +60,7 @@ import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.fadeOutExit
 import ua.com.radiokot.camerapp.util.lazyLogger
 
 @Immutable
@@ -71,9 +72,12 @@ class NewStampActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+            .fadeOutExit()
+
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0),
         )
+
         super.onCreate(savedInstanceState)
 
         val collectionId: String? = intent.getStringExtra(COLLECTION_ID_EXTRA)
