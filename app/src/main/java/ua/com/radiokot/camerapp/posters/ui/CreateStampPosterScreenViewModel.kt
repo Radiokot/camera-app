@@ -311,6 +311,15 @@ class CreateStampPosterScreenViewModel(
             }
 
             layers.value = layers.value.removing(layer)
+
+            events.tryEmit(
+                Event.ShowLayerDeletedMessage(
+                    layerName = when (layer) {
+                        is StampPosterLayer.Stamp -> "Stamp"
+                        is StampPosterLayer.Text -> "Text"
+                    }
+                )
+            )
         }
 
         anyChanges = true
@@ -431,5 +440,9 @@ class CreateStampPosterScreenViewModel(
         ) : Event
 
         object ShowTooManyStampsWarning : Event
+
+        class ShowLayerDeletedMessage(
+            val layerName: String,
+        ) : Event
     }
 }

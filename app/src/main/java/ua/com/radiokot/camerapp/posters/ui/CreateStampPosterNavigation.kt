@@ -111,6 +111,14 @@ fun NavGraphBuilder.createPosterDestination(
                         colors = colors,
                     )
                 }
+
+                is CreateStampPosterScreenViewModel.Event.ShowLayerDeletedMessage -> {
+                    showToast(
+                        context = context,
+                        text = "${event.layerName} deleted",
+                        colors = colors,
+                    )
+                }
             }
         }
     }
