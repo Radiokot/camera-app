@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.skydoves.landscapist.components.ImagePluginComponent
 import com.skydoves.landscapist.core.ImageRequest
+import com.skydoves.landscapist.core.Landscapist
 import com.skydoves.landscapist.core.LandscapistConfig
 import com.skydoves.landscapist.core.decoder.DecodeResult
 import com.skydoves.landscapist.core.decoder.ImageDecoder
@@ -152,3 +153,9 @@ class NoOpImageDecoder : ImageDecoder {
         )
     }
 }
+
+fun createLandscapistForPreview() =
+    Landscapist.Builder()
+        .fetcher(FileUriDecodingImageFetcher())
+        .decoder(NoOpImageDecoder())
+        .build()

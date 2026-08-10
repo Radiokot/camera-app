@@ -63,6 +63,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -73,6 +74,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import ua.com.radiokot.camerapp.util.plus
 
 @Composable
@@ -341,7 +343,9 @@ private fun CollectionsScreenPreview() {
         ),
     ).toImmutableList()
 
-    AppTheme {
+    AppTheme(
+        LocalLandscapist provides createLandscapistForPreview(),
+    ) {
         CollectionsScreen(
             itemsState = items.let(::mutableStateOf),
             onItemClicked = {},

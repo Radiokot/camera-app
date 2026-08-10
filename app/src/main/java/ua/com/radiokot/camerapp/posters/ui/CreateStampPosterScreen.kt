@@ -90,7 +90,6 @@ import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.detectTransformGestures
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.abs
-import kotlin.math.absoluteValue
 import kotlin.math.min
 
 @Composable

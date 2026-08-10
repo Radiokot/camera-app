@@ -113,6 +113,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastRoundToInt
 import com.skydoves.landscapist.image.LandscapistImage
+import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -123,6 +124,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.EmptyImageComponent
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import java.time.LocalDate
 import kotlin.math.absoluteValue
 
@@ -967,33 +969,30 @@ private fun Actions(
 @PreviewLightDark
 @Composable
 private fun StampScreenPreview() {
-    AppTheme {
-        Box(
+    AppTheme(
+        LocalLandscapist provides createLandscapistForPreview(),
+    ) {
+        StampScreen(
+            stampId = "",
+            captionState = TextFieldState("My stamp"),
+            isCaptionInputEnabled = false.let(::mutableStateOf),
+            imageUri = StableHolder(Uri.EMPTY),
+            shape = UiStampShapeA,
+            takenAt = StableHolder(LocalDate.now()),
+            onAddCaptionAction = { },
+            onDeleteAction = { },
+            onMoveAction = { },
+            onSendAsImageAction = { },
+            onSendAsPosterAction = { },
+            onSwipedToExit = { },
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
             modifier = Modifier
                 .fillMaxSize()
                 .paperBackground(
                     drawBackgroundColor = true,
                 )
-        ) {
-            StampScreen(
-                stampId = "",
-                captionState = TextFieldState("My stamp"),
-                isCaptionInputEnabled = false.let(::mutableStateOf),
-                imageUri = StableHolder(Uri.EMPTY),
-                shape = UiStampShapeA,
-                takenAt = StableHolder(LocalDate.now()),
-                onAddCaptionAction = { },
-                onDeleteAction = { },
-                onMoveAction = { },
-                onSendAsImageAction = { },
-                onSendAsPosterAction = { },
-                onSwipedToExit = { },
-                sharedTransitionScope = null,
-                animatedVisibilityScope = null,
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-        }
+        )
     }
 }
 

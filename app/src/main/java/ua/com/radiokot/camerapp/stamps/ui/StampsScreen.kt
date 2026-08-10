@@ -92,6 +92,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.image.LandscapistImage
+import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import ua.com.radiokot.camerapp.R
@@ -104,6 +105,7 @@ import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.EmptyImageComponent
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import ua.com.radiokot.camerapp.util.plus
 import kotlin.math.absoluteValue
 
@@ -786,7 +788,9 @@ fun StampsScreenDummy(
 @PreviewLightDark
 @Composable
 private fun StampsScreenPreview() {
-    AppTheme {
+    AppTheme(
+        LocalLandscapist provides createLandscapistForPreview(),
+    ) {
         StampsScreenDummy(
             modifier = Modifier
                 .fillMaxSize()
