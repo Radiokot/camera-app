@@ -42,8 +42,7 @@ sealed class StampPosterLayer {
     /**
      * Positive for clockwise rotation around [center].
      */
-    var rotationDegrees: Float by mutableFloatStateOf(360f)
-    //                                                starts at 360 and kept positive for convenience.
+    var rotationDegrees: Float by mutableFloatStateOf(0f)
 
     val isOutOfBounds: Boolean
         get() = !rect.overlaps(StampPosterRect)

@@ -71,10 +71,12 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
+import ua.com.radiokot.camerapp.posters.domain.StampPosterRect
 import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
 import ua.com.radiokot.camerapp.posters.domain.drawStampPoster
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
@@ -87,6 +89,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.detectTransformGestures
 import ua.com.radiokot.camerapp.util.rotateBy
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -385,6 +388,8 @@ private fun StampPosterCanvas(
                 }
             }
             .pointerInput(Unit) {
+                val posterCenter = StampPosterRect.center
+
                 detectTransformGestures(
                     onGesture = onGesture@{ _, pan, zoom, rotation ->
                         val activeLayer = activeLayer
@@ -393,19 +398,17 @@ private fun StampPosterCanvas(
                         if (pan != Offset.Zero) {
                             var newCenterX = activeLayer.center.x + pan.x / density
                             var newCenterY = activeLayer.center.y + pan.y / density
-
-                            val posterCenterDx = newCenterX - StampPosterWidth / 2f
-                            val posterCenterDy = newCenterY - StampPosterHeight / 2f
+                            val centerLineProximityThreshold = 4f
 
                             // Snap to center lines.
-                            if (posterCenterDx.absoluteValue < 4f) {
-                                newCenterX -= posterCenterDx
+                            if (abs(newCenterX - posterCenter.x) < centerLineProximityThreshold) {
+                                newCenterX = posterCenter.x
                                 if (newCenterX != activeLayer.center.x) {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
                                 }
                             }
-                            if (posterCenterDy.absoluteValue < 4f) {
-                                newCenterY -= posterCenterDy
+                            if (abs(newCenterY - posterCenter.y) < centerLineProximityThreshold) {
+                                newCenterY = posterCenter.y
                                 if (newCenterY != activeLayer.center.y) {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
                                 }
@@ -420,19 +423,16 @@ private fun StampPosterCanvas(
                         activeLayer.scale *= zoom
 
                         if (rotation != 0f) {
-                            var newRotation =
-                                360f + (activeLayer.rotationDegrees + rotation) % 360f
+                            var newRotation = (activeLayer.rotationDegrees + rotation) % 360f
+                            if (newRotation < 0) {
+                                newRotation += 360f
+                            }
 
                             // Snap to quarters.
-                            val rem90 = newRotation % 90f
-                            if (rem90 > 89.5f) {
-                                newRotation += (90f - rem90)
-                                if (newRotation != activeLayer.rotationDegrees) {
-                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
-                                }
-                            } else if (rem90 < 0.5f) {
-                                newRotation -= rem90
-                                if (newRotation != activeLayer.rotationDegrees) {
+                            val nearestQuarter = (newRotation / 90f).fastRoundToInt() * 90f
+                            if (abs(newRotation - nearestQuarter) <= 0.8f) {
+                                newRotation = nearestQuarter % 360f
+                                if (newRotation != activeLayer.rotationDegrees % 360f) {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
                                 }
                             }
