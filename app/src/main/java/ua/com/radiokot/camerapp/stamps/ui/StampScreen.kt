@@ -88,6 +88,7 @@ import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -791,6 +792,7 @@ private fun Actions(
             color = LocalColors.current.componentStroke,
             shape = RoundedCornerShape(cornerRadius),
         )
+        .clip(RoundedCornerShape(cornerRadius))
         .verticalScroll(
             state = rememberScrollState(),
             overscrollEffect = null,
