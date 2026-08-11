@@ -162,7 +162,9 @@ class StampScreenViewModel(
         events.tryEmit(Event.ProceedToSendIntent(intent))
     }
 
-    fun onSendAsPosterAction() {
+    fun onSendAsPosterAction() = viewModelScope.launch {
+        saveUpdates()
+
         log.debug {
             "onSendAsPosterAction(): proceeding to create poster"
         }
