@@ -273,6 +273,8 @@ class CreateStampPosterScreenViewModel(
     }
 
     fun onAddTextAction() {
+        textLayerToEdit = null
+
         events.tryEmit(
             Event.ProceedToEditText(
                 currentText = null,
