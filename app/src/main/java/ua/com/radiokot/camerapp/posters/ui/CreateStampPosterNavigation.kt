@@ -45,6 +45,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 fun NavGraphBuilder.createPosterDestination(
     editStampPosterTextContract: EditStampPosterTextContract,
     confirmDiscardChangesContract: ConfirmDiscardChangesContract,
+    selectStampsForPosterContract: SelectStampsForPosterContract,
     onDone: () -> Unit,
 ) = composable(
     route = CreatePosterRoute,
@@ -104,6 +105,10 @@ fun NavGraphBuilder.createPosterDestination(
                     )
                 }
 
+                is CreateStampPosterScreenViewModel.Event.ProceedToSelectStampsToAdd -> {
+                    selectStampsForPosterContract.proceedToSelectStamps()
+                }
+
                 is CreateStampPosterScreenViewModel.Event.ShowTooManyStampsWarning -> {
                     showToast(
                         context = context,
@@ -132,6 +137,7 @@ fun NavGraphBuilder.createPosterDestination(
         onLayerTap = viewModel::onLayerTap,
         onToggleIsDarkAction = viewModel::onToggleIsDarkAction,
         onAddTextAction = viewModel::onAddTextAction,
+        onAddStampsAction = viewModel::onAddStampsAction,
         modifier = Modifier
             .fillMaxSize()
     )

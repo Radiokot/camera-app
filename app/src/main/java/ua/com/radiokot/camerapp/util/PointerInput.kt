@@ -46,6 +46,7 @@ suspend fun PointerInputScope.detectTransformGestures(
         var pastTouchSlop = false
         val touchSlop = viewConfiguration.touchSlop
         var lockedToPanZoom = false
+        var didGestureHappen = false
 
         awaitFirstDown(requireUnconsumed = false)
         do {
@@ -80,6 +81,7 @@ suspend fun PointerInputScope.detectTransformGestures(
                     val centroid = event.calculateCentroid(useCurrent = false)
                     val effectiveRotation = if (lockedToPanZoom) 0f else rotationChange
                     if (effectiveRotation != 0f || zoomChange != 1f || panChange != Offset.Zero) {
+                        didGestureHappen = true
                         onGesture(centroid, panChange, zoomChange, effectiveRotation)
                     }
                     event.changes.fastForEach {
@@ -91,6 +93,8 @@ suspend fun PointerInputScope.detectTransformGestures(
             }
         } while (!canceled && event.changes.fastAny { it.pressed })
 
-        onGestureEnd?.invoke()
+        if (didGestureHappen) {
+            onGestureEnd?.invoke()
+        }
     }
 }

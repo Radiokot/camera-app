@@ -74,6 +74,7 @@ import ua.com.radiokot.camerapp.intro.ui.introDestination
 import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
 import ua.com.radiokot.camerapp.posters.ui.CreatePosterRoute
 import ua.com.radiokot.camerapp.posters.ui.EditStampPosterTextContract
+import ua.com.radiokot.camerapp.posters.ui.SelectStampsForPosterContract
 import ua.com.radiokot.camerapp.posters.ui.createPosterDestination
 import ua.com.radiokot.camerapp.posters.ui.editPosterTextDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
@@ -206,6 +207,11 @@ private fun SharedTransitionScope.StampsNavHost(
     }
     val confirmDiscardChangesContract = remember(navController) {
         ConfirmDiscardChangesContract(
+            navController = navController,
+        )
+    }
+    val selectStampsForPosterContract = remember(navController) {
+        SelectStampsForPosterContract(
             navController = navController,
         )
     }
@@ -386,6 +392,7 @@ private fun SharedTransitionScope.StampsNavHost(
         createPosterDestination(
             editStampPosterTextContract = editStampPosterTextContract,
             confirmDiscardChangesContract = confirmDiscardChangesContract,
+            selectStampsForPosterContract = selectStampsForPosterContract,
             onDone = navController::navigateUp,
         )
 

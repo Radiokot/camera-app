@@ -280,6 +280,10 @@ class CreateStampPosterScreenViewModel(
         )
     }
 
+    fun onAddStampsAction() {
+        events.tryEmit(Event.ProceedToSelectStampsToAdd)
+    }
+
     fun onBeginInteractionWithLayer(
         layer: StampPosterLayer,
     ) {
@@ -438,6 +442,8 @@ class CreateStampPosterScreenViewModel(
         class ProceedToEditText(
             val currentText: String?,
         ) : Event
+
+        object ProceedToSelectStampsToAdd : Event
 
         object ShowTooManyStampsWarning : Event
 

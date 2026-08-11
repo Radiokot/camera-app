@@ -26,7 +26,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -101,6 +101,7 @@ fun CreateStampPosterScreen(
     onEndInteractionWithLayer: (StampPosterLayer) -> Unit,
     onToggleIsDarkAction: () -> Unit,
     onAddTextAction: () -> Unit,
+    onAddStampsAction: () -> Unit,
     onSendAction: () -> Unit,
     onLayerTap: (StampPosterLayer) -> Unit,
 ) {
@@ -125,6 +126,7 @@ fun CreateStampPosterScreen(
                 layersState = layersState,
                 onSendAction = onSendAction,
                 onAddTextAction = onAddTextAction,
+                onAddStampsAction = onAddStampsAction,
                 onLayerTap = onLayerTap,
             )
         }
@@ -148,6 +150,7 @@ fun CreateStampPosterScreen(
                 layersState = layersState,
                 onSendAction = onSendAction,
                 onAddTextAction = onAddTextAction,
+                onAddStampsAction = onAddStampsAction,
                 onLayerTap = onLayerTap,
             )
         }
@@ -165,6 +168,7 @@ private fun CreateStampPosterScreenLayoutContent(
     layersState: State<ImmutableList<StampPosterLayer>>,
     onSendAction: () -> Unit,
     onAddTextAction: () -> Unit,
+    onAddStampsAction: () -> Unit,
     onLayerTap: (StampPosterLayer) -> Unit,
 ) {
     val canvasShape = RoundedCornerShape(10.dp)
@@ -254,6 +258,10 @@ private fun CreateStampPosterScreenLayoutContent(
             AddTextButton(
                 onAddTextAction = onAddTextAction,
             )
+
+            AddStampsButton(
+                onAddStampsAction = onAddStampsAction,
+            )
         }
 
         Spacer(
@@ -331,7 +339,19 @@ private fun AddTextButton(
     onClick = onAddTextAction,
 ) {
     BasicText(
-        text = "Aa",
+        text = "T",
+        style = posterActionButtonTextStyle(),
+    )
+}
+
+@Composable
+private fun AddStampsButton(
+    onAddStampsAction: () -> Unit,
+) = PosterActionButton(
+    onClick = onAddStampsAction,
+) {
+    BasicText(
+        text = "S",
         style = posterActionButtonTextStyle(),
     )
 }
@@ -373,17 +393,18 @@ private fun StampPosterCanvas(
                         if (relativePosition in layer.rect) {
                             activeLayer = layer
                             onBeginInteractionWithLayer(layer)
-                            return@awaitEachGesture
+                            break
                         }
                     }
-                }
-            }
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    val activeLayer = activeLayer
-                        ?: return@detectTapGestures
 
-                    onLayerTap(activeLayer)
+                    val up = waitForUpOrCancellation(
+                        pass = PointerEventPass.Initial,
+                    )
+                    val nowActiveLayer = activeLayer
+                    if (up != null && nowActiveLayer != null) {
+                        activeLayer = null
+                        onLayerTap(nowActiveLayer)
+                    }
                 }
             }
             .pointerInput(Unit) {
@@ -505,6 +526,7 @@ private fun CreateStampPosterScreenPreview() {
             onEndInteractionWithLayer = {},
             onToggleIsDarkAction = {},
             onAddTextAction = {},
+            onAddStampsAction = {},
             onLayerTap = {},
             modifier = Modifier
                 .fillMaxSize()
