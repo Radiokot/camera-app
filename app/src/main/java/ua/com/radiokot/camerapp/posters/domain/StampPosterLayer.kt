@@ -100,8 +100,8 @@ sealed class StampPosterLayer {
                     textAlign = TextAlign.Center,
                 ),
                 constraints = Constraints(
-                    maxWidth = (StampPosterWidth * drawDensity).fastRoundToInt(),
-                    maxHeight = (StampPosterHeight * drawDensity).fastRoundToInt(),
+                    maxWidth = (StampPosterWidth * drawDensity * scale).fastRoundToInt(),
+                    maxHeight = (StampPosterHeight * drawDensity * scale).fastRoundToInt(),
                 ),
                 density = Density(
                     density = drawDensity,
