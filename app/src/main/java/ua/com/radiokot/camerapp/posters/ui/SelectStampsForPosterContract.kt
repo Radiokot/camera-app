@@ -19,11 +19,11 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import ua.com.radiokot.camerapp.util.getResultFlow
+import ua.com.radiokot.camerapp.util.setResult
 
 class SelectStampsForPosterContract(
     private val navController: NavController,
@@ -47,25 +47,19 @@ class SelectStampsForPosterContract(
         navController
             .previousBackStackEntry
             ?.savedStateHandle
-            ?.set(
+            ?.setResult(
                 key = SELECTION_INDEX,
-                value = stampSelectionIndex to System.currentTimeMillis(),
+                value = stampSelectionIndex,
             )
         navController.navigateUp()
     }
 
-    fun getStampSelectionIndexFlow(): Flow<Int> =
-        navController
-            .currentBackStackEntry!!
+    fun getStampSelectionIndexFlow(
+        requestor: NavBackStackEntry,
+    ): Flow<Int> =
+        requestor
             .savedStateHandle
-            .getStateFlow<Pair<Int, Long>?>(
-                key = SELECTION_INDEX,
-                initialValue = null,
-            )
-            .filterNotNull()
-            .distinctUntilChanged()
-            .map(Pair<Int, *>::component1)
-
+            .getResultFlow(SELECTION_INDEX)
 
     private companion object {
         private const val SELECTION_INDEX = "SSFPCSelectionIndex"

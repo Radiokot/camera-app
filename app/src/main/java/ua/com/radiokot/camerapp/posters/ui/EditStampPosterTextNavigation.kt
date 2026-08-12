@@ -22,7 +22,8 @@
 package ua.com.radiokot.camerapp.posters.ui
 
 import android.net.Uri
-import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -46,14 +47,16 @@ fun NavGraphBuilder.editPosterTextDestination(
     )
 ) { navEntry ->
 
-    val inputState = rememberTextFieldState(
-        initialText =
-            navEntry
-                .arguments
-                ?.getString(CurrentTextEncoded)
-                ?.let(Uri::decode)
-                ?: ""
-    )
+    val inputState = retain {
+        TextFieldState(
+            initialText =
+                navEntry
+                    .arguments
+                    ?.getString(CurrentTextEncoded)
+                    ?.let(Uri::decode)
+                    ?: ""
+        )
+    }
 
     EditStampPosterTextDialog(
         inputState = inputState,

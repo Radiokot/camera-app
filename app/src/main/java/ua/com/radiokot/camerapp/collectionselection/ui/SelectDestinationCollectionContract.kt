@@ -19,11 +19,11 @@
 
 package ua.com.radiokot.camerapp.collectionselection.ui
 
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import ua.com.radiokot.camerapp.util.getResultFlow
+import ua.com.radiokot.camerapp.util.setResult
 
 class SelectDestinationCollectionContract(
     private val navController: NavController,
@@ -47,9 +47,9 @@ class SelectDestinationCollectionContract(
         navController
             .previousBackStackEntry
             ?.savedStateHandle
-            ?.set(
+            ?.setResult(
                 key = SELECTED_COLLECTION_ID,
-                value = collectionId to System.currentTimeMillis(),
+                value = collectionId,
             )
         navController.navigateUp()
     }
@@ -58,17 +58,12 @@ class SelectDestinationCollectionContract(
         navController.navigateUp()
     }
 
-    fun getSelectedCollectionIdFlow(): Flow<String> =
-        navController
-            .currentBackStackEntry!!
+    fun getSelectedCollectionIdFlow(
+        requestor: NavBackStackEntry,
+    ): Flow<String> =
+        requestor
             .savedStateHandle
-            .getStateFlow<Pair<String, Long>?>(
-                key = SELECTED_COLLECTION_ID,
-                initialValue = null,
-            )
-            .filterNotNull()
-            .distinctUntilChanged()
-            .map(Pair<String, *>::component1)
+            .getResultFlow(SELECTED_COLLECTION_ID)
 
     private companion object {
         private const val SELECTED_COLLECTION_ID = "SDCCCollectionId"

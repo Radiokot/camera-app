@@ -96,9 +96,9 @@ fun NavGraphBuilder.collectionActionsDestination(
         }
     }
 
-    LaunchedEffect(viewModel, selectDestinationCollectionContract) {
+    LaunchedEffect(viewModel, selectDestinationCollectionContract, navEntry) {
         selectDestinationCollectionContract
-            .getSelectedCollectionIdFlow()
+            .getSelectedCollectionIdFlow(navEntry)
             .collect(viewModel::onMoveDestinationCollectionSelected)
     }
 }

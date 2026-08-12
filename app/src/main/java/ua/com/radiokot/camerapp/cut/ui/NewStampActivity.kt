@@ -238,7 +238,8 @@ private fun SharedTransitionScope.StampCutNavHost(
 
         composable(
             route = SaveDestination,
-        ) {
+        ) { navEntry ->
+
             val viewModel: StampSaveScreenViewModel = koinViewModel {
                 parametersOf(
                     StampSaveScreenViewModel.Parameters(
@@ -287,9 +288,9 @@ private fun SharedTransitionScope.StampCutNavHost(
                 )
             }
 
-            LaunchedEffect(Unit) {
+            LaunchedEffect(navEntry, navController, confirmDiscardChangesContract) {
                 confirmDiscardChangesContract
-                    .getDiscardChangesDecisionFlow()
+                    .getDiscardChangesDecisionFlow(navEntry)
                     .collect { toDiscard ->
                         if (toDiscard) {
                             navController.popBackStack(

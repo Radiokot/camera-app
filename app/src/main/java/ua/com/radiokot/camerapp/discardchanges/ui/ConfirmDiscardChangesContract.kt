@@ -19,11 +19,11 @@
 
 package ua.com.radiokot.camerapp.discardchanges.ui
 
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import ua.com.radiokot.camerapp.util.getResultFlow
+import ua.com.radiokot.camerapp.util.setResult
 
 class ConfirmDiscardChangesContract(
     private val navController: NavController,
@@ -47,27 +47,21 @@ class ConfirmDiscardChangesContract(
         navController
             .previousBackStackEntry
             ?.savedStateHandle
-            ?.set(
+            ?.setResult(
                 key = TO_DISCARD,
-                value = toDiscard to System.currentTimeMillis(),
+                value = toDiscard,
             )
         navController.navigateUp()
     }
 
-    fun getDiscardChangesDecisionFlow(): Flow<Boolean> =
-        navController
-            .currentBackStackEntry!!
+    fun getDiscardChangesDecisionFlow(
+        requestor: NavBackStackEntry,
+    ): Flow<Boolean> =
+        requestor
             .savedStateHandle
-            .getStateFlow<Pair<Boolean, Long>?>(
-                key = TO_DISCARD,
-                initialValue = null,
-            )
-            .filterNotNull()
-            .distinctUntilChanged()
-            .map(Pair<Boolean, *>::component1)
-
+            .getResultFlow(TO_DISCARD)
 
     private companion object {
-        private const val TO_DISCARD = "CDCCEditedText"
+        private const val TO_DISCARD = "CDCCToDiscard"
     }
 }

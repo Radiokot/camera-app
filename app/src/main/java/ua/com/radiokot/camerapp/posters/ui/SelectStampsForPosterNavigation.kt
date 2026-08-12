@@ -29,7 +29,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.cut.ui.showToast
 import ua.com.radiokot.camerapp.ui.LocalColors
@@ -50,7 +50,7 @@ fun NavGraphBuilder.selectStampsForPosterDestination(
     )
 ) { navEntry ->
 
-    val viewModel: SelectStampsForPosterDialogViewModel = koinInject {
+    val viewModel: SelectStampsForPosterDialogViewModel = koinViewModel {
         parametersOf(
             SelectStampsForPosterDialogViewModel.Parameters(
                 maxCount =

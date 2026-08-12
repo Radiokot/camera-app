@@ -20,6 +20,7 @@
 package ua.com.radiokot.camerapp.posters.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,6 +53,7 @@ fun EditStampPosterTextDialog(
 ) {
     val focusRequester = remember(::FocusRequester)
     var doneOnFocusLoss by remember { mutableStateOf(false) }
+    val activity = LocalActivity.current
 
     CompositionLocalProvider(
         LocalColors provides DarkAppColors,
@@ -64,7 +66,7 @@ fun EditStampPosterTextDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged {
-                    if (!it.hasFocus && doneOnFocusLoss) {
+                    if (!it.hasFocus && doneOnFocusLoss && activity?.isFinishing != true) {
                         onDone()
                     }
                 }

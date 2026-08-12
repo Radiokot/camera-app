@@ -19,11 +19,11 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import ua.com.radiokot.camerapp.util.getResultFlow
+import ua.com.radiokot.camerapp.util.setResult
 
 class EditStampPosterTextContract(
     private val navController: NavController,
@@ -47,25 +47,19 @@ class EditStampPosterTextContract(
         navController
             .previousBackStackEntry
             ?.savedStateHandle
-            ?.set(
+            ?.setResult(
                 key = EDITED_TEXT,
-                value = text to System.currentTimeMillis(),
+                value = text,
             )
         navController.navigateUp()
     }
 
-    fun getEditedTextFlow(): Flow<String?> =
-        navController
-            .currentBackStackEntry!!
+    fun getEditedTextFlow(
+        requestor: NavBackStackEntry,
+    ): Flow<String?> =
+        requestor
             .savedStateHandle
-            .getStateFlow<Pair<String, Long>?>(
-                key = EDITED_TEXT,
-                initialValue = null,
-            )
-            .filterNotNull()
-            .distinctUntilChanged()
-            .map(Pair<String, *>::component1)
-
+            .getResultFlow(EDITED_TEXT)
 
     private companion object {
         private const val EDITED_TEXT = "ESPTCEditedText"

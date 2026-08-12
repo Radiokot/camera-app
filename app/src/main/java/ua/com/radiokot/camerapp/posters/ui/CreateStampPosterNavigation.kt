@@ -137,10 +137,16 @@ fun NavGraphBuilder.createPosterDestination(
             .fillMaxSize()
     )
 
-    LaunchedEffect(editStampPosterTextContract, viewModel) {
+    LaunchedEffect(editStampPosterTextContract, viewModel, navEntry) {
         editStampPosterTextContract
-            .getEditedTextFlow()
+            .getEditedTextFlow(navEntry)
             .collect(viewModel::onDoneEditingText)
+    }
+
+    LaunchedEffect(selectStampsForPosterContract, viewModel, navEntry) {
+        selectStampsForPosterContract
+            .getStampSelectionIndexFlow(navEntry)
+            .collect(viewModel::onSelectedStampsToAdd)
     }
 
     BackHandler(
@@ -151,20 +157,14 @@ fun NavGraphBuilder.createPosterDestination(
         )
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(navEntry, onDone, confirmDiscardChangesContract) {
         confirmDiscardChangesContract
-            .getDiscardChangesDecisionFlow()
+            .getDiscardChangesDecisionFlow(navEntry)
             .collect { toDiscard ->
                 if (toDiscard) {
                     onDone()
                 }
             }
-    }
-
-    LaunchedEffect(Unit) {
-        selectStampsForPosterContract
-            .getStampSelectionIndexFlow()
-            .collect(viewModel::onSelectedStampsToAdd)
     }
 }
 
