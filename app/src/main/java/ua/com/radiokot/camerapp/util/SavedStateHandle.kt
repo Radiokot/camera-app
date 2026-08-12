@@ -39,6 +39,6 @@ fun <T> SavedStateHandle.getResultFlow(
     )
         .filterNotNull()
         .map { (value, _) ->
-            remove<Pair<T, Long>>(key)
+            set<Pair<T, Long>>(key, null)
             value
         }

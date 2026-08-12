@@ -20,7 +20,6 @@
 package ua.com.radiokot.camerapp.posters.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,14 +28,13 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
 import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
@@ -52,8 +50,6 @@ fun EditStampPosterTextDialog(
         .safeContentPadding()
 ) {
     val focusRequester = remember(::FocusRequester)
-    var doneOnFocusLoss by remember { mutableStateOf(false) }
-    val activity = LocalActivity.current
 
     CompositionLocalProvider(
         LocalColors provides DarkAppColors,
@@ -65,9 +61,13 @@ fun EditStampPosterTextDialog(
             isSingleLine = false,
             modifier = Modifier
                 .fillMaxWidth()
-                .onFocusChanged {
-                    if (!it.hasFocus && doneOnFocusLoss && activity?.isFinishing != true) {
+                // Handle Back when the keyboard is shown.
+                .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                    if (keyEvent.key == Key.Back) {
                         onDone()
+                        true
+                    } else {
+                        false
                     }
                 }
         )
@@ -75,7 +75,6 @@ fun EditStampPosterTextDialog(
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
-        doneOnFocusLoss = true
     }
 
     BackHandler(
