@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rotate
+import androidx.compose.ui.graphics.scale
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.round
@@ -95,13 +96,30 @@ fun DrawScope.drawStampPoster(
             }
 
             is StampPosterLayer.Text -> {
+                drawContext.canvas.scale(
+                    sx = density,
+                    pivotX = 0f,
+                    pivotY = 0f,
+                )
+
+                stampPosterTextBackgroundPaint.color = Color.Red
+                stampPosterTextBackgroundPaint.pathEffect =
+                    androidx.compose.ui.graphics.PathEffect.cornerPathEffect(20f * layer.scale)
+                drawContext.canvas.drawPath(
+                    path = layer.backgroundPath,
+                    paint = stampPosterTextBackgroundPaint,
+                )
+
                 drawText(
-                    textLayoutResult =
-                        layer.getTextLayoutToDraw(
-                            drawDensity = density,
-                        ),
-                    topLeft = layer.rect.topLeft * density,
+                    textLayoutResult = layer.textLayout,
+                    topLeft = layer.rect.topLeft,
                     color = colors.textPrimary,
+                )
+
+                drawContext.canvas.scale(
+                    sx = 1f / density,
+                    pivotX = 0f,
+                    pivotY = 0f,
                 )
             }
         }
@@ -117,4 +135,7 @@ fun DrawScope.drawStampPoster(
 private val stampPosterShadowPaint = Paint().apply {
     style = Paint.Style.FILL
     color = android.graphics.Color.TRANSPARENT
+}
+private val stampPosterTextBackgroundPaint = androidx.compose.ui.graphics.Paint().apply {
+    style = androidx.compose.ui.graphics.PaintingStyle.Fill
 }

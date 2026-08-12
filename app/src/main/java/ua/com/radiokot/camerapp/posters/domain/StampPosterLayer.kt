@@ -11,13 +11,14 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
@@ -58,17 +59,16 @@ sealed class StampPosterLayer {
         val shape: UiStampShape,
     ) : StampPosterLayer() {
 
-        override val rect: Rect
-            get() {
-                val size = Size(
-                    width = 5.4f * shape.size.width.value * scale,
-                    height = 5.4f * shape.size.height.value * scale,
-                )
-                return Rect(
-                    offset = center - size.center,
-                    size = size,
-                )
-            }
+        override val rect: Rect by derivedStateOf {
+            val size = Size(
+                width = 5.4f * shape.size.width.value * scale,
+                height = 5.4f * shape.size.height.value * scale,
+            )
+            Rect(
+                offset = center - size.center,
+                size = size,
+            )
+        }
     }
 
     @Stable
@@ -84,41 +84,123 @@ sealed class StampPosterLayer {
         )
 
         var text: String by mutableStateOf(text)
-
-        /**
-         * @param drawDensity the actual density at which the poster
-         * is currently being drawn, for sharp text.
-         */
-        fun getTextLayoutToDraw(
-            drawDensity: Float,
-        ): TextLayoutResult =
-            posterTextMeasurer.measure(
-                text = text,
-                style = TextStyle(
-                    fontFamily = PodkovaFamily,
-                    fontSize = 72.sp * scale,
-                    textAlign = TextAlign.Center,
-                ),
-                constraints = Constraints(
-                    maxWidth = (StampPosterWidth * drawDensity * scale).fastRoundToInt(),
-                    maxHeight = (StampPosterHeight * drawDensity * scale).fastRoundToInt(),
-                ),
-                density = Density(
-                    density = drawDensity,
-                    fontScale = StampPosterDensity.fontScale,
-                ),
-            )
+        var background: Background? by mutableStateOf(null)
 
         override val rect: Rect by derivedStateOf {
-            val textLayout = getTextLayoutToDraw(
-                drawDensity = 1f,
-            )
             val size = textLayout.size.toSize()
 
             Rect(
                 offset = center - size.center,
                 size = size,
             )
+        }
+
+        val textLayout: TextLayoutResult by derivedStateOf {
+            posterTextMeasurer.measure(
+                // Without `this` it reads the constructor param.
+                text = this.text,
+                style = TextStyle(
+                    fontFamily = PodkovaFamily,
+                    fontSize = 72.sp * scale,
+                    textAlign = TextAlign.Center,
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false,
+                    ),
+                ),
+                constraints = Constraints(
+                    maxWidth = (StampPosterWidth * scale).fastRoundToInt(),
+                    maxHeight = (StampPosterHeight * scale).fastRoundToInt(),
+                ),
+            )
+        }
+
+        val backgroundPath: Path by derivedStateOf {
+            // Each line gets its rectangle with padding,
+            // then overlapped rectangles are joined into a path
+            // like it is Advent of Code. When 2D maze?
+
+            val paddingVertical = 15f * scale
+            val paddingHorizontal = 20f * scale
+            val textLines = Array(textLayout.multiParagraph.lineCount) { lineIndex ->
+                Rect(
+                    offset = Offset(
+                        x = textLayout.multiParagraph.getLineLeft(lineIndex) - paddingHorizontal,
+                        y = textLayout.multiParagraph.getLineTop(lineIndex) - paddingVertical,
+                    ),
+                    size = Size(
+                        width = textLayout.multiParagraph.getLineWidth(lineIndex) + paddingHorizontal * 2f,
+                        height = textLayout.multiParagraph.getLineHeight(lineIndex) + paddingVertical * 2f,
+                    )
+                )
+            }
+
+            Path().apply {
+                // Top down along left edge.
+                for (i in textLines.indices) {
+                    val rectAbove = textLines.getOrNull(i - 1)
+                    val rect = textLines[i]
+                    val rectBelow = textLines.getOrNull(i + 1)
+
+                    if (i != 0) {
+                        lineTo(
+                            x = rect.left,
+                            y =
+                                if (rectAbove == null || rectAbove.left > rect.left)
+                                    rect.top
+                                else
+                                    rectAbove.bottom,
+                        )
+                    } else {
+                        moveTo(
+                            x = rect.left,
+                            y = rect.top,
+                        )
+
+                    }
+                    lineTo(
+                        x = rect.left,
+                        y =
+                            if (rectBelow == null || rectBelow.left > rect.left)
+                                rect.bottom
+                            else
+                                rectBelow.top,
+                    )
+                }
+
+                // Bottom up along right edge.
+                for (i in textLines.indices.reversed()) {
+                    val rectAbove = textLines.getOrNull(i - 1)
+                    val rect = textLines[i]
+                    val rectBelow = textLines.getOrNull(i + 1)
+
+                    lineTo(
+                        x = rect.right,
+                        y =
+                            if (rectBelow == null || rectBelow.right < rect.right)
+                                rect.bottom
+                            else
+                                rectBelow.top,
+                    )
+                    lineTo(
+                        x = rect.right,
+                        y =
+                            if (rectAbove == null || rectAbove.right < rect.right)
+                                rect.top
+                            else
+                                rectAbove.bottom,
+                    )
+                }
+
+                close()
+                translate(rect.topLeft)
+
+            }
+        }
+
+        enum class Background {
+            Light,
+            Dark,
+            ;
         }
     }
 }
