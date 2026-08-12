@@ -42,7 +42,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun EditStampPosterTextScreen(
+fun EditStampPosterTextDialog(
     inputState: TextFieldState,
     onDone: () -> Unit,
 ) = Box(

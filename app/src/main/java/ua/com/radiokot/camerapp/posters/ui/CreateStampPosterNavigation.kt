@@ -106,14 +106,8 @@ fun NavGraphBuilder.createPosterDestination(
                 }
 
                 is CreateStampPosterScreenViewModel.Event.ProceedToSelectStampsToAdd -> {
-                    selectStampsForPosterContract.proceedToSelectStamps()
-                }
-
-                is CreateStampPosterScreenViewModel.Event.ShowTooManyStampsWarning -> {
-                    showToast(
-                        context = context,
-                        text = "That's too many for a poster",
-                        colors = colors,
+                    selectStampsForPosterContract.proceedToSelectStamps(
+                        maxCount = event.maxCount,
                     )
                 }
 
@@ -137,6 +131,7 @@ fun NavGraphBuilder.createPosterDestination(
         onLayerTap = viewModel::onLayerTap,
         onToggleIsDarkAction = viewModel::onToggleIsDarkAction,
         onAddTextAction = viewModel::onAddTextAction,
+        canAddStamps = viewModel.canAddStamps.collectAsState().value,
         onAddStampsAction = viewModel::onAddStampsAction,
         modifier = Modifier
             .fillMaxSize()
@@ -164,6 +159,12 @@ fun NavGraphBuilder.createPosterDestination(
                     onDone()
                 }
             }
+    }
+
+    LaunchedEffect(Unit) {
+        selectStampsForPosterContract
+            .getStampSelectionIndexFlow()
+            .collect(viewModel::onSelectedStampsToAdd)
     }
 }
 

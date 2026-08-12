@@ -28,6 +28,8 @@ import org.koin.dsl.module
 import ua.com.radiokot.camerapp.posters.data.CpCreateSendStampPosterIntent
 import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
 import ua.com.radiokot.camerapp.posters.ui.CreateStampPosterScreenViewModel
+import ua.com.radiokot.camerapp.posters.ui.SelectStampsForPosterDialogViewModel
+import ua.com.radiokot.camerapp.stamps.ui.UiStampComparator
 
 val postersModule = module {
 
@@ -52,4 +54,14 @@ val postersModule = module {
     single {
         CpCreateSendStampPosterIntent()
     } bind CreateSendStampPosterIntent::class
+
+    viewModel {
+        SelectStampsForPosterDialogViewModel(
+            stampRepository = get(),
+            stampComparator = UiStampComparator,
+            parameters =
+                getOrNull()
+                    ?: error("No SelectStampsForPosterDialogViewModel.Parameters provided"),
+        )
+    }
 }

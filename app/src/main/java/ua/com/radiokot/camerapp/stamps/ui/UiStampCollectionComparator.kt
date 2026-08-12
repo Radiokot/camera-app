@@ -17,26 +17,16 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ua.com.radiokot.camerapp.stamps.domain
+package ua.com.radiokot.camerapp.stamps.ui
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import ua.com.radiokot.camerapp.stamps.domain.StampCollection
+import java.text.Collator
+import java.util.Locale
 
-class GetSortedStampCollectionsUseCase(
-    private val collectionRepository: StampCollectionRepository,
-    private val ensurePrimaryStampCollectionUseCase: EnsurePrimaryStampCollectionUseCase,
-    private val comparator: Comparator<StampCollection>,
-) {
-    operator fun invoke(): Flow<List<StampCollection>> = flow {
+private val collator = Collator.getInstance(Locale.ROOT)
 
-        ensurePrimaryStampCollectionUseCase()
-
-        collectionRepository
-            .getStampCollectionsFlow()
-            .map { collections ->
-                collections.sortedWith(comparator)
-            }
-            .collect(this)
-    }
-}
+// First goes the primary collection, then other collections
+// sorted alphabetically by name.
+val UiStampCollectionComparator =
+    compareByDescending(StampCollection::isPrimary)
+        .then { a, b -> collator.compare(a.name, b.name) }

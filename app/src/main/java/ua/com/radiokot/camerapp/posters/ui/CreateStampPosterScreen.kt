@@ -101,6 +101,7 @@ fun CreateStampPosterScreen(
     onEndInteractionWithLayer: (StampPosterLayer) -> Unit,
     onToggleIsDarkAction: () -> Unit,
     onAddTextAction: () -> Unit,
+    canAddStamps: Boolean,
     onAddStampsAction: () -> Unit,
     onSendAction: () -> Unit,
     onLayerTap: (StampPosterLayer) -> Unit,
@@ -126,6 +127,7 @@ fun CreateStampPosterScreen(
                 layersState = layersState,
                 onSendAction = onSendAction,
                 onAddTextAction = onAddTextAction,
+                canAddStamps = canAddStamps,
                 onAddStampsAction = onAddStampsAction,
                 onLayerTap = onLayerTap,
             )
@@ -150,6 +152,7 @@ fun CreateStampPosterScreen(
                 layersState = layersState,
                 onSendAction = onSendAction,
                 onAddTextAction = onAddTextAction,
+                canAddStamps = canAddStamps,
                 onAddStampsAction = onAddStampsAction,
                 onLayerTap = onLayerTap,
             )
@@ -168,6 +171,7 @@ private fun CreateStampPosterScreenLayoutContent(
     layersState: State<ImmutableList<StampPosterLayer>>,
     onSendAction: () -> Unit,
     onAddTextAction: () -> Unit,
+    canAddStamps: Boolean,
     onAddStampsAction: () -> Unit,
     onLayerTap: (StampPosterLayer) -> Unit,
 ) {
@@ -259,9 +263,11 @@ private fun CreateStampPosterScreenLayoutContent(
                 onAddTextAction = onAddTextAction,
             )
 
-            AddStampsButton(
-                onAddStampsAction = onAddStampsAction,
-            )
+            if (canAddStamps) {
+                AddStampsButton(
+                    onAddStampsAction = onAddStampsAction,
+                )
+            }
         }
 
         Spacer(
@@ -526,6 +532,7 @@ private fun CreateStampPosterScreenPreview() {
             onEndInteractionWithLayer = {},
             onToggleIsDarkAction = {},
             onAddTextAction = {},
+            canAddStamps = true,
             onAddStampsAction = {},
             onLayerTap = {},
             modifier = Modifier

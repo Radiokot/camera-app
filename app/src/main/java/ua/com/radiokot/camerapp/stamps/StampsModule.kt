@@ -44,6 +44,8 @@ import ua.com.radiokot.camerapp.stamps.ui.CollectionsScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.MoveStampsScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.StampScreenViewModel
 import ua.com.radiokot.camerapp.stamps.ui.StampsScreenViewModel
+import ua.com.radiokot.camerapp.stamps.ui.UiStampCollectionComparator
+import ua.com.radiokot.camerapp.stamps.ui.UiStampComparator
 import java.io.File
 
 const val DIRECTORY_STAMPS = "stamps-dir"
@@ -102,12 +104,14 @@ val stampsModule = module {
         GetSortedStampCollectionsUseCase(
             collectionRepository = get(),
             ensurePrimaryStampCollectionUseCase = get(),
+            comparator = UiStampCollectionComparator,
         )
     }
     single {
         GetStampCollectionsWithSamplesUseCase(
             stampRepository = get(),
             getSortedStampCollectionsUseCase = get(),
+            stampComparator = UiStampComparator,
         )
     }
 
@@ -136,6 +140,7 @@ val stampsModule = module {
             stampRepository = get(),
             collectionRepository = get(),
             onboardingPreferences = get(),
+            stampComparator = UiStampComparator,
             parameters =
                 getOrNull()
                     ?: error("No StampsScreenViewModel.Parameters provided"),

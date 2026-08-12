@@ -25,9 +25,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -35,7 +32,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,12 +47,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
@@ -69,19 +63,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -91,7 +79,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.skydoves.landscapist.image.LandscapistImage
 import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -103,11 +90,9 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.EmptyImageComponent
 import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import ua.com.radiokot.camerapp.util.plus
-import kotlin.math.absoluteValue
 
 @Composable
 fun StampsScreen(
@@ -116,9 +101,9 @@ fun StampsScreen(
     collectionNameInputState: TextFieldState,
     focusCollectionNameInput: Boolean,
     showGiftMessage: Boolean,
-    stamps: State<ImmutableList<StampsScreenItem>>,
-    onStampClicked: (StampsScreenItem) -> Unit,
-    onStampLongClicked: (StampsScreenItem) -> Unit,
+    stamps: State<ImmutableList<StampsGridItem>>,
+    onStampClicked: (StampsGridItem) -> Unit,
+    onStampLongClicked: (StampsGridItem) -> Unit,
     selectedCountState: IntState,
     onMoveSelectedAction: () -> Unit,
     onSendSelectedAsEnvelopeAction: () -> Unit,
@@ -143,10 +128,6 @@ fun StampsScreen(
             }
         }
 ) {
-    val shadowColor = LocalColors.current.stampShadow
-    val rotationAngles = retain {
-        floatArrayOf(4f, 3f, 2f, -2f, -3f, -4f)
-    }
     val safeContentPadding =
         WindowInsets.safeContent.asPaddingValues()
     val contentPadding =
@@ -159,12 +140,6 @@ fun StampsScreen(
         LaunchedEffect(Unit) {
             nameInputFocusRequester.requestFocus()
         }
-    }
-    val selectionAnimationSpec = retain {
-        spring<Float>(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium,
-        )
     }
 
     LazyVerticalGrid(
@@ -238,88 +213,13 @@ fun StampsScreen(
             }
         }
 
-        items(
+        stampItems(
             items = stamps.value,
-            key = StampsScreenItem::key,
-        ) { stamp ->
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .height(StampContainerBaseSize.height * 1.2f)
-                    .animateItem()
-            ) {
-                val selectionAnimationProgressState = animateFloatAsState(
-                    targetValue =
-                        if (stamp.isSelected)
-                            1f
-                        else
-                            0f,
-                    animationSpec = selectionAnimationSpec,
-                )
-                val stampImageOptions =
-                    stamp
-                        .shape
-                        .rememberListImageOptions()
-
-                LandscapistImage(
-                    imageModel = stamp.imageUri::value,
-                    imageOptions = stampImageOptions,
-                    component = EmptyImageComponent,
-                    modifier = Modifier
-                        .size(stamp.shape.size * stamp.shape.fitContainerSizeScale)
-                        .run {
-                            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                                return@run this
-                            }
-
-                            with(sharedTransitionScope) {
-                                sharedElement(
-                                    sharedContentState = rememberSharedContentState(stamp.key),
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                )
-                            }
-                        }
-                        .graphicsLayer {
-                            scaleX = 1f - 0.1f * selectionAnimationProgressState.value
-                            scaleY = scaleX
-                            rotationZ =
-                                (rotationAngles[stamp.key.hashCode().absoluteValue % rotationAngles.size])
-                        }
-                        .dropShadow(
-                            shape = RectangleShape,
-                            shadow = Shadow(
-                                radius = 4.dp,
-                                color = shadowColor,
-                            )
-                        )
-                        .run {
-                            if (stamp.imageUri.value !== Uri.EMPTY) {
-                                return@run this
-                            }
-
-                            background(Color.Yellow)
-                        }
-                        .selectionEnvelope(
-                            animationProgressState = selectionAnimationProgressState,
-                            heightFraction = when (stamp.shape) {
-                                UiStampShapeOneStampSquare -> 0.7f
-                                UiStampShapeOneStampLandscape -> 0.8f
-                                else -> 0.6f
-                            },
-                        )
-                        .combinedClickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = {
-                                onStampClicked(stamp)
-                            },
-                            onLongClick = {
-                                onStampLongClicked(stamp)
-                            },
-                        )
-                )
-            }
-        }
+            onClicked = onStampClicked,
+            onLongClicked = onStampLongClicked,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope,
+        )
     }
 
     var visibleSelectedCount by rememberSaveable {
@@ -755,7 +655,7 @@ fun StampsScreenDummy(
     val stamps = remember {
         (1..6)
             .map { i ->
-                StampsScreenItem(
+                StampsGridItem(
                     imageUri = StableHolder(Uri.EMPTY),
                     shape = UiStampShapeA,
                     isSelected = false,

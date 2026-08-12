@@ -17,6 +17,86 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
+@file:Suppress("FunctionName")
+
 package ua.com.radiokot.camerapp.posters.ui
 
-const val SelectStampsForPosterRoute = "selectStampsForPoster"
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
+import androidx.navigation.compose.dialog
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
+import ua.com.radiokot.camerapp.cut.ui.showToast
+import ua.com.radiokot.camerapp.ui.LocalColors
+
+fun NavGraphBuilder.selectStampsForPosterDestination(
+    contract: SelectStampsForPosterContract,
+) = dialog(
+    route = SelectStampsForPosterRoute,
+    arguments = listOf(
+        navArgument(MaxCount) {
+            type = NavType.IntType
+        }
+    ),
+    dialogProperties = DialogProperties(
+        dismissOnClickOutside = false,
+        dismissOnBackPress = true,
+        usePlatformDefaultWidth = false,
+    )
+) { navEntry ->
+
+    val viewModel: SelectStampsForPosterDialogViewModel = koinInject {
+        parametersOf(
+            SelectStampsForPosterDialogViewModel.Parameters(
+                maxCount =
+                    navEntry
+                        .arguments
+                        ?.getInt(MaxCount)
+                        ?: error("No $MaxCount argument passed")
+            )
+        )
+    }
+
+    SelectStampsForPosterDialog(
+        stamps = viewModel.items.collectAsState(),
+        onStampClicked = viewModel::onStampClicked,
+        onAddSelectedAction = viewModel::onAddSelectedAction,
+    )
+
+    val context = LocalContext.current
+    val colors = LocalColors.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is SelectStampsForPosterDialogViewModel.Event.Done -> {
+                    contract.onDoneSelecting(
+                        stampSelectionIndex = event.selectionIndex,
+                    )
+                }
+
+                is SelectStampsForPosterDialogViewModel.Event.ShowTooManyStampsWarning -> {
+                    showToast(
+                        context = context,
+                        text = "That's too many for this poster",
+                        colors = colors,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private const val MaxCount = "maxCount"
+
+const val SelectStampsForPosterRoute = "selectStampsForPoster?maxCount={$MaxCount}"
+
+fun SelectStampsForPosterRoute(
+    maxCount: Int,
+) =
+    "selectStampsForPoster?maxCount=$maxCount"

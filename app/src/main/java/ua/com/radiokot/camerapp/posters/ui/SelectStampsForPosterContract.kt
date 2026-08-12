@@ -28,10 +28,14 @@ import kotlinx.coroutines.flow.map
 class SelectStampsForPosterContract(
     private val navController: NavController,
 ) {
-    fun proceedToSelectStamps() {
+    fun proceedToSelectStamps(
+        maxCount: Int,
+    ) {
         navController
             .navigate(
-                route = SelectStampsForPosterRoute,
+                route = SelectStampsForPosterRoute(
+                    maxCount = maxCount,
+                ),
             ) {
                 launchSingleTop = true
             }

@@ -36,9 +36,12 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
 import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
@@ -80,6 +83,16 @@ class CreateStampPosterScreenViewModel(
         field = eventSharedFlow()
     val isDiscardConfirmationRequired: StateFlow<Boolean>
         field = MutableStateFlow(false)
+    private val stampLayerCount: StateFlow<Int> =
+        layers
+            .map { layers ->
+                layers.count { it is StampPosterLayer.Stamp }
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    val canAddStamps: StateFlow<Boolean> =
+        stampLayerCount
+            .map { it < StampPosterMaxStamps }
+            .stateIn(viewModelScope, SharingStarted.Lazily, true)
 
     init {
         viewModelScope.launch {
@@ -242,30 +255,37 @@ class CreateStampPosterScreenViewModel(
             }
 
             else -> {
-                // Stack stamps on top of each other with slight offset.
-                val centerStep = Offset(
-                    x = StampPosterWidth * 0.05f * StampPosterMaxStamps / stamps.size,
-                    y = StampPosterWidth * 0.08f * StampPosterMaxStamps / stamps.size,
-                )
-                var nextStampCenter = Offset(
-                    x = StampPosterWidth * 0.28f,
-                    y = StampPosterHeight * 0.2f,
-                )
-
-                for (stamp in stamps) {
-                    stampLayers += StampPosterLayer.Stamp(
-                        imageBitmap = stamp.getImageBitmap(),
-                        shape = UiStampShape.fromShape(stamp.shape),
-                    ).apply {
-                        center = nextStampCenter
-                    }
-
-                    nextStampCenter += centerStep
-                }
+                stampLayers += getStampLayerStack(stamps)
             }
         }
 
         layers.value = stampLayers.toPersistentList()
+    }
+
+    private suspend fun getStampLayerStack(
+        stamps: List<Stamp>,
+    ): List<StampPosterLayer.Stamp> = buildList {
+
+        // Stack stamps on top of each other with slight offset.
+        val centerStep = Offset(
+            x = StampPosterWidth * 0.05f * StampPosterMaxStamps / stamps.size,
+            y = StampPosterWidth * 0.08f * StampPosterMaxStamps / stamps.size,
+        )
+        var nextStampCenter = Offset(
+            x = StampPosterWidth * 0.28f,
+            y = StampPosterHeight * 0.2f,
+        )
+
+        for (stamp in stamps) {
+            this += StampPosterLayer.Stamp(
+                imageBitmap = stamp.getImageBitmap(),
+                shape = UiStampShape.fromShape(stamp.shape),
+            ).apply {
+                center = nextStampCenter
+            }
+
+            nextStampCenter += centerStep
+        }
     }
 
     fun onToggleIsDarkAction() {
@@ -275,6 +295,10 @@ class CreateStampPosterScreenViewModel(
     fun onAddTextAction() {
         textLayerToEdit = null
 
+        log.debug {
+            "onAddTextAction(): proceeding to edit new layer text"
+        }
+
         events.tryEmit(
             Event.ProceedToEditText(
                 currentText = null,
@@ -283,7 +307,24 @@ class CreateStampPosterScreenViewModel(
     }
 
     fun onAddStampsAction() {
-        events.tryEmit(Event.ProceedToSelectStampsToAdd)
+        val currentStampCount = stampLayerCount.value
+
+        check(currentStampCount < StampPosterMaxStamps) {
+            "Can't add stamps when the count is maxed out"
+        }
+
+        val maxCount = StampPosterMaxStamps - currentStampCount
+
+        log.debug {
+            "onAddStampsAction(): proceeding to select stamps to add:" +
+                    "\nmaxCount=$maxCount"
+        }
+
+        events.tryEmit(
+            Event.ProceedToSelectStampsToAdd(
+                maxCount = maxCount,
+            )
+        )
     }
 
     fun onBeginInteractionWithLayer(
@@ -416,6 +457,27 @@ class CreateStampPosterScreenViewModel(
         }
     }
 
+    fun onSelectedStampsToAdd(
+        selectionIndex: Int,
+    ) = viewModelScope.launch {
+
+        val selectedStampIds = StampSelections[selectionIndex]
+        val stamps = stampRepository
+            .getStamps()
+            .filter { it.id in selectedStampIds }
+
+        log.debug {
+            "onSelectedStampsToAdd(): adding selected stamps:" +
+                    "\nstamps=${stamps.size}"
+        }
+
+        layers.value = layers.value.addingAll(
+            getStampLayerStack(
+                stamps = stamps,
+            )
+        )
+    }
+
     private suspend fun Stamp.getImageBitmap() =
         landscapist
             .load(
@@ -445,9 +507,9 @@ class CreateStampPosterScreenViewModel(
             val currentText: String?,
         ) : Event
 
-        object ProceedToSelectStampsToAdd : Event
-
-        object ShowTooManyStampsWarning : Event
+        class ProceedToSelectStampsToAdd(
+            val maxCount: Int,
+        ) : Event
 
         class ShowLayerDeletedMessage(
             val layerName: String,

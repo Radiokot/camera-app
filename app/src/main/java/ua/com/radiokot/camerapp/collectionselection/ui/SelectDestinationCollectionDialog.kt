@@ -21,11 +21,13 @@ package ua.com.radiokot.camerapp.collectionselection.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import kotlinx.collections.immutable.ImmutableList
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
@@ -52,8 +53,10 @@ fun SelectDestinationCollectionDialog(
     onCollectionSelected: (Int) -> Unit,
     onNewCollectionAction: () -> Unit,
     onCancel: () -> Unit,
-) = Dialog(
-    onDismissRequest = onCancel,
+) = Box(
+    contentAlignment = Alignment.Center,
+    modifier = Modifier
+        .safeContentPadding()
 ) {
     val colors = LocalColors.current
     val actionTextStyle = remember(colors) {

@@ -21,11 +21,13 @@ package ua.com.radiokot.camerapp.discardchanges.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -38,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 
@@ -46,10 +47,10 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 fun ConfirmDiscardChangesDialog(
     confirmationMessage: String,
     onDecision: (toDiscard: Boolean) -> Unit,
-) = Dialog(
-    onDismissRequest = {
-        onDecision(false)
-    },
+) = Box(
+    contentAlignment = Alignment.Center,
+    modifier = Modifier
+        .safeContentPadding()
 ) {
     val colors = LocalColors.current
     val actionTextStyle = remember(colors) {

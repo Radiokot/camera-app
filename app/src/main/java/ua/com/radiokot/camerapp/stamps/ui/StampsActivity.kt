@@ -77,6 +77,7 @@ import ua.com.radiokot.camerapp.posters.ui.EditStampPosterTextContract
 import ua.com.radiokot.camerapp.posters.ui.SelectStampsForPosterContract
 import ua.com.radiokot.camerapp.posters.ui.createPosterDestination
 import ua.com.radiokot.camerapp.posters.ui.editPosterTextDestination
+import ua.com.radiokot.camerapp.posters.ui.selectStampsForPosterDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.fadeOutExit
@@ -398,6 +399,10 @@ private fun SharedTransitionScope.StampsNavHost(
 
         editPosterTextDestination(
             contract = editStampPosterTextContract,
+        )
+
+        selectStampsForPosterDestination(
+            contract = selectStampsForPosterContract,
         )
 
         confirmDiscardChangesDestination(

@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.map
 class GetStampCollectionsWithSamplesUseCase(
     private val stampRepository: StampRepository,
     private val getSortedStampCollectionsUseCase: GetSortedStampCollectionsUseCase,
+    private val stampComparator: Comparator<Stamp>,
 ) {
     operator fun invoke(): Flow<List<StampCollectionWithSamples>> =
         getSortedStampCollectionsUseCase()
@@ -42,7 +43,7 @@ class GetStampCollectionsWithSamplesUseCase(
                             .groupBy(Stamp::collectionId)
                             .mapValues { (_, collectionStamps) ->
                                 collectionStamps
-                                    .sortedByDescending(Stamp::takenAtLocal)
+                                    .sortedWith(stampComparator)
                                     .take(3)
                             }
                     }

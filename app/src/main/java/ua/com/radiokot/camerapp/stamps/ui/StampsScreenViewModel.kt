@@ -57,6 +57,7 @@ class StampsScreenViewModel(
     private val stampRepository: StampRepository,
     private val collectionRepository: StampCollectionRepository,
     private val onboardingPreferences: OnboardingPreferences,
+    private val stampComparator: Comparator<Stamp>,
     parameters: Parameters,
 ) : ViewModel() {
 
@@ -89,13 +90,13 @@ class StampsScreenViewModel(
             .map { stamps ->
                 stamps
                     .filter { it.collectionId == collectionId }
-                    .sortedByDescending(Stamp::takenAtLocal)
+                    .sortedWith(stampComparator)
             }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope)
     }
 
-    val items: StateFlow<ImmutableList<StampsScreenItem>> = runBlocking {
+    val items: StateFlow<ImmutableList<StampsGridItem>> = runBlocking {
         combine(
             collectionStamps,
             selectedStampIds,
@@ -104,7 +105,7 @@ class StampsScreenViewModel(
             .map { (collectionStamps, selectedStampIds) ->
                 collectionStamps
                     .map { stamp ->
-                        StampsScreenItem(
+                        StampsGridItem(
                             stamp = stamp,
                             selectedStampIds = selectedStampIds,
                         )
@@ -128,7 +129,7 @@ class StampsScreenViewModel(
     }
 
     fun onStampClicked(
-        item: StampsScreenItem,
+        item: StampsGridItem,
     ) {
         val stampId = item.key
 
@@ -149,7 +150,7 @@ class StampsScreenViewModel(
     }
 
     fun onStampLongClicked(
-        item: StampsScreenItem,
+        item: StampsGridItem,
     ) {
         toggleStampSelection(
             stampId = item.key,

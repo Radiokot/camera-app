@@ -41,6 +41,8 @@ fun NavGraphBuilder.editPosterTextDestination(
     ),
     dialogProperties = DialogProperties(
         dismissOnClickOutside = false,
+        dismissOnBackPress = false,
+        usePlatformDefaultWidth = false,
     )
 ) { navEntry ->
 
@@ -53,7 +55,7 @@ fun NavGraphBuilder.editPosterTextDestination(
                 ?: ""
     )
 
-    EditStampPosterTextScreen(
+    EditStampPosterTextDialog(
         inputState = inputState,
         onDone = {
             contract.onDoneEditing(
