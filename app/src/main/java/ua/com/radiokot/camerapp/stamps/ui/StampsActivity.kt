@@ -51,6 +51,7 @@ import androidx.compose.ui.util.fastRoundToInt
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.savedstate.serialization.saved
 import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -92,7 +93,7 @@ class StampsActivity : ComponentActivity() {
 
     private val permissionsScreenViewModel: PermissionsScreenViewModel by viewModel()
     private val onboardingPreferences: OnboardingPreferences by inject()
-    private var isSplashScreenVisible = true
+    private var isSplashScreenVisible by saved { true }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
