@@ -12,7 +12,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -25,6 +24,8 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.util.fastRoundToInt
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
+import kotlin.math.abs
+import kotlin.math.min
 
 @Stable
 sealed class StampPosterLayer {
@@ -103,9 +104,6 @@ sealed class StampPosterLayer {
                     fontFamily = PodkovaFamily,
                     fontSize = 72.sp * scale,
                     textAlign = TextAlign.Center,
-                    platformStyle = PlatformTextStyle(
-                        includeFontPadding = false,
-                    ),
                 ),
                 constraints = Constraints(
                     maxWidth = (StampPosterWidth * scale).fastRoundToInt(),
@@ -123,15 +121,39 @@ sealed class StampPosterLayer {
             val paddingHorizontal = 20f * scale
             val textLines = Array(textLayout.multiParagraph.lineCount) { lineIndex ->
                 Rect(
-                    offset = Offset(
-                        x = textLayout.multiParagraph.getLineLeft(lineIndex) - paddingHorizontal,
-                        y = textLayout.multiParagraph.getLineTop(lineIndex) - paddingVertical,
+                    topLeft = Offset(
+                        x = textLayout.getLineLeft(lineIndex) - paddingHorizontal,
+                        y = textLayout.getLineTop(lineIndex) - paddingVertical,
                     ),
-                    size = Size(
-                        width = textLayout.multiParagraph.getLineWidth(lineIndex) + paddingHorizontal * 2f,
-                        height = textLayout.multiParagraph.getLineHeight(lineIndex) + paddingVertical * 2f,
-                    )
+                    bottomRight = Offset(
+                        x = textLayout.getLineRight(lineIndex) + paddingHorizontal,
+                        y = textLayout.getLineBottom(lineIndex) + paddingVertical,
+                    ),
                 )
+            }
+
+            // If adjacent lines differ only slightly in width,
+            // make them the same width. Otherwise, it doesn't look pretty.
+            for (i in (1 until textLines.size)) {
+                val rectAbove = textLines[i - 1]
+                val rect = textLines[i]
+                if (abs(rect.width - rectAbove.width) < 2 * paddingHorizontal) {
+                    val betterLeft = min(rect.left, rectAbove.left)
+                    val betterRight = maxOf(rect.right, rectAbove.right)
+
+                    textLines[i - 1] = Rect(
+                        left = betterLeft,
+                        top = rectAbove.top,
+                        right = betterRight,
+                        bottom = rectAbove.bottom,
+                    )
+                    textLines[i] = Rect(
+                        left = betterLeft,
+                        top = rect.top,
+                        right = betterRight,
+                        bottom = rect.bottom,
+                    )
+                }
             }
 
             Path().apply {
@@ -193,7 +215,6 @@ sealed class StampPosterLayer {
 
                 close()
                 translate(rect.topLeft)
-
             }
         }
 

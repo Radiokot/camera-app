@@ -19,8 +19,10 @@
 
 package ua.com.radiokot.camerapp.posters.domain
 
+import android.graphics.CornerPathEffect
 import android.graphics.Paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rotate
@@ -48,14 +50,12 @@ fun DrawScope.drawStampPoster(
         verticalOffsetPx = 0,
     )
 
-    val shadowPaint = stampPosterShadowPaint.apply {
-        setShadowLayer(
-            48f * density,
-            0f,
-            0f,
-            colors.stampShadow.toArgb()
-        )
-    }
+    stampPosterShadowPaint.setShadowLayer(
+        48f * density,
+        0f,
+        0f,
+        colors.stampShadow.toArgb()
+    )
 
     for (layer in layers) {
         val center = layer.center * density
@@ -77,7 +77,7 @@ fun DrawScope.drawStampPoster(
                     rect.top * density,
                     rect.right * density,
                     rect.bottom * density,
-                    shadowPaint,
+                    stampPosterShadowPaint,
                 )
 
                 if (imageBitmap != null) {
@@ -102,18 +102,29 @@ fun DrawScope.drawStampPoster(
                     pivotY = 0f,
                 )
 
-                stampPosterTextBackgroundPaint.color = Color.Red
-                stampPosterTextBackgroundPaint.pathEffect =
-                    androidx.compose.ui.graphics.PathEffect.cornerPathEffect(20f * layer.scale)
-                drawContext.canvas.drawPath(
-                    path = layer.backgroundPath,
-                    paint = stampPosterTextBackgroundPaint,
-                )
+                val background = layer.background
+                val textColors = when (background) {
+                    null -> colors
+                    StampPosterLayer.Text.Background.Light -> LightAppColors
+                    StampPosterLayer.Text.Background.Dark -> DarkAppColors
+                }
+
+                if (background != null) {
+                    stampPosterTextBackgroundPaint.pathEffect =
+                        CornerPathEffect(20f * layer.scale)
+                    stampPosterTextBackgroundPaint.color =
+                        textColors.componentBackground.toArgb()
+
+                    drawContext.canvas.nativeCanvas.drawPath(
+                        layer.backgroundPath.asAndroidPath(),
+                        stampPosterTextBackgroundPaint,
+                    )
+                }
 
                 drawText(
                     textLayoutResult = layer.textLayout,
                     topLeft = layer.rect.topLeft,
-                    color = colors.textPrimary,
+                    color = textColors.textPrimary,
                 )
 
                 drawContext.canvas.scale(
@@ -136,6 +147,6 @@ private val stampPosterShadowPaint = Paint().apply {
     style = Paint.Style.FILL
     color = android.graphics.Color.TRANSPARENT
 }
-private val stampPosterTextBackgroundPaint = androidx.compose.ui.graphics.Paint().apply {
-    style = androidx.compose.ui.graphics.PaintingStyle.Fill
+private val stampPosterTextBackgroundPaint = Paint().apply {
+    style = Paint.Style.FILL
 }
