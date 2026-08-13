@@ -23,13 +23,11 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -43,7 +41,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeGesturesPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -66,11 +63,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -85,7 +80,6 @@ import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
-import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.detectTransformGestures
 import ua.com.radiokot.camerapp.util.rotateBy
@@ -283,40 +277,10 @@ private fun CreateStampPosterScreenLayoutContent(
 }
 
 @Composable
-private fun posterActionButtonTextStyle() =
-    TextStyle(
-        fontFamily = PodkovaFamily,
-        color = LocalColors.current.textPrimary,
-        fontSize = 22.sp,
-    )
-
-@Composable
-private fun PosterActionButton(
-    onClick: () -> Unit,
-    content: @Composable BoxScope.() -> Unit,
-) = Box(
-    contentAlignment = Alignment.Center,
-    content = content,
-    modifier = Modifier
-        .size(48.dp)
-        .clip(
-            shape = RoundedCornerShape(8.dp),
-        )
-        .clickable(
-            onClick = onClick,
-        )
-        .border(
-            width = 2.dp,
-            color = LocalColors.current.componentStroke,
-            shape = RoundedCornerShape(8.dp),
-        )
-)
-
-@Composable
 private fun DarkLightButton(
     isDarkState: State<Boolean>,
     onToggleIsDarkAction: () -> Unit,
-) = PosterActionButton(
+) = StampPosterActionButton(
     onClick = onToggleIsDarkAction,
 ) {
     CompositionLocalProvider(
@@ -333,7 +297,7 @@ private fun DarkLightButton(
 
         BasicText(
             text = if (isDarkState.value) "D" else "L",
-            style = posterActionButtonTextStyle(),
+            style = stampPosterActionButtonTextStyle(),
         )
     }
 }
@@ -341,24 +305,24 @@ private fun DarkLightButton(
 @Composable
 private fun AddTextButton(
     onAddTextAction: () -> Unit,
-) = PosterActionButton(
+) = StampPosterActionButton(
     onClick = onAddTextAction,
 ) {
     BasicText(
         text = "T",
-        style = posterActionButtonTextStyle(),
+        style = stampPosterActionButtonTextStyle(),
     )
 }
 
 @Composable
 private fun AddStampsButton(
     onAddStampsAction: () -> Unit,
-) = PosterActionButton(
+) = StampPosterActionButton(
     onClick = onAddStampsAction,
 ) {
     BasicText(
         text = "S",
-        style = posterActionButtonTextStyle(),
+        style = stampPosterActionButtonTextStyle(),
     )
 }
 

@@ -19,10 +19,21 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,50 +42,149 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import ua.com.radiokot.camerapp.R
+import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
-import ua.com.radiokot.camerapp.ui.DarkAppColors
+import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LocalColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditStampPosterTextDialog(
     inputState: TextFieldState,
+    appearance: StampPosterLayer.Text.Appearance,
+    onChangeBackgroundAction: () -> Unit,
+    onChangeAlignmentAction: () -> Unit,
     onDone: () -> Unit,
 ) = Box(
     contentAlignment = Alignment.Center,
     modifier = Modifier
+        .fillMaxSize()
         .safeContentPadding()
+        .imePadding()
+        .padding(
+            vertical = 24.dp,
+        )
 ) {
     val focusRequester = remember(::FocusRequester)
 
-    CompositionLocalProvider(
-        LocalColors provides DarkAppColors,
-    ) {
-        CaptionInput(
-            hint = "A text",
-            inputState = inputState,
-            focusRequester = focusRequester,
-            isSingleLine = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                // Handle Back when the keyboard is shown.
-                .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
-                    if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
-                        onDone()
-                        true
-                    } else {
-                        false
-                    }
+    CaptionInput(
+        hint = "A text",
+        inputState = inputState,
+        focusRequester = focusRequester,
+        isSingleLine = false,
+        modifier = Modifier
+            .fillMaxWidth()
+            // Handle Back when the keyboard is shown.
+            .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
+                    onDone()
+                    true
+                } else {
+                    false
                 }
+            }
+    )
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(
+            space = 16.dp,
+            alignment = Alignment.CenterHorizontally,
+        ),
+        modifier = Modifier
+            .height(48.dp)
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+    ) {
+        AlignmentButton(
+            currentAlignment = appearance.alignment,
+            onClick = onChangeAlignmentAction,
+        )
+        BackgroundButton(
+            currentBackground = appearance.background,
+            onClick = onChangeBackgroundAction,
         )
     }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+}
+
+@Composable
+private fun AlignmentButton(
+    currentAlignment: StampPosterLayer.Text.Alignment,
+    onClick: () -> Unit,
+) = StampPosterActionButton(
+    onClick = onClick,
+) {
+    Image(
+        painter = painterResource(
+            when (currentAlignment) {
+                StampPosterLayer.Text.Alignment.Left ->
+                    R.drawable.left_alignment_by_gregor_cresnar_from_noun_project
+
+                StampPosterLayer.Text.Alignment.Center ->
+                    R.drawable.center_alignment_by_gregor_cresnar_from_noun_project
+
+                StampPosterLayer.Text.Alignment.Right ->
+                    R.drawable.right_alignment_by_gregor_cresnar_from_noun_project
+            }
+        ),
+        contentDescription = "Text alignment",
+        colorFilter = ColorFilter.tint(LocalColors.current.textPrimary),
+        modifier = Modifier
+            .size(26.dp)
+    )
+}
+
+@Composable
+private fun BackgroundButton(
+    currentBackground: StampPosterLayer.Text.Background?,
+    onClick: () -> Unit,
+) = StampPosterActionButton(
+    onClick = onClick,
+) {
+    val colors = currentBackground?.colors
+        ?: LocalColors.current
+
+    CompositionLocalProvider(
+        LocalColors provides colors
+    ) {
+        if (currentBackground != null) {
+            Spacer(
+                Modifier
+                    .fillMaxSize()
+                    .background(colors.componentBackground)
+            )
+        }
+
+        BasicText(
+            text = "A",
+            style = stampPosterActionButtonTextStyle(),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun EditStampPosterTextDialogPreview() {
+    AppTheme {
+        EditStampPosterTextDialog(
+            inputState = TextFieldState(),
+            appearance = StampPosterLayer.Text.Appearance(),
+            onChangeBackgroundAction = {},
+            onChangeAlignmentAction = {},
+            onDone = {},
+        )
     }
 }

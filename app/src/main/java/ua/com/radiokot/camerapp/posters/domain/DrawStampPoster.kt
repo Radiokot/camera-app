@@ -102,12 +102,8 @@ fun DrawScope.drawStampPoster(
                     pivotY = 0f,
                 )
 
-                val background = layer.background
-                val textColors = when (background) {
-                    null -> colors
-                    StampPosterLayer.Text.Background.Light -> LightAppColors
-                    StampPosterLayer.Text.Background.Dark -> DarkAppColors
-                }
+                val background = layer.appearance.background
+                val textColors = background?.colors ?: colors
 
                 if (background != null) {
                     stampPosterTextBackgroundPaint.pathEffect =

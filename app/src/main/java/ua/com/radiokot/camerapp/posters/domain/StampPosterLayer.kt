@@ -1,5 +1,6 @@
 package ua.com.radiokot.camerapp.posters.domain
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -23,6 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.util.fastRoundToInt
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
+import ua.com.radiokot.camerapp.ui.AppColors
+import ua.com.radiokot.camerapp.ui.DarkAppColors
+import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import kotlin.math.abs
 import kotlin.math.min
@@ -85,7 +89,7 @@ sealed class StampPosterLayer {
         )
 
         var text: String by mutableStateOf(text)
-        var background: Background? by mutableStateOf(null)
+        var appearance: Appearance by mutableStateOf(Appearance())
 
         override val rect: Rect by derivedStateOf {
             val size = textLayout.size.toSize()
@@ -218,9 +222,26 @@ sealed class StampPosterLayer {
             }
         }
 
-        enum class Background {
-            Light,
-            Dark,
+        @Immutable
+        data class Appearance(
+            val background: Background? = null,
+            val alignment: Alignment = Alignment.Center,
+        )
+
+        enum class Background(
+            val colors: AppColors,
+        ) {
+            Light(LightAppColors),
+            Dark(DarkAppColors),
+            ;
+        }
+
+        enum class Alignment(
+            val textAlign: TextAlign,
+        ) {
+            Center(TextAlign.Center),
+            Left(TextAlign.Left),
+            Right(TextAlign.Right),
             ;
         }
     }

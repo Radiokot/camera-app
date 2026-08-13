@@ -21,6 +21,7 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
@@ -32,7 +33,9 @@ import androidx.navigation.navArgument
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.cut.ui.showToast
+import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
+import ua.com.radiokot.camerapp.util.DarkStatusAndNavigationBars
 
 fun NavGraphBuilder.selectStampsForPosterDestination(
     contract: SelectStampsForPosterContract,
@@ -47,8 +50,11 @@ fun NavGraphBuilder.selectStampsForPosterDestination(
         dismissOnClickOutside = false,
         dismissOnBackPress = true,
         usePlatformDefaultWidth = false,
+        decorFitsSystemWindows = false,
     )
 ) { navEntry ->
+
+    DarkStatusAndNavigationBars()
 
     val viewModel: SelectStampsForPosterDialogViewModel = koinViewModel {
         parametersOf(
@@ -62,14 +68,18 @@ fun NavGraphBuilder.selectStampsForPosterDestination(
         )
     }
 
-    SelectStampsForPosterDialog(
-        stamps = viewModel.items.collectAsState(),
-        onStampClicked = viewModel::onStampClicked,
-        onAddSelectedAction = viewModel::onAddSelectedAction,
-    )
-
     val context = LocalContext.current
-    val colors = LocalColors.current
+    val colors = DarkAppColors
+
+    CompositionLocalProvider(
+        LocalColors provides colors
+    ) {
+        SelectStampsForPosterDialog(
+            stamps = viewModel.items.collectAsState(),
+            onStampClicked = viewModel::onStampClicked,
+            onAddSelectedAction = viewModel::onAddSelectedAction,
+        )
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
