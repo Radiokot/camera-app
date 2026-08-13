@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="window_background">#fef6eb</color>
+    <color name="dialog_dim">#111A10</color>
 </resources>
