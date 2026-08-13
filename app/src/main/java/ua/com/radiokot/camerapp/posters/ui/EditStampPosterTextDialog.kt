@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
+import androidx.compose.ui.input.key.type
 import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
@@ -63,7 +64,7 @@ fun EditStampPosterTextDialog(
                 .fillMaxWidth()
                 // Handle Back when the keyboard is shown.
                 .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
-                    if (keyEvent.key == Key.Back) {
+                    if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
                         onDone()
                         true
                     } else {
@@ -76,8 +77,4 @@ fun EditStampPosterTextDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
-
-    BackHandler(
-        onBack = onDone,
-    )
 }
