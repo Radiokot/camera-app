@@ -41,19 +41,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
+import ua.com.radiokot.camerapp.posters.domain.drawStampPosterTextBackground
 import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
+import ua.com.radiokot.camerapp.stamps.ui.rememberCaptionInputTextStyle
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LocalColors
 
@@ -74,24 +80,80 @@ fun EditStampPosterTextDialog(
         .padding(24.dp)
 ) {
     val focusRequester = remember(::FocusRequester)
-
-    CaptionInput(
-        hint = "A text",
-        inputState = inputState,
-        focusRequester = focusRequester,
-        isSingleLine = false,
+    val textStyle = rememberCaptionInputTextStyle(
+        color = Color.Unspecified,
         textAlign = appearance.alignment.textAlign,
-        modifier = Modifier
-            // Handle Back when the keyboard is shown.
-            .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
-                if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
-                    onDone()
-                    true
-                } else {
-                    false
-                }
-            }
     )
+    val textMeasurer = rememberTextMeasurer()
+    val textColors = appearance.background?.colors
+        ?: LocalColors.current
+    val fontScale = LocalDensity.current.fontScale
+
+    CompositionLocalProvider(
+        LocalColors provides textColors
+    ) {
+        CaptionInput(
+            hint = "A text",
+            inputState = inputState,
+            focusRequester = focusRequester,
+            isSingleLine = false,
+            textAlign = appearance.alignment.textAlign,
+            modifier = Modifier
+                // Handle Back when the keyboard is shown.
+                .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                    if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
+                        onDone()
+                        true
+                    } else {
+                        false
+                    }
+                }
+                .run {
+                    val currentBackground = appearance.background
+                        ?: return@run this
+
+                    drawWithCache {
+                        val textString = inputState.text.toString()
+
+                        val textLayout =
+                            textMeasurer.measure(
+                                text = textString,
+                                style = textStyle,
+                            )
+                        val backgroundPath =
+                            StampPosterLayer.Text.createBackgroundPath(
+                                textLayout = textLayout,
+                                scale = fontScale,
+                            )
+
+                        onDrawBehind {
+                            // Do not draw tiny background behind a hint.
+                            if (textString.isEmpty()) {
+                                return@onDrawBehind
+                            }
+
+                            val x = when (appearance.alignment) {
+                                StampPosterLayer.Text.Alignment.Left ->
+                                    0f
+
+                                StampPosterLayer.Text.Alignment.Center ->
+                                    (size.width - textLayout.size.width) / 2f
+
+                                StampPosterLayer.Text.Alignment.Right ->
+                                    size.width - textLayout.size.width
+                            }
+                            drawContext.canvas.translate(x, 0f)
+                            drawStampPosterTextBackground(
+                                path = backgroundPath,
+                                color = currentBackground.colors.componentBackground,
+                                scale = fontScale,
+                            )
+                            drawContext.canvas.translate(-x, 0f)
+                        }
+                    }
+                }
+        )
+    }
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(

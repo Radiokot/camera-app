@@ -120,7 +120,7 @@ fun NavGraphBuilder.editPosterTextDestination(
                     text =
                         inputState
                             .text
-                            .takeIf(CharSequence::isNotBlank)
+                            .takeIf(CharSequence::isNotEmpty)
                             ?.toString(),
                     appearance = appearance,
                 )

@@ -118,107 +118,11 @@ sealed class StampPosterLayer {
         }
 
         val backgroundPath: Path by derivedStateOf {
-            // Each line gets its rectangle with padding,
-            // then overlapped rectangles are joined into a path
-            // like it is Advent of Code. When 2D maze?
-
-            val paddingVertical = 15f * scale
-            val paddingHorizontal = 20f * scale
-            val textLines = Array(textLayout.multiParagraph.lineCount) { lineIndex ->
-                Rect(
-                    topLeft = Offset(
-                        x = textLayout.getLineLeft(lineIndex) - paddingHorizontal,
-                        y = textLayout.getLineTop(lineIndex) - paddingVertical,
-                    ),
-                    bottomRight = Offset(
-                        x = textLayout.getLineRight(lineIndex) + paddingHorizontal,
-                        y = textLayout.getLineBottom(lineIndex) + paddingVertical,
-                    ),
-                )
-            }
-
-            // If adjacent lines differ only slightly in width,
-            // make them the same width. Otherwise, it doesn't look pretty.
-            for (i in (1 until textLines.size)) {
-                val rectAbove = textLines[i - 1]
-                val rect = textLines[i]
-                if (abs(rect.width - rectAbove.width) < 2 * paddingHorizontal) {
-                    val betterLeft = min(rect.left, rectAbove.left)
-                    val betterRight = maxOf(rect.right, rectAbove.right)
-
-                    textLines[i - 1] = Rect(
-                        left = betterLeft,
-                        top = rectAbove.top,
-                        right = betterRight,
-                        bottom = rectAbove.bottom,
-                    )
-                    textLines[i] = Rect(
-                        left = betterLeft,
-                        top = rect.top,
-                        right = betterRight,
-                        bottom = rect.bottom,
-                    )
-                }
-            }
-
-            Path().apply {
-                // Top down along left edge.
-                for (i in textLines.indices) {
-                    val rectAbove = textLines.getOrNull(i - 1)
-                    val rect = textLines[i]
-                    val rectBelow = textLines.getOrNull(i + 1)
-
-                    if (i != 0) {
-                        lineTo(
-                            x = rect.left,
-                            y =
-                                if (rectAbove == null || rectAbove.left > rect.left)
-                                    rect.top
-                                else
-                                    rectAbove.bottom,
-                        )
-                    } else {
-                        moveTo(
-                            x = rect.left,
-                            y = rect.top,
-                        )
-
-                    }
-                    lineTo(
-                        x = rect.left,
-                        y =
-                            if (rectBelow == null || rectBelow.left > rect.left)
-                                rect.bottom
-                            else
-                                rectBelow.top,
-                    )
-                }
-
-                // Bottom up along right edge.
-                for (i in textLines.indices.reversed()) {
-                    val rectAbove = textLines.getOrNull(i - 1)
-                    val rect = textLines[i]
-                    val rectBelow = textLines.getOrNull(i + 1)
-
-                    lineTo(
-                        x = rect.right,
-                        y =
-                            if (rectBelow == null || rectBelow.right < rect.right)
-                                rect.bottom
-                            else
-                                rectBelow.top,
-                    )
-                    lineTo(
-                        x = rect.right,
-                        y =
-                            if (rectAbove == null || rectAbove.right < rect.right)
-                                rect.top
-                            else
-                                rectAbove.bottom,
-                    )
-                }
-
-                close()
+            val textLayout = this.textLayout
+            createBackgroundPath(
+                textLayout = textLayout,
+                scale = scale,
+            ).apply {
                 translate(rect.topLeft)
             }
         }
@@ -244,6 +148,116 @@ sealed class StampPosterLayer {
             Left(TextAlign.Left),
             Right(TextAlign.Right),
             ;
+        }
+
+        companion object {
+            fun createBackgroundPath(
+                textLayout: TextLayoutResult,
+                scale: Float,
+            ): Path {
+                // Each line gets its rectangle with padding,
+                // then overlapped rectangles are joined into a path
+                // like it is Advent of Code. When 2D maze?
+
+                val paddingVertical = 15f * scale
+                val paddingHorizontal = 20f * scale
+                val textLines = Array(textLayout.multiParagraph.lineCount) { lineIndex ->
+                    Rect(
+                        topLeft = Offset(
+                            x = textLayout.getLineLeft(lineIndex) - paddingHorizontal,
+                            y = textLayout.getLineTop(lineIndex) - paddingVertical,
+                        ),
+                        bottomRight = Offset(
+                            x = textLayout.getLineRight(lineIndex) + paddingHorizontal,
+                            y = textLayout.getLineBottom(lineIndex) + paddingVertical,
+                        ),
+                    )
+                }
+
+                // If adjacent lines differ only slightly in width,
+                // make them the same width. Otherwise, it doesn't look pretty.
+                for (i in (1 until textLines.size)) {
+                    val rectAbove = textLines[i - 1]
+                    val rect = textLines[i]
+                    if (abs(rect.width - rectAbove.width) < 2 * paddingHorizontal) {
+                        val betterLeft = min(rect.left, rectAbove.left)
+                        val betterRight = maxOf(rect.right, rectAbove.right)
+
+                        textLines[i - 1] = Rect(
+                            left = betterLeft,
+                            top = rectAbove.top,
+                            right = betterRight,
+                            bottom = rectAbove.bottom,
+                        )
+                        textLines[i] = Rect(
+                            left = betterLeft,
+                            top = rect.top,
+                            right = betterRight,
+                            bottom = rect.bottom,
+                        )
+                    }
+                }
+
+                return Path().apply {
+                    // Top down along left edge.
+                    for (i in textLines.indices) {
+                        val rectAbove = textLines.getOrNull(i - 1)
+                        val rect = textLines[i]
+                        val rectBelow = textLines.getOrNull(i + 1)
+
+                        if (i != 0) {
+                            lineTo(
+                                x = rect.left,
+                                y =
+                                    if (rectAbove == null || rectAbove.left > rect.left)
+                                        rect.top
+                                    else
+                                        rectAbove.bottom,
+                            )
+                        } else {
+                            moveTo(
+                                x = rect.left,
+                                y = rect.top,
+                            )
+
+                        }
+                        lineTo(
+                            x = rect.left,
+                            y =
+                                if (rectBelow == null || rectBelow.left > rect.left)
+                                    rect.bottom
+                                else
+                                    rectBelow.top,
+                        )
+                    }
+
+                    // Bottom up along right edge.
+                    for (i in textLines.indices.reversed()) {
+                        val rectAbove = textLines.getOrNull(i - 1)
+                        val rect = textLines[i]
+                        val rectBelow = textLines.getOrNull(i + 1)
+
+                        lineTo(
+                            x = rect.right,
+                            y =
+                                if (rectBelow == null || rectBelow.right < rect.right)
+                                    rect.bottom
+                                else
+                                    rectBelow.top,
+                        )
+                        lineTo(
+                            x = rect.right,
+                            y =
+                                if (rectAbove == null || rectAbove.right < rect.right)
+                                    rect.top
+                                else
+                                    rectAbove.bottom,
+                        )
+                    }
+
+                    close()
+                }
+            }
         }
     }
 }

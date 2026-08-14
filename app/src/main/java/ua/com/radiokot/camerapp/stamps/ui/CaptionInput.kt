@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
@@ -73,14 +74,10 @@ fun CaptionInput(
     modifier = modifier
 ) {
     val colors = LocalColors.current
-    val hintStyle = remember(colors, textAlign) {
-        TextStyle(
-            fontFamily = PodkovaFamily,
-            fontSize = 24.sp,
-            color = colors.textInputHint,
-            textAlign = textAlign,
-        )
-    }
+    val hintStyle = rememberCaptionInputTextStyle(
+        color = colors.textInputHint,
+        textAlign = textAlign,
+    )
     val inputStyle = remember(hintStyle) {
         hintStyle.copy(
             color = colors.textPrimary,
@@ -143,6 +140,19 @@ fun CaptionInput(
                 false
             }
             .focusRequester(focusRequester)
+    )
+}
+
+@Composable
+fun rememberCaptionInputTextStyle(
+    color: Color,
+    textAlign: TextAlign,
+) = remember(color, textAlign) {
+    TextStyle(
+        fontFamily = PodkovaFamily,
+        fontSize = 24.sp,
+        color = color,
+        textAlign = textAlign,
     )
 }
 

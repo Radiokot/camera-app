@@ -22,6 +22,7 @@ package ua.com.radiokot.camerapp.posters.domain
 import android.graphics.CornerPathEffect
 import android.graphics.Paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
@@ -106,14 +107,10 @@ fun DrawScope.drawStampPoster(
                 val textColors = background?.colors ?: colors
 
                 if (background != null) {
-                    stampPosterTextBackgroundPaint.pathEffect =
-                        CornerPathEffect(20f * layer.scale)
-                    stampPosterTextBackgroundPaint.color =
-                        textColors.componentBackground.toArgb()
-
-                    drawContext.canvas.nativeCanvas.drawPath(
-                        layer.backgroundPath.asAndroidPath(),
-                        stampPosterTextBackgroundPaint,
+                    drawStampPosterTextBackground(
+                        path = layer.backgroundPath,
+                        color = textColors.componentBackground,
+                        scale = layer.scale,
                     )
                 }
 
@@ -137,6 +134,22 @@ fun DrawScope.drawStampPoster(
             pivotY = center.y,
         )
     }
+}
+
+fun DrawScope.drawStampPosterTextBackground(
+    path: Path,
+    color: Color,
+    scale: Float,
+) {
+    stampPosterTextBackgroundPaint.pathEffect =
+        CornerPathEffect(20f * scale)
+    stampPosterTextBackgroundPaint.color =
+        color.toArgb()
+
+    drawContext.canvas.nativeCanvas.drawPath(
+        path.asAndroidPath(),
+        stampPosterTextBackgroundPaint,
+    )
 }
 
 private val stampPosterShadowPaint = Paint().apply {
