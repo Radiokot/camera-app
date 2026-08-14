@@ -78,7 +78,7 @@ class OpenEnvelopeActivity : ComponentActivity() {
                         showToast(
                             context = this@OpenEnvelopeActivity,
                             text = "Stamps saved",
-                            length = Toast.LENGTH_SHORT,
+                            durationMs = 1000,
                             colors = colors,
                         )
                         finish()
@@ -87,7 +87,7 @@ class OpenEnvelopeActivity : ComponentActivity() {
                         showToast(
                             context = this@OpenEnvelopeActivity,
                             text = "Sorry",
-                            length = Toast.LENGTH_SHORT,
+                            durationMs = 1000,
                             colors = colors,
                         )
                         finish()

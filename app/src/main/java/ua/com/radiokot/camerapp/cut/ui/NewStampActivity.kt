@@ -21,7 +21,6 @@ package ua.com.radiokot.camerapp.cut.ui
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
@@ -112,7 +111,7 @@ class NewStampActivity : ComponentActivity() {
                                 showToast(
                                     context = this@NewStampActivity,
                                     text = "Stamp saved",
-                                    length = Toast.LENGTH_SHORT,
+                                    durationMs = 1000,
                                     colors = colors,
                                 )
                             }

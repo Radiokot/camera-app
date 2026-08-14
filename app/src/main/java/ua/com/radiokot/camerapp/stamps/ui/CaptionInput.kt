@@ -62,21 +62,26 @@ fun CaptionInput(
     isEnabled: Boolean = true,
     isSingleLine: Boolean = true,
     hint: String = "A caption",
+    textAlign: TextAlign = TextAlign.Center,
     inputState: TextFieldState,
 ) = Box(
-    contentAlignment = Alignment.Center,
+    contentAlignment = when (textAlign) {
+        TextAlign.Left -> Alignment.CenterStart
+        TextAlign.Right -> Alignment.CenterEnd
+        else -> Alignment.Center
+    },
     modifier = modifier
 ) {
     val colors = LocalColors.current
-    val hintStyle = remember(colors) {
+    val hintStyle = remember(colors, textAlign) {
         TextStyle(
             fontFamily = PodkovaFamily,
             fontSize = 24.sp,
             color = colors.textInputHint,
-            textAlign = TextAlign.Center,
+            textAlign = textAlign,
         )
     }
-    val inputStyle = remember {
+    val inputStyle = remember(hintStyle) {
         hintStyle.copy(
             color = colors.textPrimary,
         )

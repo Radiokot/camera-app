@@ -47,6 +47,13 @@ fun NavGraphBuilder.editPosterTextDestination(
             type = NavType.StringType
             nullable = true
         },
+        navArgument(Alignment) {
+            type = NavType.StringType
+        },
+        navArgument(Background) {
+            type = NavType.StringType
+            nullable = true
+        }
     ),
     dialogProperties = DialogProperties(
         dismissOnClickOutside = false,
@@ -69,7 +76,19 @@ fun NavGraphBuilder.editPosterTextDestination(
         )
     }
     var appearance by retain {
-        mutableStateOf(StampPosterLayer.Text.Appearance())
+        mutableStateOf(
+            StampPosterLayer.Text.Appearance(
+                alignment = navEntry
+                    .arguments
+                    ?.getString(Alignment)
+                    ?.let(StampPosterLayer.Text.Alignment::valueOf)
+                    ?: error("No $Alignment argument passed"),
+                background = navEntry
+                    .arguments
+                    ?.getString(Background)
+                    ?.let(StampPosterLayer.Text.Background::valueOf),
+            )
+        )
     }
 
     CompositionLocalProvider(
@@ -102,7 +121,8 @@ fun NavGraphBuilder.editPosterTextDestination(
                         inputState
                             .text
                             .takeIf(CharSequence::isNotBlank)
-                            ?.toString()
+                            ?.toString(),
+                    appearance = appearance,
                 )
             },
         )
@@ -110,10 +130,20 @@ fun NavGraphBuilder.editPosterTextDestination(
 }
 
 private const val CurrentTextEncoded = "currentTextEncoded"
+private const val Alignment = "alignment"
+private const val Background = "background"
 
-const val EditPosterTextRoute = "editPosterText?currentText={$CurrentTextEncoded}"
+const val EditPosterTextRoute =
+    "editPosterText" +
+            "?currentText={$CurrentTextEncoded}" +
+            "&alignment={$Alignment}" +
+            "&background={$Background}"
 
 fun EditPosterTextRoute(
     currentText: String?,
+    currentAppearance: StampPosterLayer.Text.Appearance,
 ) =
-    "editPosterText?currentText=${currentText?.let(Uri::encode)}"
+    "editPosterText" +
+            "?currentText=${currentText?.let(Uri::encode)}" +
+            "&alignment=${currentAppearance.alignment.name}" +
+            "&background=${currentAppearance.background?.name}"

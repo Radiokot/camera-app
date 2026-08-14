@@ -71,9 +71,7 @@ fun EditStampPosterTextDialog(
         .fillMaxSize()
         .safeContentPadding()
         .imePadding()
-        .padding(
-            vertical = 24.dp,
-        )
+        .padding(24.dp)
 ) {
     val focusRequester = remember(::FocusRequester)
 
@@ -82,8 +80,8 @@ fun EditStampPosterTextDialog(
         inputState = inputState,
         focusRequester = focusRequester,
         isSingleLine = false,
+        textAlign = appearance.alignment.textAlign,
         modifier = Modifier
-            .fillMaxWidth()
             // Handle Back when the keyboard is shown.
             .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
                 if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
@@ -181,7 +179,10 @@ private fun EditStampPosterTextDialogPreview() {
     AppTheme {
         EditStampPosterTextDialog(
             inputState = TextFieldState(),
-            appearance = StampPosterLayer.Text.Appearance(),
+            appearance = StampPosterLayer.Text.Appearance(
+                background = null,
+                alignment = StampPosterLayer.Text.Alignment.Center,
+            ),
             onChangeBackgroundAction = {},
             onChangeAlignmentAction = {},
             onDone = {},

@@ -71,6 +71,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
+import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer.Text.Appearance
 import ua.com.radiokot.camerapp.posters.domain.StampPosterRect
 import ua.com.radiokot.camerapp.posters.domain.StampPosterWidth
 import ua.com.radiokot.camerapp.posters.domain.drawStampPoster
@@ -464,25 +465,63 @@ private fun CreateStampPosterScreenPreview() {
                     )
                 },
                 StampPosterLayer.Text(
-                    text = "OLEG!",
+                    text = "Какао\nМасло",
                     fontFamilyResolver = fontFamilyResolver,
-                ).apply {
-                    center = Offset(
-                        300f,
-                        300f,
+                    appearance = Appearance(
+                        background = StampPosterLayer.Text.Background.Dark,
+                        alignment = StampPosterLayer.Text.Alignment.Center
                     )
-                    rotationDegrees = 45f
-                },
-                StampPosterLayer.Text(
-                    text = "жжот",
-                    fontFamilyResolver = fontFamilyResolver,
                 ).apply {
                     center = Offset(
                         300f,
                         400f,
                     )
                     scale = 2f
-                }
+                },
+                StampPosterLayer.Text(
+                    text = "OLEG!",
+                    appearance = Appearance(
+                        background = StampPosterLayer.Text.Background.Light,
+                        alignment = StampPosterLayer.Text.Alignment.Center
+                    ),
+                    fontFamilyResolver = fontFamilyResolver,
+                ).apply {
+                    center = Offset(
+                        460f,
+                        300f,
+                    )
+                    rotationDegrees = 45f
+                },
+                StampPosterLayer.Text(
+                    text = "Soy el fuego que arde tu piel\n" +
+                            "Soy el agua que mata tu sed",
+                    appearance = Appearance(
+                        background = null,
+                        alignment = StampPosterLayer.Text.Alignment.Left
+                    ),
+                    fontFamilyResolver = fontFamilyResolver,
+                ).apply {
+                    center = Offset(
+                        600f,
+                        900f,
+                    )
+                    scale = 0.8f
+                },
+                StampPosterLayer.Text(
+                    text = "El castillo, la torre yo soy\n" +
+                            "La espada que guarda el caudal",
+                    appearance = Appearance(
+                        background = StampPosterLayer.Text.Background.Dark,
+                        alignment = StampPosterLayer.Text.Alignment.Right
+                    ),
+                    fontFamilyResolver = fontFamilyResolver,
+                ).apply {
+                    center = Offset(
+                        550f,
+                        1400f,
+                    )
+                    scale = 0.8f
+                },
             )
         )
     }

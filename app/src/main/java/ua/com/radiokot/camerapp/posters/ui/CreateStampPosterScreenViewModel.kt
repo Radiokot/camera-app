@@ -137,6 +137,10 @@ class CreateStampPosterScreenViewModel(
             stampLayers +=
                 StampPosterLayer.Text(
                     text = stamp.caption,
+                    appearance = StampPosterLayer.Text.Appearance(
+                        background = null,
+                        alignment = StampPosterLayer.Text.Alignment.Center,
+                    ),
                     fontFamilyResolver = fontFamilyResolver,
                 ).apply {
                     center = StampPosterRect.center.copy(
@@ -302,6 +306,14 @@ class CreateStampPosterScreenViewModel(
         events.tryEmit(
             Event.ProceedToEditText(
                 currentText = null,
+                currentAppearance = StampPosterLayer.Text.Appearance(
+                    background =
+                        if (isDark.value)
+                            StampPosterLayer.Text.Background.Dark
+                        else
+                            StampPosterLayer.Text.Background.Light,
+                    alignment = StampPosterLayer.Text.Alignment.Center,
+                ),
             )
         )
     }
@@ -384,6 +396,7 @@ class CreateStampPosterScreenViewModel(
             events.tryEmit(
                 Event.ProceedToEditText(
                     currentText = layer.text,
+                    currentAppearance = layer.appearance,
                 )
             )
         }
@@ -409,6 +422,7 @@ class CreateStampPosterScreenViewModel(
 
     fun onDoneEditingText(
         text: String?,
+        appearance: StampPosterLayer.Text.Appearance,
     ) {
         val textLayerToEdit = this.textLayerToEdit
 
@@ -424,6 +438,7 @@ class CreateStampPosterScreenViewModel(
                     StampPosterLayer.Text(
                         text = text,
                         fontFamilyResolver = fontFamilyResolver,
+                        appearance = appearance,
                     )
                 )
 
@@ -439,6 +454,7 @@ class CreateStampPosterScreenViewModel(
                 }
 
                 textLayerToEdit.text = text
+                textLayerToEdit.appearance = appearance
 
                 anyChanges = true
             }
@@ -505,6 +521,7 @@ class CreateStampPosterScreenViewModel(
 
         class ProceedToEditText(
             val currentText: String?,
+            val currentAppearance: StampPosterLayer.Text.Appearance,
         ) : Event
 
         class ProceedToSelectStampsToAdd(

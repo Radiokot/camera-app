@@ -26,18 +26,26 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.IntRange
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.res.ResourcesCompat
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.ui.AppColors
+import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(DelicateCoroutinesApi::class)
 @SuppressLint("InflateParams")
 @Suppress("DEPRECATION")
 fun showToast(
     context: Context,
     text: CharSequence,
     colors: AppColors,
-    length: Int = Toast.LENGTH_LONG,
+    @IntRange(from = 300, to = 3500)
+    durationMs: Int = 3500,
 ) {
     val toastView =
         LayoutInflater
@@ -54,9 +62,14 @@ fun showToast(
     }
 
     with(Toast(context)) {
-        duration = length
+        duration = Toast.LENGTH_LONG
         setGravity(Gravity.BOTTOM, 0, 200)
         view = toastView
         show()
+
+        GlobalScope.launch {
+            delay(durationMs.milliseconds)
+            cancel()
+        }
     }
 }

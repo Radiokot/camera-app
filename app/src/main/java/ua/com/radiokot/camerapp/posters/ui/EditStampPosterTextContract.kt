@@ -22,6 +22,7 @@ package ua.com.radiokot.camerapp.posters.ui
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
+import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.util.getResultFlow
 import ua.com.radiokot.camerapp.util.setResult
 
@@ -30,11 +31,13 @@ class EditStampPosterTextContract(
 ) {
     fun proceedToEditText(
         currentText: String?,
+        currentAppearance: StampPosterLayer.Text.Appearance,
     ) {
         navController
             .navigate(
                 route = EditPosterTextRoute(
                     currentText = currentText,
+                    currentAppearance = currentAppearance,
                 )
             ) {
                 launchSingleTop = true
@@ -43,6 +46,7 @@ class EditStampPosterTextContract(
 
     fun onDoneEditing(
         text: String?,
+        appearance: StampPosterLayer.Text.Appearance,
     ) {
         navController
             .previousBackStackEntry
@@ -50,6 +54,13 @@ class EditStampPosterTextContract(
             ?.setResult(
                 key = EDITED_TEXT,
                 value = text,
+            )
+        navController
+            .previousBackStackEntry
+            ?.savedStateHandle
+            ?.setResult(
+                key = EDITED_APPEARANCE,
+                value = appearance,
             )
         navController.navigateUp()
     }
@@ -61,7 +72,15 @@ class EditStampPosterTextContract(
             .savedStateHandle
             .getResultFlow(EDITED_TEXT)
 
+    fun getEditedAppearanceFlow(
+        requestor: NavBackStackEntry,
+    ): Flow<StampPosterLayer.Text.Appearance> =
+        requestor
+            .savedStateHandle
+            .getResultFlow(EDITED_APPEARANCE)
+
     private companion object {
         private const val EDITED_TEXT = "ESPTCEditedText"
+        private const val EDITED_APPEARANCE = "ESPTCEditedAppearance"
     }
 }

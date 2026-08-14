@@ -95,6 +95,7 @@ fun NavGraphBuilder.selectStampsForPosterDestination(
                         context = context,
                         text = "That's too many for this poster",
                         colors = colors,
+                        durationMs = 1500,
                     )
                 }
             }

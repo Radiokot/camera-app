@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.intro.ui
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,14 +59,14 @@ fun NavGraphBuilder.permissionsDestination(
                 showToast(
                     context = context,
                     text = "Sorry, but the permission is required for the exact directory",
-                    length = Toast.LENGTH_LONG,
+                    durationMs = 3000,
                     colors = colors,
                 )
             } else {
                 showToast(
                     context = context,
                     text = "Sorry, but the app can't work reliably without this permission",
-                    length = Toast.LENGTH_LONG,
+                    durationMs = 3000,
                     colors = colors,
                 )
             }
@@ -82,7 +81,7 @@ fun NavGraphBuilder.permissionsDestination(
                 showToast(
                     context = context,
                     text = "Sorry, but the app can't work without these permissions",
-                    length = Toast.LENGTH_LONG,
+                    durationMs = 3000,
                     colors = colors,
                 )
             }

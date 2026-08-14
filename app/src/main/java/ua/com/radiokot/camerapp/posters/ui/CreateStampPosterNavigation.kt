@@ -22,6 +22,7 @@
 package ua.com.radiokot.camerapp.posters.ui
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,6 +37,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import kotlinx.coroutines.flow.combine
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.cut.ui.showToast
@@ -102,6 +104,7 @@ fun NavGraphBuilder.createPosterDestination(
                 is CreateStampPosterScreenViewModel.Event.ProceedToEditText -> {
                     editStampPosterTextContract.proceedToEditText(
                         currentText = event.currentText,
+                        currentAppearance = event.currentAppearance,
                     )
                 }
 
@@ -116,6 +119,7 @@ fun NavGraphBuilder.createPosterDestination(
                         context = context,
                         text = "${event.layerName} removed",
                         colors = colors,
+                        durationMs = 900,
                     )
                 }
             }
@@ -138,9 +142,18 @@ fun NavGraphBuilder.createPosterDestination(
     )
 
     LaunchedEffect(editStampPosterTextContract, viewModel, navEntry) {
-        editStampPosterTextContract
-            .getEditedTextFlow(navEntry)
-            .collect(viewModel::onDoneEditingText)
+        combine(
+            editStampPosterTextContract
+                .getEditedTextFlow(navEntry),
+            editStampPosterTextContract
+                .getEditedAppearanceFlow(navEntry),
+            transform = ::Pair,
+        ).collect { (text, appearance) ->
+            viewModel.onDoneEditingText(
+                text = text,
+                appearance = appearance,
+            )
+        }
     }
 
     LaunchedEffect(selectStampsForPosterContract, viewModel, navEntry) {

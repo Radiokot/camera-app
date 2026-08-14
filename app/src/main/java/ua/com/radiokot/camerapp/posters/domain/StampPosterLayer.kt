@@ -79,6 +79,7 @@ sealed class StampPosterLayer {
     @Stable
     class Text(
         text: String,
+        appearance: Appearance,
         fontFamilyResolver: FontFamily.Resolver,
     ) : StampPosterLayer() {
 
@@ -89,7 +90,7 @@ sealed class StampPosterLayer {
         )
 
         var text: String by mutableStateOf(text)
-        var appearance: Appearance by mutableStateOf(Appearance())
+        var appearance: Appearance by mutableStateOf(appearance)
 
         override val rect: Rect by derivedStateOf {
             val size = textLayout.size.toSize()
@@ -107,7 +108,7 @@ sealed class StampPosterLayer {
                 style = TextStyle(
                     fontFamily = PodkovaFamily,
                     fontSize = 72.sp * scale,
-                    textAlign = TextAlign.Center,
+                    textAlign = this.appearance.alignment.textAlign,
                 ),
                 constraints = Constraints(
                     maxWidth = (StampPosterWidth * scale).fastRoundToInt(),
@@ -224,8 +225,8 @@ sealed class StampPosterLayer {
 
         @Immutable
         data class Appearance(
-            val background: Background? = null,
-            val alignment: Alignment = Alignment.Center,
+            val background: Background?,
+            val alignment: Alignment,
         )
 
         enum class Background(
