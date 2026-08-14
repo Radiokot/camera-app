@@ -479,6 +479,19 @@ private fun CreateStampPosterScreenPreview() {
                     scale = 2f
                 },
                 StampPosterLayer.Text(
+                    text = "Next\nBig\nText",
+                    fontFamilyResolver = fontFamilyResolver,
+                    appearance = Appearance(
+                        background = StampPosterLayer.Text.Background.Dark,
+                        alignment = StampPosterLayer.Text.Alignment.Center
+                    )
+                ).apply {
+                    center = Offset(
+                        900f,
+                        400f,
+                    )
+                },
+                StampPosterLayer.Text(
                     text = "OLEG!",
                     appearance = Appearance(
                         background = StampPosterLayer.Text.Background.Light,

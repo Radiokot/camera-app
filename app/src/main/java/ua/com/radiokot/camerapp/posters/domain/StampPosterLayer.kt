@@ -29,6 +29,7 @@ import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 @Stable
@@ -176,12 +177,20 @@ sealed class StampPosterLayer {
 
                 // If adjacent lines differ only slightly in width,
                 // make them the same width. Otherwise, it doesn't look pretty.
-                for (i in (1 until textLines.size)) {
-                    val rectAbove = textLines[i - 1]
-                    val rect = textLines[i]
-                    if (abs(rect.width - rectAbove.width) < 2 * paddingHorizontal) {
+                do {
+                    var anyChanges = false
+
+                    for (i in (1 until textLines.size)) {
+                        val rectAbove = textLines[i - 1]
+                        val rect = textLines[i]
+
+                        val widthDifference = abs(rect.width - rectAbove.width)
+                        if (widthDifference == 0f || widthDifference > 2 * paddingHorizontal) {
+                            continue
+                        }
+
                         val betterLeft = min(rect.left, rectAbove.left)
-                        val betterRight = maxOf(rect.right, rectAbove.right)
+                        val betterRight = max(rect.right, rectAbove.right)
 
                         textLines[i - 1] = Rect(
                             left = betterLeft,
@@ -195,8 +204,10 @@ sealed class StampPosterLayer {
                             right = betterRight,
                             bottom = rect.bottom,
                         )
+
+                        anyChanges = true
                     }
-                }
+                } while (anyChanges)
 
                 return Path().apply {
                     // Top down along left edge.
