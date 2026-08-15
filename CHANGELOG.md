@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-15
+
+### Added
+
+- Ability to create posters with multiple stamps and custom text
+
+### Changed
+
+- Speeded up loading of stamps in lists
+
+### Fixed
+
+- Not reacting to a dialog action when the screen is rotated
+
 ## [1.4.2] - 2026-07-20
 
 ### Changed
@@ -75,4 +89,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [1.4.2]: https://github.com/Radiokot/press-cut-app/compare/1.4.1(11)...1.4.2(12)
 
-[Unreleased]: https://github.com/Radiokot/press-cut-app/compare/1.4.2(12)...HEAD
+[1.5.0]: https://github.com/Radiokot/press-cut-app/compare/1.4.2(12)...1.5.0(13)
+
+[Unreleased]: https://github.com/Radiokot/press-cut-app/compare/1.5.0(13)...HEAD
