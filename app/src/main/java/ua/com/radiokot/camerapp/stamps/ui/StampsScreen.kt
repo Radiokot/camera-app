@@ -88,6 +88,7 @@ import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
@@ -163,7 +164,7 @@ fun StampsScreen(
                         vertical = 24.dp,
                     )
             ) {
-                CaptionInput(
+                LeField(
                     hint = "A name",
                     focusRequester = nameInputFocusRequester,
                     inputState = collectionNameInputState,

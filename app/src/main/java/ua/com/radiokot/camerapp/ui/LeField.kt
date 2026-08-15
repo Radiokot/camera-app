@@ -17,7 +17,7 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ua.com.radiokot.camerapp.stamps.ui
+package ua.com.radiokot.camerapp.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,20 +54,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ua.com.radiokot.camerapp.ui.AppTheme
-import ua.com.radiokot.camerapp.ui.LocalColors
-import ua.com.radiokot.camerapp.ui.PodkovaFamily
-import ua.com.radiokot.camerapp.ui.paperBackground
 
 @Composable
-fun CaptionInput(
+fun LeField(
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester = remember(::FocusRequester),
     isEnabled: Boolean = true,
     isSingleLine: Boolean = true,
-    hint: String = "A caption",
     textAlign: TextAlign = TextAlign.Center,
     inputState: TextFieldState,
+    hint: String,
 ) = Box(
     contentAlignment = when (textAlign) {
         TextAlign.Left -> Alignment.CenterStart
@@ -77,7 +73,7 @@ fun CaptionInput(
     modifier = modifier
 ) {
     val colors = LocalColors.current
-    val hintStyle = rememberCaptionInputTextStyle(
+    val hintStyle = rememberLeFieldTextStyle(
         color = colors.textInputHint,
         textAlign = textAlign,
     )
@@ -88,13 +84,13 @@ fun CaptionInput(
     }
     val focusManager = LocalFocusManager.current
 
-    val isCaptionHintVisible by remember(isEnabled) {
+    val isHintVisible by remember(isEnabled) {
         derivedStateOf {
             isEnabled && inputState.text.isEmpty()
         }
     }
 
-    if (isCaptionHintVisible) {
+    if (isHintVisible) {
         BasicText(
             text = hint,
             style = hintStyle,
@@ -151,7 +147,7 @@ fun CaptionInput(
 }
 
 @Composable
-fun rememberCaptionInputTextStyle(
+fun rememberLeFieldTextStyle(
     color: Color,
     textAlign: TextAlign,
 ) = remember(color, textAlign) {
@@ -165,7 +161,7 @@ fun rememberCaptionInputTextStyle(
 
 @PreviewLightDark
 @Composable
-private fun CaptionInputPreview() {
+private fun LeFieldPreview() {
     AppTheme {
         Column(
             verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -175,12 +171,14 @@ private fun CaptionInputPreview() {
                 )
                 .padding(24.dp)
         ) {
-            CaptionInput(
-                inputState = TextFieldState("")
+            LeField(
+                inputState = TextFieldState(""),
+                hint = "A hint",
             )
 
-            CaptionInput(
-                inputState = TextFieldState("My stamp")
+            LeField(
+                inputState = TextFieldState("My stamp"),
+                hint = "A hint",
             )
         }
     }

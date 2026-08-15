@@ -59,9 +59,9 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.adjustments.ui.AdjustmentsController
 import ua.com.radiokot.camerapp.adjustments.ui.AdjustmentsControllerItem
-import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
 import ua.com.radiokot.camerapp.ui.AppTheme
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
@@ -108,8 +108,9 @@ fun StampSaveScreen(
                         0f
             }
     ) {
-        CaptionInput(
+        LeField(
             inputState = captionInputState,
+            hint = "A caption",
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)

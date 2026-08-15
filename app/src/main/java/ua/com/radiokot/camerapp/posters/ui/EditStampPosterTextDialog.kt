@@ -58,8 +58,8 @@ import androidx.compose.ui.unit.dp
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.posters.domain.drawStampPosterTextBackground
-import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
-import ua.com.radiokot.camerapp.stamps.ui.rememberCaptionInputTextStyle
+import ua.com.radiokot.camerapp.ui.LeField
+import ua.com.radiokot.camerapp.ui.rememberLeFieldTextStyle
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LocalColors
 
@@ -80,7 +80,7 @@ fun EditStampPosterTextDialog(
         .padding(24.dp)
 ) {
     val focusRequester = remember(::FocusRequester)
-    val textStyle = rememberCaptionInputTextStyle(
+    val textStyle = rememberLeFieldTextStyle(
         color = Color.Unspecified,
         textAlign = appearance.alignment.textAlign,
     )
@@ -92,7 +92,7 @@ fun EditStampPosterTextDialog(
     CompositionLocalProvider(
         LocalColors provides textColors
     ) {
-        CaptionInput(
+        LeField(
             hint = "A text",
             inputState = inputState,
             focusRequester = focusRequester,

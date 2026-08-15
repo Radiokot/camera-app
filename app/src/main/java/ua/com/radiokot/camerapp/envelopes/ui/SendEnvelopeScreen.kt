@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.R
-import ua.com.radiokot.camerapp.stamps.ui.CaptionInput
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.stamps.ui.StampBoxView
 import ua.com.radiokot.camerapp.stamps.ui.StampSampleItem
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
@@ -87,7 +87,7 @@ fun SendEnvelopeScreen(
             messageFocusRequester.requestFocus()
         }
 
-        CaptionInput(
+        LeField(
             inputState = messageInputState,
             hint = "A memo",
             focusRequester = messageFocusRequester,

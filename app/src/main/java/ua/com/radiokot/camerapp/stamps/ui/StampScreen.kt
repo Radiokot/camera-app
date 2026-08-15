@@ -51,7 +51,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -119,6 +118,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.ui.AppTheme
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
@@ -573,9 +573,10 @@ private fun StampScreenLayoutContent(
     val captionInputFocusRequester = remember(::FocusRequester)
     val coroutineScope = rememberCoroutineScope()
 
-    CaptionInput(
+    LeField(
         isEnabled = isCaptionInputEnabled.value,
         inputState = captionState,
+        hint = "A caption",
         focusRequester = captionInputFocusRequester,
         modifier = Modifier
             .padding(
