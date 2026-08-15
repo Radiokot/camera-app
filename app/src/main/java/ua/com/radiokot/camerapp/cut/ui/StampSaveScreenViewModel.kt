@@ -201,10 +201,9 @@ class StampSaveScreenViewModel(
         val pixels = IntArray(width * height)
         image.getPixels(pixels, 0, width, 0, 0, width, height)
 
-        applyImageAdjustments(
-            pixels = pixels,
-            adjustments = adjustments,
-        )
+        for (adjustment in adjustments) {
+            adjustment.applyToImage(pixels)
+        }
 
         val resultBitmap = createBitmap(
             width = width,
@@ -214,36 +213,6 @@ class StampSaveScreenViewModel(
         resultBitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 
         return resultBitmap
-    }
-
-    private fun applyImageAdjustments(
-        pixels: IntArray,
-        adjustments: Array<ImageAdjustment>,
-    ) {
-        val rgb = IntArray(3)
-
-        for (pixelIndex in pixels.indices) {
-            val pixel = pixels[pixelIndex]
-
-            val alpha = pixel shr 24
-            if (alpha == 0) {
-                continue
-            }
-
-            rgb[0] = (pixel shr 16) and 0xFF
-            rgb[1] = (pixel shr 8) and 0xFF
-            rgb[2] = pixel and 0xFF
-
-            for (i in adjustments.indices) {
-                adjustments[i].apply(rgb)
-            }
-
-            pixels[pixelIndex] =
-                (alpha shl 24) or
-                        (rgb[0] shl 16) or
-                        (rgb[1] shl 8) or
-                        rgb[2]
-        }
     }
 
     sealed interface Event {

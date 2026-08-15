@@ -33,12 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.stateIn
-import ua.com.radiokot.camerapp.adjustments.domain.BrightnessImageAdjustment
-import ua.com.radiokot.camerapp.adjustments.domain.ContrastImageAdjustment
-import ua.com.radiokot.camerapp.adjustments.domain.GlitchImageAdjustment
 import ua.com.radiokot.camerapp.adjustments.domain.ImageAdjustment
-import ua.com.radiokot.camerapp.adjustments.domain.TemperatureImageAdjustment
-import ua.com.radiokot.camerapp.adjustments.domain.VibranceImageAdjustment
 import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
@@ -96,11 +91,26 @@ class ImageAdjustmentsControllerViewModel : ViewModel() {
     val adjustments: StateFlow<Array<ImageAdjustment>> =
         snapshotFlow {
             arrayOf(
-                BrightnessImageAdjustment(brightnessValueState.intValue / 100f),
-                ContrastImageAdjustment(contrastValueState.intValue / 100f),
-                VibranceImageAdjustment(vibranceValueState.intValue / 100f),
-                TemperatureImageAdjustment(temperatureValueState.intValue / 100f),
-                GlitchImageAdjustment(glitchValueState.intValue / 100f),
+                ImageAdjustment(
+                    value = brightnessValueState.intValue / 100f,
+                    kind = ImageAdjustment.Kind.Brightness,
+                ),
+                ImageAdjustment(
+                    value = contrastValueState.intValue / 100f,
+                    kind = ImageAdjustment.Kind.Contrast,
+                ),
+                ImageAdjustment(
+                    value = vibranceValueState.intValue / 100f,
+                    kind = ImageAdjustment.Kind.Vibrance,
+                ),
+                ImageAdjustment(
+                    value = temperatureValueState.intValue / 100f,
+                    kind = ImageAdjustment.Kind.Temperature,
+                ),
+                ImageAdjustment(
+                    value = glitchValueState.intValue / 100f,
+                    kind = ImageAdjustment.Kind.Glitch,
+                ),
             )
         }
             .sample(10.milliseconds)
