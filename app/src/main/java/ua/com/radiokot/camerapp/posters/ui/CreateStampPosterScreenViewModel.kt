@@ -478,6 +478,11 @@ class CreateStampPosterScreenViewModel(
     ) = viewModelScope.launch {
 
         val selectedStampIds = StampSelections[selectionIndex]
+
+        if (selectedStampIds.isEmpty()) {
+            return@launch
+        }
+
         val stamps = stampRepository
             .getStamps()
             .filter { it.id in selectedStampIds }
@@ -492,6 +497,8 @@ class CreateStampPosterScreenViewModel(
                 stamps = stamps,
             )
         )
+
+        anyChanges = true
     }
 
     private suspend fun Stamp.getImageBitmap() =
