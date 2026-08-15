@@ -28,6 +28,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.IntRange
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntOffset
 import androidx.core.content.res.ResourcesCompat
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -46,6 +47,11 @@ fun showToast(
     colors: AppColors,
     @IntRange(from = 300, to = 3500)
     durationMs: Int = 3500,
+    gravity: Int = Gravity.BOTTOM,
+    offset: IntOffset = IntOffset(
+        x = 0,
+        y = 200,
+    ),
 ) {
     val toastView =
         LayoutInflater
@@ -63,7 +69,7 @@ fun showToast(
 
     with(Toast(context)) {
         duration = Toast.LENGTH_LONG
-        setGravity(Gravity.BOTTOM, 0, 200)
+        setGravity(gravity, offset.x, offset.y)
         view = toastView
         show()
 

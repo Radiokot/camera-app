@@ -22,7 +22,8 @@
 package ua.com.radiokot.camerapp.posters.ui
 
 import android.content.Intent
-import android.widget.Toast
+import android.content.res.Configuration
+import android.view.Gravity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,7 +33,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -88,6 +93,8 @@ fun NavGraphBuilder.createPosterDestination(
 
     val context = LocalContext.current
     val colors = LocalColors.current
+    val hapticFeedback = LocalHapticFeedback.current
+    val orientation = LocalConfiguration.current.orientation
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -115,11 +122,28 @@ fun NavGraphBuilder.createPosterDestination(
                 }
 
                 is CreateStampPosterScreenViewModel.Event.ShowLayerDeletedMessage -> {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
                     showToast(
                         context = context,
                         text = "${event.layerName} removed",
                         colors = colors,
                         durationMs = 900,
+                        gravity =
+                            if (orientation == Configuration.ORIENTATION_LANDSCAPE)
+                                Gravity.START or Gravity.CENTER
+                            else
+                                Gravity.CENTER,
+                        offset =
+                            if (orientation == Configuration.ORIENTATION_LANDSCAPE)
+                                IntOffset(
+                                    x = 200,
+                                    y = 0,
+                                )
+                            else
+                                IntOffset(
+                                    x = 0,
+                                    y = 200,
+                                ),
                     )
                 }
             }
