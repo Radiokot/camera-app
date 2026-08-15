@@ -66,6 +66,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -411,7 +412,9 @@ private fun StampPosterCanvas(
                             )
                         }
 
-                        activeLayer.scale *= zoom
+                        activeLayer.scale =
+                            (activeLayer.scale * zoom)
+                                .fastCoerceIn(0.2f, 10f)
 
                         if (rotation != 0f) {
                             var newRotation = (activeLayer.rotationDegrees + rotation) % 360f
