@@ -19,20 +19,24 @@
 
 package ua.com.radiokot.camerapp.posters.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
@@ -41,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -50,6 +55,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -58,10 +64,10 @@ import androidx.compose.ui.unit.dp
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.posters.domain.drawStampPosterTextBackground
-import ua.com.radiokot.camerapp.ui.LeField
-import ua.com.radiokot.camerapp.ui.rememberLeFieldTextStyle
 import ua.com.radiokot.camerapp.ui.AppTheme
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LocalColors
+import ua.com.radiokot.camerapp.ui.rememberLeFieldTextStyle
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -71,87 +77,81 @@ fun EditStampPosterTextDialog(
     onChangeBackgroundAction: () -> Unit,
     onChangeAlignmentAction: () -> Unit,
     onDone: () -> Unit,
-) = Box(
-    contentAlignment = Alignment.Center,
-    modifier = Modifier
-        .fillMaxSize()
-        .safeContentPadding()
-        .imePadding()
-        .padding(24.dp)
+) {
+    val configuration = LocalConfiguration.current
+    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .safeContentPadding()
+                .imePadding()
+                .clipToBounds()
+        ) {
+            EditStampPosterTextDialogLayoutContent(
+                row = this,
+                column = null,
+                inputState = inputState,
+                appearance = appearance,
+                onChangeBackgroundAction = onChangeBackgroundAction,
+                onChangeAlignmentAction = onChangeAlignmentAction,
+                onDone = onDone,
+            )
+        }
+    } else {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .safeContentPadding()
+                .imePadding()
+                .clipToBounds()
+        ) {
+            EditStampPosterTextDialogLayoutContent(
+                row = null,
+                column = this,
+                inputState = inputState,
+                appearance = appearance,
+                onChangeBackgroundAction = onChangeBackgroundAction,
+                onChangeAlignmentAction = onChangeAlignmentAction,
+                onDone = onDone,
+            )
+        }
+    }
+}
+
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EditStampPosterTextDialogLayoutContent(
+    row: RowScope?,
+    column: ColumnScope?,
+    inputState: TextFieldState,
+    appearance: StampPosterLayer.Text.Appearance,
+    onChangeBackgroundAction: () -> Unit,
+    onChangeAlignmentAction: () -> Unit,
+    onDone: () -> Unit,
 ) {
     val focusRequester = remember(::FocusRequester)
-    val textStyle = rememberLeFieldTextStyle(
-        color = Color.Unspecified,
-        textAlign = appearance.alignment.textAlign,
-    )
-    val textMeasurer = rememberTextMeasurer()
-    val textColors = appearance.background?.colors
-        ?: LocalColors.current
-    val fontScale = LocalDensity.current.fontScale
 
-    CompositionLocalProvider(
-        LocalColors provides textColors
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+            if (row != null) {
+                with(row) {
+                    Modifier.weight(1f)
+                }
+            } else {
+                with(column!!) {
+                    Modifier.weight(1f)
+                }
+            }
     ) {
-        LeField(
-            hint = "A text",
+        FieldWithBackground(
+            appearance = appearance,
             inputState = inputState,
             focusRequester = focusRequester,
-            isSingleLine = false,
-            textAlign = appearance.alignment.textAlign,
-            modifier = Modifier
-                // Handle Back when the keyboard is shown.
-                .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
-                    if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
-                        onDone()
-                        true
-                    } else {
-                        false
-                    }
-                }
-                .run {
-                    val currentBackground = appearance.background
-                        ?: return@run this
-
-                    drawWithCache {
-                        val textString = inputState.text.toString()
-
-                        val textLayout =
-                            textMeasurer.measure(
-                                text = textString,
-                                style = textStyle,
-                            )
-                        val backgroundPath =
-                            StampPosterLayer.Text.createBackgroundPath(
-                                textLayout = textLayout,
-                                scale = fontScale,
-                            )
-
-                        onDrawBehind {
-                            // Do not draw tiny background behind a hint.
-                            if (textString.isEmpty()) {
-                                return@onDrawBehind
-                            }
-
-                            val x = when (appearance.alignment) {
-                                StampPosterLayer.Text.Alignment.Left ->
-                                    0f
-
-                                StampPosterLayer.Text.Alignment.Center ->
-                                    (size.width - textLayout.size.width) / 2f
-
-                                StampPosterLayer.Text.Alignment.Right ->
-                                    size.width - textLayout.size.width
-                            }
-                            drawContext.canvas.translate(x, 0f)
-                            drawStampPosterTextBackground(
-                                path = backgroundPath,
-                                color = currentBackground.colors.componentBackground,
-                                scale = fontScale,
-                            )
-                            drawContext.canvas.translate(-x, 0f)
-                        }
-                    }
-                }
+            onBackPressed = onDone,
         )
     }
 
@@ -161,9 +161,8 @@ fun EditStampPosterTextDialog(
             alignment = Alignment.CenterHorizontally,
         ),
         modifier = Modifier
+            .padding(24.dp)
             .height(48.dp)
-            .fillMaxWidth()
-            .align(Alignment.BottomCenter)
     ) {
         AlignmentButton(
             currentAlignment = appearance.alignment,
@@ -178,6 +177,91 @@ fun EditStampPosterTextDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+}
+
+@Composable
+private fun FieldWithBackground(
+    appearance: StampPosterLayer.Text.Appearance,
+    inputState: TextFieldState,
+    focusRequester: FocusRequester,
+    onBackPressed: () -> Unit,
+) = CompositionLocalProvider(
+    LocalColors.provides(appearance.background?.colors ?: LocalColors.current)
+) {
+    val textMeasurer = rememberTextMeasurer()
+    val textMeasurementStyle = rememberLeFieldTextStyle(
+        color = Color.Unspecified,
+        textAlign = appearance.alignment.textAlign,
+    )
+    val fontScale = LocalDensity.current.fontScale
+    val textScrollState = rememberScrollState()
+
+    LeField(
+        hint = "A text",
+        inputState = inputState,
+        focusRequester = focusRequester,
+        isSingleLine = false,
+        textAlign = appearance.alignment.textAlign,
+        scrollState = textScrollState,
+        modifier = Modifier
+            .padding(
+                horizontal = 24.dp,
+            )
+            // Handle Back when the keyboard is shown.
+            .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                if (keyEvent.key == Key.Back && keyEvent.type == KeyEventType.KeyDown) {
+                    onBackPressed()
+                    true
+                } else {
+                    false
+                }
+            }
+            .run {
+                val currentBackground = appearance.background
+                    ?: return@run this
+
+                drawWithCache {
+                    val textString = inputState.text.toString()
+
+                    val textLayout =
+                        textMeasurer.measure(
+                            text = textString,
+                            style = textMeasurementStyle,
+                        )
+                    val backgroundPath =
+                        StampPosterLayer.Text.createBackgroundPath(
+                            textLayout = textLayout,
+                            scale = fontScale,
+                        )
+
+                    onDrawBehind {
+                        // Do not draw tiny background behind a hint.
+                        if (textString.isEmpty()) {
+                            return@onDrawBehind
+                        }
+
+                        val x = when (appearance.alignment) {
+                            StampPosterLayer.Text.Alignment.Left ->
+                                0f
+
+                            StampPosterLayer.Text.Alignment.Center ->
+                                (size.width - textLayout.size.width) / 2f
+
+                            StampPosterLayer.Text.Alignment.Right ->
+                                size.width - textLayout.size.width
+                        }
+                        val y = -textScrollState.value.toFloat()
+                        drawContext.canvas.translate(x, y)
+                        drawStampPosterTextBackground(
+                            path = backgroundPath,
+                            color = currentBackground.colors.componentBackground,
+                            scale = fontScale,
+                        )
+                        drawContext.canvas.translate(-x, -y)
+                    }
+                }
+            }
+    )
 }
 
 @Composable

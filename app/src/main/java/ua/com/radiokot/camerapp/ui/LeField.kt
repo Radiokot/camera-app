@@ -19,6 +19,7 @@
 
 package ua.com.radiokot.camerapp.ui
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -62,12 +65,13 @@ fun LeField(
     isEnabled: Boolean = true,
     isSingleLine: Boolean = true,
     textAlign: TextAlign = TextAlign.Center,
+    scrollState: ScrollState = rememberScrollState(),
     inputState: TextFieldState,
     hint: String,
 ) = Box(
     contentAlignment = when (textAlign) {
-        TextAlign.Left -> Alignment.CenterStart
-        TextAlign.Right -> Alignment.CenterEnd
+        TextAlign.Left -> AbsoluteAlignment.CenterLeft
+        TextAlign.Right -> AbsoluteAlignment.CenterRight
         else -> Alignment.Center
     },
     modifier = modifier
@@ -129,6 +133,7 @@ fun LeField(
         cursorBrush = SolidColor(colors.textInputCursor),
         enabled = isEnabled,
         readOnly = !isEnabled,
+        scrollState = scrollState,
         modifier = Modifier
             .width(IntrinsicSize.Min)
             .widthIn(

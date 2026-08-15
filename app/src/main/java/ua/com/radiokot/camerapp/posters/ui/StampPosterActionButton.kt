@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -25,16 +26,17 @@ fun StampPosterActionButton(
     content = content,
     modifier = Modifier
         .size(48.dp)
+        .border(
+            width = 2.dp,
+            color = LocalColors.current.componentStroke,
+            shape = RoundedCornerShape(8.dp),
+        )
+        .padding(1.dp)
         .clip(
             shape = RoundedCornerShape(8.dp),
         )
         .clickable(
             onClick = onClick,
-        )
-        .border(
-            width = 2.dp,
-            color = LocalColors.current.componentStroke,
-            shape = RoundedCornerShape(8.dp),
         )
 )
 
