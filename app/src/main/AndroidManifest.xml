@@ -96,10 +96,14 @@
             android:grantUriPermissions="true" />
 
         <provider
-            android:name=".posters.data.StampPosterContentProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${stampPosterContentProviderAuthority}"
             android:exported="false"
-            android:grantUriPermissions="true" />
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/stamp_poster_provider_paths" />
+        </provider>
 
         <receiver
             android:name=".util.ShareSheetShareEventReceiver"

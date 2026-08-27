@@ -30,6 +30,7 @@ import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
 import ua.com.radiokot.camerapp.posters.ui.CreateStampPosterScreenViewModel
 import ua.com.radiokot.camerapp.posters.ui.SelectStampsForPosterDialogViewModel
 import ua.com.radiokot.camerapp.stamps.ui.UiStampComparator
+import java.io.File
 
 val postersModule = module {
 
@@ -52,7 +53,13 @@ val postersModule = module {
     }
 
     single {
-        CpCreateSendStampPosterIntent()
+        CpCreateSendStampPosterIntent(
+            context =
+                androidApplication(),
+            stampPosterProviderDirectory =
+                // Must match the one from stamp_poter_provider_paths.xml
+                File(androidApplication().cacheDir, "posters"),
+        )
     } bind CreateSendStampPosterIntent::class
 
     viewModel {

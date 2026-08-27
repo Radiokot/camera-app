@@ -23,7 +23,8 @@ import android.content.Intent
 
 fun interface CreateSendStampPosterIntent {
 
-    operator fun invoke(
-        options: SendStampPosterOptions,
+    suspend operator fun invoke(
+        layers: Collection<StampPosterLayer>,
+        isDark: Boolean,
     ): Intent
 }

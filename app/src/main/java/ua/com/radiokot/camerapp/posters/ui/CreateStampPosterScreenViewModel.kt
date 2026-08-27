@@ -34,6 +34,7 @@ import com.skydoves.landscapist.core.model.ImageResult
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,7 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ua.com.radiokot.camerapp.posters.domain.CreateSendStampPosterIntent
-import ua.com.radiokot.camerapp.posters.domain.SendStampPosterOptions
 import ua.com.radiokot.camerapp.posters.domain.StampPosterHeight
 import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
@@ -68,7 +68,6 @@ class CreateStampPosterScreenViewModel(
 
     private val log by lazyLogger("CreateStampPosterScreenVM")
 
-    private val posterId = System.currentTimeMillis().toString()
     private var textLayerToEdit: StampPosterLayer.Text? = null
     private var anyChanges: Boolean = false
         set(value) {
@@ -402,18 +401,34 @@ class CreateStampPosterScreenViewModel(
         }
     }
 
+    private var sendJob: Job? = null
     fun onSendAction() {
+        if (sendJob?.isActive == true) {
+            return
+        }
+
+        sendJob = viewModelScope.launch {
+            sendPoster()
+        }
+    }
+
+    private suspend fun sendPoster() {
         val layers = layers.value
-        val options = SendStampPosterOptions(
-            id = posterId,
-            layers = layers,
-            isDark = isDark.value,
-        )
-        val intent = createSendStampPosterIntent(options)
+        val isDark = isDark.value
 
         log.debug {
-            "onSendAction(): proceeding to send:" +
-                    "\noptions=$options," +
+            "sendPoster(): creating send intent:" +
+                    "\nlayers=$layers," +
+                    "\nisDark=$isDark"
+        }
+
+        val intent = createSendStampPosterIntent(
+            layers = layers,
+            isDark = isDark,
+        )
+
+        log.debug {
+            "sendPoster(): proceeding to send:" +
                     "\nintent=$intent"
         }
 

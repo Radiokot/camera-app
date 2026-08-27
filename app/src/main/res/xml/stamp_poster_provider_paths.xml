@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Must match the one passed to CpCreateSendStampPosterIntent -->
+    <cache-path
+        name="posters"
+        path="posters/" />
+</paths>
