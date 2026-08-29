@@ -34,13 +34,11 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -83,6 +81,7 @@ import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 import ua.com.radiokot.camerapp.util.detectTransformGestures
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.abs
@@ -109,8 +108,7 @@ fun CreateStampPosterScreen(
             modifier = modifier
                 .background(LocalColors.current.screenBackground)
                 // IME is handled in the composition.
-                .safeGesturesPadding()
-                .displayCutoutPadding()
+                .barsAndCutoutPadding()
                 .padding(24.dp)
         ) {
             CreateStampPosterScreenLayoutContent(
@@ -134,8 +132,7 @@ fun CreateStampPosterScreen(
             modifier = modifier
                 .background(LocalColors.current.screenBackground)
                 // IME is handled in the composition.
-                .safeGesturesPadding()
-                .displayCutoutPadding()
+                .barsAndCutoutPadding()
                 .padding(24.dp)
         ) {
             CreateStampPosterScreenLayoutContent(

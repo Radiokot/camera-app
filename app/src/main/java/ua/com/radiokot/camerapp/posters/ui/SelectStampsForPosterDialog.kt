@@ -26,8 +26,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
@@ -40,6 +38,8 @@ import ua.com.radiokot.camerapp.stamps.ui.StampContainerBaseSize
 import ua.com.radiokot.camerapp.stamps.ui.StampsGridItem
 import ua.com.radiokot.camerapp.stamps.ui.stampItems
 import ua.com.radiokot.camerapp.ui.LeTextButton
+import ua.com.radiokot.camerapp.util.barsAndCutout
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 import ua.com.radiokot.camerapp.util.plus
 
 @Composable
@@ -51,10 +51,10 @@ fun SelectStampsForPosterDialog(
     modifier = Modifier
         .fillMaxSize()
 ) {
-    val safeContentPadding =
-        WindowInsets.safeContent.asPaddingValues()
+    val barsAndCutoutPadding =
+        WindowInsets.barsAndCutout.asPaddingValues()
     val contentPadding =
-        safeContentPadding + PaddingValues(
+        barsAndCutoutPadding + PaddingValues(
             bottom = 120.dp,
         )
 
@@ -77,7 +77,7 @@ fun SelectStampsForPosterDialog(
         text = "Add selected",
         onClick = onAddSelectedAction,
         modifier = Modifier
-            .safeContentPadding()
+            .barsAndCutoutPadding()
             .padding(24.dp)
             .align(Alignment.BottomCenter)
     )

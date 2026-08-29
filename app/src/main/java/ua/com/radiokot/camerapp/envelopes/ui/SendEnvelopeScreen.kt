@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
@@ -46,16 +45,17 @@ import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.R
-import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.stamps.ui.StampBoxView
 import ua.com.radiokot.camerapp.stamps.ui.StampSampleItem
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
 import ua.com.radiokot.camerapp.ui.AppTheme
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
 fun SendEnvelopeScreen(
@@ -67,7 +67,7 @@ fun SendEnvelopeScreen(
 ) = Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
-        .safeContentPadding()
+        .barsAndCutoutPadding()
         .imePadding()
         .padding(24.dp)
 ) {

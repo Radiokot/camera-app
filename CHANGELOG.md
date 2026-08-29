@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Too much horizontal space around the content
+  when the gesture navigation is used
+
 ### Changed
 
 - Made the image adjustments faster

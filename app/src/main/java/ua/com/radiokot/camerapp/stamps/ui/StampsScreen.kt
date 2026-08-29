@@ -46,7 +46,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -85,13 +84,14 @@ import kotlinx.collections.immutable.toPersistentList
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
 import ua.com.radiokot.camerapp.ui.AppTheme
+import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
-import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.barsAndCutout
 import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import ua.com.radiokot.camerapp.util.plus
 
@@ -129,10 +129,10 @@ fun StampsScreen(
             }
         }
 ) {
-    val safeContentPadding =
-        WindowInsets.safeContent.asPaddingValues()
+    val barsAndCutoutPadding =
+        WindowInsets.barsAndCutout.asPaddingValues()
     val contentPadding =
-        safeContentPadding + PaddingValues(
+        barsAndCutoutPadding + PaddingValues(
             bottom = 120.dp,
         )
 
@@ -288,7 +288,7 @@ fun StampsScreen(
     AnimatedContent(
         targetState = isSelectionVisible,
         modifier = Modifier
-            .padding(safeContentPadding)
+            .padding(barsAndCutoutPadding)
             .padding(24.dp)
             .fillMaxWidth()
             .align(Alignment.BottomCenter)

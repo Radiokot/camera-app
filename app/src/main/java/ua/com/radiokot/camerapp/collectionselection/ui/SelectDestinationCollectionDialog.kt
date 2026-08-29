@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
 fun SelectDestinationCollectionDialog(
@@ -56,7 +56,7 @@ fun SelectDestinationCollectionDialog(
 ) = Box(
     contentAlignment = Alignment.Center,
     modifier = Modifier
-        .safeContentPadding()
+        .barsAndCutoutPadding()
 ) {
     val colors = LocalColors.current
     val actionTextStyle = remember(colors) {

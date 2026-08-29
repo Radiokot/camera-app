@@ -27,13 +27,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
@@ -65,6 +63,7 @@ import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
 fun StampSaveScreen(
@@ -79,8 +78,7 @@ fun StampSaveScreen(
 ) = BoxWithConstraints(
     modifier = modifier
         // IME is handled in the composition.
-        .safeGesturesPadding()
-        .displayCutoutPadding()
+        .barsAndCutoutPadding()
 ) {
     val isScreenVeryTall = remember(maxHeight) {
         maxHeight >= 640.dp

@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -74,6 +73,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.barsAndCutout
 import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import ua.com.radiokot.camerapp.util.plus
 
@@ -91,10 +91,10 @@ fun CollectionsScreen(
 ) = Box(
     modifier = modifier
 ) {
-    val safeContentPadding =
-        WindowInsets.safeContent.asPaddingValues()
+    val barsAndCutoutPadding =
+        WindowInsets.barsAndCutout.asPaddingValues()
     val contentPadding =
-        safeContentPadding +
+        barsAndCutoutPadding +
                 PaddingValues(
                     start = 12.dp,
                     end = 12.dp,
@@ -154,7 +154,7 @@ fun CollectionsScreen(
         painter = painterResource(R.drawable.ic_more_hor_stroked),
         contentDescription = "More",
         modifier = Modifier
-            .padding(safeContentPadding)
+            .padding(barsAndCutoutPadding)
             .clickable(
                 interactionSource = null,
                 indication = null,
@@ -168,7 +168,7 @@ fun CollectionsScreen(
         text = "New Stamp",
         onClick = onNewStampAction,
         modifier = Modifier
-            .padding(safeContentPadding)
+            .padding(barsAndCutoutPadding)
             .padding(24.dp)
             .fillMaxWidth()
             .align(Alignment.BottomCenter)

@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +52,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
 fun EnvelopePreviewScreen(
@@ -66,7 +66,7 @@ fun EnvelopePreviewScreen(
 ) = Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
-        .safeContentPadding()
+        .barsAndCutoutPadding()
         .padding(24.dp)
 ) {
     val colors = LocalColors.current

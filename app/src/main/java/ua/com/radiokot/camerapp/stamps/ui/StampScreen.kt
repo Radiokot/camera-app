@@ -57,14 +57,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -124,6 +122,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.EmptyImageComponent
 import ua.com.radiokot.camerapp.util.StableHolder
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import java.time.LocalDate
 import kotlin.math.absoluteValue
@@ -388,8 +387,7 @@ private fun StampScreenPortrait(
             )
         },
         modifier = modifier
-            .safeGesturesPadding()
-            .displayCutoutPadding()
+            .barsAndCutoutPadding()
             .padding(24.dp)
     )
 }
@@ -534,8 +532,7 @@ fun StampScreenLandscape(
             )
         },
         modifier = modifier
-            .safeGesturesPadding()
-            .displayCutoutPadding()
+            .barsAndCutoutPadding()
             .padding(
                 horizontal = 24.dp,
                 vertical = 8.dp,

@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -61,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
+import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
 fun CollectionActionsScreen(
@@ -90,7 +90,7 @@ fun CollectionActionsScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
-                .safeContentPadding()
+                .barsAndCutoutPadding()
         ) {
             CollectionActionsScreenLayoutContent(
                 detailsAlpha = detailsAlpha,
@@ -107,7 +107,7 @@ fun CollectionActionsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = modifier
-                .safeContentPadding()
+                .barsAndCutoutPadding()
                 .verticalScroll(
                     state = rememberScrollState(),
                     overscrollEffect = null,
