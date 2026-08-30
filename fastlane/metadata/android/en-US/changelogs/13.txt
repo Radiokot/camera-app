@@ -1,8 +1,0 @@
-Added:
-- Ability to create posters with multiple stamps and custom text
-
-Changed:
-- Speeded up loading of stamps in lists
-
-Fixed:
-- Not reacting to a dialog action when the screen is rotated
