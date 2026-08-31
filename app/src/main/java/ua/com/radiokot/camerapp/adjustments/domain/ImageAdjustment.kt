@@ -26,7 +26,7 @@ import androidx.compose.ui.util.fastCoerceIn
 import kotlin.math.abs
 
 class ImageAdjustment(
-    @get:FloatRange(from = -1.0, to = 1.0)
+    @FloatRange(from = -1.0, to = 1.0)
     val value: Float,
     val kind: Kind,
 ) {
