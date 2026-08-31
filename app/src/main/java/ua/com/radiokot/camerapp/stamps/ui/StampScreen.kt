@@ -125,6 +125,9 @@ import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 import kotlin.math.absoluteValue
 
 @Composable
@@ -696,8 +699,14 @@ private fun StampScreenLayoutContent(
                     .width(32.dp)
             )
 
+            val takenAtFormat = remember {
+                DateTimeFormatter
+                    .ofLocalizedDate(FormatStyle.LONG)
+                    .withLocale(Locale.ENGLISH)
+            }
+
             BasicText(
-                text = takenAt.value.toString(),
+                text = takenAt.value.format(takenAtFormat),
                 style = TextStyle(
                     fontFamily = PodkovaFamily,
                     fontSize = 16.sp,
