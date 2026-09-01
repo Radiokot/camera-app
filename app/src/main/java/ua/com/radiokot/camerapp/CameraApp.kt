@@ -21,6 +21,9 @@ package ua.com.radiokot.camerapp
 
 import android.app.Application
 import android.os.Environment
+import androidx.camera.camera2.Camera2Config
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.CameraXConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -38,7 +41,7 @@ import java.io.File
 import java.lang.Thread.UncaughtExceptionHandler
 import kotlin.system.exitProcess
 
-class CameraApp : Application() {
+class CameraApp : Application(), CameraXConfig.Provider {
 
     private val log by lazy {
         KotlinLogging.logger("App")
@@ -125,4 +128,10 @@ class CameraApp : Application() {
             "initLogging(): info logger enabled"
         }
     }
+
+    override fun getCameraXConfig(): CameraXConfig =
+        CameraXConfig.Builder
+            .fromConfig(Camera2Config.defaultConfig())
+            .setAvailableCamerasLimiter(CameraSelector.DEFAULT_BACK_CAMERA)
+            .build()
 }

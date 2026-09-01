@@ -201,7 +201,7 @@ private fun SharedTransitionScope.StampCutNavHost(
             ) {
                 StampCutScreen(
                     useCaseGroup = StableHolder(viewModel.useCaseGroup),
-                    surfaceRequest = StableHolder(surfaceRequest),
+                    surfaceRequest = surfaceRequest,
                     cutImage = cutImage,
                     onCutAction = viewModel::onCutAction,
                     sharedTransitionScope = this@StampCutNavHost,

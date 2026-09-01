@@ -96,7 +96,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun StampCutScreen(
     useCaseGroup: StableHolder<UseCaseGroup>,
-    surfaceRequest: StableHolder<SurfaceRequest?>,
+    surfaceRequest: SurfaceRequest?,
     cutImage: ImageBitmap?,
     onCutAction: (
         viewfinderSize: Size,
@@ -152,12 +152,12 @@ fun StampCutScreen(
         Animatable(0f)
     }
 
-    if (surfaceRequest.value != null) {
+    if (surfaceRequest != null) {
         val coordinateTransformer = remember(::MutableCoordinateTransformer)
         val meteringFactory = remember(surfaceRequest) {
             SurfaceOrientedMeteringPointFactory(
-                surfaceRequest.value.resolution.width.toFloat(),
-                surfaceRequest.value.resolution.height.toFloat()
+                surfaceRequest.resolution.width.toFloat(),
+                surfaceRequest.resolution.height.toFloat()
             )
         }
         val coroutineScope = rememberCoroutineScope()
@@ -236,7 +236,7 @@ fun StampCutScreen(
         }
 
         CameraXViewfinder(
-            surfaceRequest = surfaceRequest.value,
+            surfaceRequest = surfaceRequest,
             coordinateTransformer = coordinateTransformer,
             modifier = Modifier
                 .fillMaxSize()
@@ -467,7 +467,7 @@ private fun StampCutScreenPreview(
 ) {
     StampCutScreen(
         useCaseGroup = StableHolder(UseCaseGroup.Builder().build()),
-        surfaceRequest = StableHolder(null),
+        surfaceRequest = null,
         cutImage = null,
         onCutAction = { _, _ -> },
         sharedTransitionScope = null,
