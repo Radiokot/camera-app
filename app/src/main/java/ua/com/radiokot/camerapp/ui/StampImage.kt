@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.toIntSize
 import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.cache.CacheKey
 import com.skydoves.landscapist.core.model.ImageResult
-import com.skydoves.landscapist.image.LocalLandscapist
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
+import ua.com.radiokot.camerapp.util.LocalLandscapist
 import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.memoryCache
 

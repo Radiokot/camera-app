@@ -21,7 +21,6 @@ package ua.com.radiokot.camerapp.envelopes.ui
 
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -37,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.skydoves.landscapist.image.LocalLandscapist
 import org.koin.compose.koinInject
 import ua.com.radiokot.camerapp.collectionselection.ui.SelectDestinationCollectionContract
 import ua.com.radiokot.camerapp.collectionselection.ui.selectDestinationCollectionDestination
@@ -46,6 +44,7 @@ import ua.com.radiokot.camerapp.envelopes.domain.EnvelopePreviewResult
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.LocalLandscapist
 import ua.com.radiokot.camerapp.util.StableHolder
 
 @Immutable

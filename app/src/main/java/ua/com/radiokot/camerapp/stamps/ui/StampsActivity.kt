@@ -52,7 +52,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.savedstate.serialization.saved
-import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import org.koin.android.ext.android.inject
@@ -81,6 +80,7 @@ import ua.com.radiokot.camerapp.posters.ui.editPosterTextDestination
 import ua.com.radiokot.camerapp.posters.ui.selectStampsForPosterDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.paperBackground
+import ua.com.radiokot.camerapp.util.LocalLandscapist
 import ua.com.radiokot.camerapp.util.fadeOutExit
 import ua.com.radiokot.camerapp.util.keepWhile
 import ua.com.radiokot.camerapp.util.lazyLogger
