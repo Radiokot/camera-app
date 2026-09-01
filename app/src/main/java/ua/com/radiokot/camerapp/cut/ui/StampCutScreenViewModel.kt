@@ -33,7 +33,7 @@ import android.view.Surface
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
-import androidx.camera.core.UseCase
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.core.takePicture
@@ -91,11 +91,11 @@ class StampCutScreenViewModel : ViewModel() {
             )
             .build()
 
-    val useCases: Array<UseCase?> =
-        arrayOf(
-            previewUseCase,
-            captureUseCase,
-        )
+    val useCaseGroup =
+        UseCaseGroup.Builder()
+            .addUseCase(previewUseCase)
+            .addUseCase(captureUseCase)
+            .build()
 
     val surfaceRequest: StateFlow<SurfaceRequest?> =
         callbackFlow {

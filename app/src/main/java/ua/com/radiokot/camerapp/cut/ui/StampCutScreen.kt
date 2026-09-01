@@ -27,7 +27,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.SurfaceOrientedMeteringPointFactory
 import androidx.camera.core.SurfaceRequest
-import androidx.camera.core.UseCase
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
@@ -86,15 +86,17 @@ import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.stamps.ui.StampCutter
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
+import ua.com.radiokot.camerapp.util.StableHolder
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun StampCutScreen(
-    useCases: Array<UseCase?>,
-    surfaceRequest: SurfaceRequest?,
+    useCaseGroup: StableHolder<UseCaseGroup>,
+    surfaceRequest: StableHolder<SurfaceRequest?>,
     cutImage: ImageBitmap?,
     onCutAction: (
         viewfinderSize: Size,
@@ -117,7 +119,7 @@ fun StampCutScreen(
             camera = it.bindToLifecycle(
                 lifecycleOwner = lifecycleOwner,
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-                useCases = useCases,
+                useCaseGroup = useCaseGroup.value,
             )
         }
     }
@@ -150,12 +152,12 @@ fun StampCutScreen(
         Animatable(0f)
     }
 
-    if (surfaceRequest != null) {
+    if (surfaceRequest.value != null) {
         val coordinateTransformer = remember(::MutableCoordinateTransformer)
         val meteringFactory = remember(surfaceRequest) {
             SurfaceOrientedMeteringPointFactory(
-                surfaceRequest.resolution.width.toFloat(),
-                surfaceRequest.resolution.height.toFloat()
+                surfaceRequest.value.resolution.width.toFloat(),
+                surfaceRequest.value.resolution.height.toFloat()
             )
         }
         val coroutineScope = rememberCoroutineScope()
@@ -234,7 +236,7 @@ fun StampCutScreen(
         }
 
         CameraXViewfinder(
-            surfaceRequest = surfaceRequest,
+            surfaceRequest = surfaceRequest.value,
             coordinateTransformer = coordinateTransformer,
             modifier = Modifier
                 .fillMaxSize()
@@ -248,14 +250,14 @@ fun StampCutScreen(
                         onPress = { pressPosition ->
                             val pressInteraction = PressInteraction.Press(pressPosition)
                             val longPress = coroutineScope.launch {
-                                delay(viewConfiguration.longPressTimeoutMillis)
+                                delay(viewConfiguration.longPressTimeoutMillis.milliseconds)
                                 cutterInteractionSource.emit(pressInteraction)
                                 if (playCutSound != null) {
                                     withContext(Dispatchers.IO) {
                                         playCutSound()
                                     }
                                 }
-                                delay(50)
+                                delay(50.milliseconds)
                                 cut()
                                 cutterInteractionSource.emit(
                                     PressInteraction.Cancel(
@@ -283,7 +285,7 @@ fun StampCutScreen(
 
     var cutterSize = DpSize(
         width = UiStampShapeA.size.width * 2.5f,
-        height =  UiStampShapeA.size.height * 2.8f,
+        height = UiStampShapeA.size.height * 2.8f,
     )
     val cutterToScreenSizeRatio =
         if (maxHeight < 300.dp || maxWidth < 300.dp)
@@ -295,7 +297,7 @@ fun StampCutScreen(
         maxHeight * cutterToScreenSizeRatio / cutterSize.height,
     )
     cutterSize *= cutterSizeScale
-    val frameSize =  UiStampShapeA.size * 1.5f * cutterSizeScale
+    val frameSize = UiStampShapeA.size * 1.5f * cutterSizeScale
 
     Spacer(
         modifier = Modifier
@@ -464,8 +466,8 @@ private fun StampCutScreenPreview(
 
 ) {
     StampCutScreen(
-        useCases = emptyArray(),
-        surfaceRequest = null,
+        useCaseGroup = StableHolder(UseCaseGroup.Builder().build()),
+        surfaceRequest = StableHolder(null),
         cutImage = null,
         onCutAction = { _, _ -> },
         sharedTransitionScope = null,
