@@ -114,6 +114,7 @@ import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.StampImage
+import ua.com.radiokot.camerapp.ui.StampImageUse
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
@@ -636,7 +637,8 @@ private fun StampScreenLayoutContent(
 
         StampImage(
             uri = imageUri,
-            decodeSize = shape.rememberPreviewImageDecodeSize(),
+            shape = shape,
+            use = StampImageUse.Standalone,
             shadowRadiusDp = 16f,
             modifier = Modifier
                 .size(size)

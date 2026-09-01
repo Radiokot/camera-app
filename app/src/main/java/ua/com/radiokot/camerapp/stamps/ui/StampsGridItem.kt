@@ -39,6 +39,7 @@ import androidx.core.net.toUri
 import kotlinx.collections.immutable.ImmutableList
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.ui.StampImage
+import ua.com.radiokot.camerapp.ui.StampImageUse
 import ua.com.radiokot.camerapp.util.StableHolder
 import kotlin.math.absoluteValue
 
@@ -95,7 +96,8 @@ fun LazyGridScope.stampItems(
 
         StampImage(
             uri = stamp.imageUri,
-            decodeSize = stamp.shape.rememberGridImageDecodeSize(),
+            shape = stamp.shape,
+            use = StampImageUse.Grid,
             shadowRadiusDp = 4f,
             rotationDegrees = rotation,
             scale = { 1f - 0.1f * selectionAnimationProgressState.value },

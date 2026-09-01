@@ -44,6 +44,7 @@ import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.cache.CacheKey
 import com.skydoves.landscapist.core.model.ImageResult
 import com.skydoves.landscapist.image.LocalLandscapist
+import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.memoryCache
 
@@ -51,25 +52,32 @@ import ua.com.radiokot.camerapp.util.memoryCache
 fun StampImage(
     modifier: Modifier = Modifier,
     uri: StableHolder<Uri>,
-    decodeSize: IntSize,
+    shape: UiStampShape,
+    use: StampImageUse,
     shadowRadiusDp: Float,
     rotationDegrees: Float = 0f,
     scale: (() -> Float)? = null,
 ) {
     val uri = uri.value
+    val density = LocalDensity.current.density
+    val decodeSize = use.getImageDecodeSize(
+        shape = shape,
+        density = density,
+    )
     val landscapist = LocalLandscapist.current
 
-    var drawColor: Color? by remember(uri) {
-        mutableStateOf(
-            if (uri == Uri.EMPTY)
-                Color.Yellow
-            else
-                null
-        )
-    }
-    var drawBitmap: ImageBitmap? by remember {
+
+    // If there's the exact bitmap in the cache – render it from the first frame,
+    // do not start async loading.
+    //
+    // If there's instead a bitmap of suitable alternative size, like grid size for standalone use,
+    // render it from the first frame and start async loading.
+    //
+    // Otherwise, just start the async loading.
+
+    val exactCachedBitmap: ImageBitmap? = remember(decodeSize, uri) {
         if (uri == Uri.EMPTY) {
-            return@remember mutableStateOf(null)
+            return@remember null
         }
 
         checkNotNull(landscapist) {
@@ -81,18 +89,66 @@ fun StampImage(
             landscapist
                 .memoryCache
                 .get(
-                    CacheKey.create(
-                        model = uri,
+                    CacheKey(
+                        url = uri.toString(),
                         width = decodeSize.width,
                         height = decodeSize.height,
                     )
                 )
                 ?.data as? Bitmap
 
-        mutableStateOf(cachedBitmap?.asImageBitmap())
+        cachedBitmap?.asImageBitmap()
+    }
+    val alternativeSizeCachedBitmap: ImageBitmap? = remember(uri, use, density) {
+        if (uri == Uri.EMPTY || exactCachedBitmap != null) {
+            return@remember null
+        }
+
+        val suitableAlternativeDecodeSize: IntSize? = when (use) {
+            StampImageUse.Standalone ->
+                StampImageUse.Grid.getImageDecodeSize(
+                    shape = shape,
+                    density = density,
+                )
+
+            StampImageUse.Grid -> null
+        }
+
+        if (suitableAlternativeDecodeSize == null) {
+            return@remember null
+        }
+
+        checkNotNull(landscapist) {
+            "Missing local Landscapist"
+        }
+
+        @Suppress("ReplaceGetOrSet")
+        val cachedBitmap =
+            landscapist
+                .memoryCache
+                .get(
+                    CacheKey(
+                        url = uri.toString(),
+                        width = suitableAlternativeDecodeSize.width,
+                        height = suitableAlternativeDecodeSize.height,
+                    )
+                )
+                ?.data as? Bitmap
+
+        cachedBitmap?.asImageBitmap()
+    }
+    var drawBitmap: ImageBitmap? by remember {
+        mutableStateOf(exactCachedBitmap ?: alternativeSizeCachedBitmap)
+    }
+    var drawColor: Color? by remember(uri) {
+        mutableStateOf(
+            if (uri == Uri.EMPTY)
+                Color.Yellow
+            else
+                null
+        )
     }
 
-    val density = LocalDensity.current.density
     val shadowColor = LocalColors.current.stampShadow
     val shadowPaint = remember(density, shadowColor) {
         Paint().apply {
@@ -107,8 +163,8 @@ fun StampImage(
         }
     }
 
-    LaunchedEffect(drawBitmap, uri, decodeSize) {
-        if (uri == Uri.EMPTY || drawBitmap != null) {
+    LaunchedEffect(exactCachedBitmap, uri, decodeSize) {
+        if (uri == Uri.EMPTY || exactCachedBitmap != null) {
             return@LaunchedEffect
         }
 
@@ -191,6 +247,28 @@ fun StampImage(
             sx = 1f / density,
             pivotX = center.x,
             pivotY = center.y,
+        )
+    }
+}
+
+enum class StampImageUse {
+    Grid,
+    Standalone,
+    ;
+
+    fun getImageDecodeSize(
+        shape: UiStampShape,
+        density: Float,
+    ): IntSize = when (this) {
+
+        Grid -> IntSize(
+            width = (shape.size.width.value * density).toInt(),
+            height = (shape.size.height.value * density).toInt(),
+        )
+
+        Standalone -> IntSize(
+            width = (shape.size.width.value * 2f * density).toInt(),
+            height = (shape.size.height.value * 2f * density).toInt(),
         )
     }
 }

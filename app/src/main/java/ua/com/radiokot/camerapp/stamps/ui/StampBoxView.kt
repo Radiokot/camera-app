@@ -48,6 +48,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.StampImage
+import ua.com.radiokot.camerapp.ui.StampImageUse
 import kotlin.math.absoluteValue
 
 @Composable
@@ -259,7 +260,8 @@ private fun StampSampleView(
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = StampImage(
     uri = sample.imageUri,
-    decodeSize = sample.shape.rememberGridImageDecodeSize(),
+    shape = sample.shape,
+    use = StampImageUse.Grid,
     shadowRadiusDp = 4f,
     rotationDegrees =
         possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size],

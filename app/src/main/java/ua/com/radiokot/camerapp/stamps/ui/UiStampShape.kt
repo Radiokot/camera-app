@@ -30,18 +30,15 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShape
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeA
@@ -61,28 +58,6 @@ interface UiStampShape {
     val stroke: ImageVector
     val fitContainerSizeScale: Float
         get() = 1f
-
-    @Composable
-    fun rememberGridImageDecodeSize(): IntSize {
-        val density = LocalDensity.current.density
-        return remember(density) {
-            IntSize(
-                width = (size.width.value * density).toInt(),
-                height = (size.height.value * density).toInt(),
-            )
-        }
-    }
-
-    @Composable
-    fun rememberPreviewImageDecodeSize(): IntSize {
-        val density = LocalDensity.current.density
-        return remember(density) {
-            IntSize(
-                width = (size.width.value * 2f * density).toInt(),
-                height = (size.height.value * 2f * density).toInt(),
-            )
-        }
-    }
 
     companion object {
         fun fromShape(

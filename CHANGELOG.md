@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Stamp image blink while being opened or closed
+
 ### Changed
 
-- Stamp date now contains the month name 
+- Stamp date now contains the month name
 
 ## [1.5.1] - 2026-08-30
 
