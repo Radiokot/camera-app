@@ -38,3 +38,8 @@
 # F-Droid
 -keep class kotlinx.coroutines.CoroutineExceptionHandler
 -keep class kotlinx.coroutines.internal.MainDispatcherFactory
+
+# Landscapist memory cache access
+-keepclassmembers class com.skydoves.landscapist.core.Landscapist {
+    com.skydoves.landscapist.core.cache.MemoryCache memoryCache;
+}

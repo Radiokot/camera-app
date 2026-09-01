@@ -6,10 +6,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.skydoves.landscapist.components.ImagePluginComponent
 import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.Landscapist
 import com.skydoves.landscapist.core.LandscapistConfig
+import com.skydoves.landscapist.core.cache.MemoryCache
 import com.skydoves.landscapist.core.decoder.DecodeResult
 import com.skydoves.landscapist.core.decoder.ImageDecoder
 import com.skydoves.landscapist.core.model.DataSource
@@ -17,8 +17,6 @@ import com.skydoves.landscapist.core.network.FetchResult
 import com.skydoves.landscapist.core.network.ImageFetcher
 import java.io.File
 import kotlin.math.max
-
-val EmptyImageComponent = ImagePluginComponent()
 
 private fun interface FileDecoder {
     operator fun invoke(
@@ -154,8 +152,10 @@ class NoOpImageDecoder : ImageDecoder {
     }
 }
 
-fun createLandscapistForPreview() =
-    Landscapist.Builder()
-        .fetcher(FileUriDecodingImageFetcher())
-        .decoder(NoOpImageDecoder())
-        .build()
+private val landscapistMemoryCacheField by lazy {
+    Landscapist::class.java.getDeclaredField("memoryCache").apply {
+        isAccessible = true
+    }
+}
+val Landscapist.memoryCache: MemoryCache
+    get() = landscapistMemoryCacheField.get(this) as MemoryCache

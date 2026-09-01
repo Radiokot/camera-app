@@ -86,13 +86,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
@@ -109,8 +105,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastRoundToInt
-import com.skydoves.landscapist.image.LandscapistImage
-import com.skydoves.landscapist.image.LocalLandscapist
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -119,11 +113,10 @@ import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
+import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.EmptyImageComponent
 import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
-import ua.com.radiokot.camerapp.util.createLandscapistForPreview
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -641,10 +634,10 @@ private fun StampScreenLayoutContent(
             )
         }
 
-        LandscapistImage(
-            imageModel = imageUri::value,
-            imageOptions = shape.rememberPreviewImageOptions(),
-            component = EmptyImageComponent,
+        StampImage(
+            uri = imageUri,
+            decodeSize = shape.rememberPreviewImageDecodeSize(),
+            shadowRadiusDp = 16f,
             modifier = Modifier
                 .size(size)
                 .run {
@@ -658,20 +651,6 @@ private fun StampScreenLayoutContent(
                             animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
-                }
-                .dropShadow(
-                    shape = RectangleShape,
-                    shadow = Shadow(
-                        radius = 16.dp,
-                        color = LocalColors.current.stampShadow,
-                    )
-                )
-                .run {
-                    if (imageUri.value !== Uri.EMPTY) {
-                        return@run this
-                    }
-
-                    background(Color.Yellow)
                 }
         )
     }
@@ -976,9 +955,7 @@ private fun Actions(
 @PreviewLightDark
 @Composable
 private fun StampScreenPreview() {
-    AppTheme(
-        LocalLandscapist provides createLandscapistForPreview(),
-    ) {
+    AppTheme {
         StampScreen(
             stampId = "",
             captionState = TextFieldState("My stamp"),

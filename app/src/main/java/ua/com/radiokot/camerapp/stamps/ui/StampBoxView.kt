@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.snap
@@ -39,22 +38,16 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
-import ua.com.radiokot.camerapp.util.EmptyImageComponent
+import ua.com.radiokot.camerapp.ui.StampImage
 import kotlin.math.absoluteValue
 
 @Composable
@@ -105,7 +98,6 @@ fun StampBoxView(
                 sample = someStamps[0],
                 order = 0,
                 possibleRotationAngles = CenterSampleRotationAngles,
-                fallbackColor = Color.Yellow,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier
@@ -121,7 +113,6 @@ fun StampBoxView(
                 sample = someStamps[1],
                 order = 0,
                 possibleRotationAngles = RightSampleRotationAngles,
-                fallbackColor = Color.Red,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier
@@ -135,7 +126,6 @@ fun StampBoxView(
                 sample = someStamps[0],
                 order = 1,
                 possibleRotationAngles = LeftSampleRotationAngles,
-                fallbackColor = Color.Yellow,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier
@@ -152,7 +142,6 @@ fun StampBoxView(
                 sample = someStamps[2],
                 order = 0,
                 possibleRotationAngles = RightSampleRotationAngles,
-                fallbackColor = Color.Yellow,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier
@@ -166,7 +155,6 @@ fun StampBoxView(
                 sample = someStamps[1],
                 order = 1,
                 possibleRotationAngles = CenterSampleRotationAngles,
-                fallbackColor = Color.Red,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier
@@ -179,7 +167,6 @@ fun StampBoxView(
                 sample = someStamps[0],
                 order = 2,
                 possibleRotationAngles = LeftSampleRotationAngles,
-                fallbackColor = Color.Magenta,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier
@@ -265,16 +252,17 @@ val CollectionViewShape = RoundedCornerShape(10.dp)
 @Composable
 private fun StampSampleView(
     modifier: Modifier = Modifier,
-    fallbackColor: Color,
     sample: StampSampleItem,
     possibleRotationAngles: ImmutableList<Float>,
     order: Int,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope?,
-) = LandscapistImage(
-    imageModel = sample.imageUri::value,
-    imageOptions = sample.shape.rememberListImageOptions(),
-    component = EmptyImageComponent,
+) = StampImage(
+    uri = sample.imageUri,
+    decodeSize = sample.shape.rememberGridImageDecodeSize(),
+    shadowRadiusDp = 4f,
+    rotationDegrees =
+        possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size],
     modifier = modifier
         .size(sample.shape.size * 0.85f)
         .run {
@@ -289,22 +277,5 @@ private fun StampSampleView(
                     zIndexInOverlay = 1f + order,
                 )
             }
-        }
-        .rotate(
-            (possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size])
-        )
-        .dropShadow(
-            shape = RectangleShape,
-            shadow = Shadow(
-                radius = 4.dp,
-                color = LocalColors.current.stampShadow,
-            )
-        )
-        .run {
-            if (sample.imageUri.value !== Uri.EMPTY) {
-                return@run this
-            }
-
-            background(fallbackColor)
         }
 )

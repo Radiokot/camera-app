@@ -43,7 +43,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.skydoves.landscapist.ImageOptions
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShape
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeA
 import ua.com.radiokot.camerapp.stamps.domain.shape.StampShapeOneStamp
@@ -64,27 +63,23 @@ interface UiStampShape {
         get() = 1f
 
     @Composable
-    fun rememberListImageOptions(): ImageOptions {
-        val density = LocalDensity.current
+    fun rememberGridImageDecodeSize(): IntSize {
+        val density = LocalDensity.current.density
         return remember(density) {
-            ImageOptions(
-                requestSize = IntSize(
-                    width = (size.width.value * density.density).toInt(),
-                    height = (size.height.value * density.density).toInt(),
-                )
+            IntSize(
+                width = (size.width.value * density).toInt(),
+                height = (size.height.value * density).toInt(),
             )
         }
     }
 
     @Composable
-    fun rememberPreviewImageOptions(): ImageOptions {
-        val density = LocalDensity.current
+    fun rememberPreviewImageDecodeSize(): IntSize {
+        val density = LocalDensity.current.density
         return remember(density) {
-            ImageOptions(
-                requestSize = IntSize(
-                    width = (size.width.value * 2f * density.density).toInt(),
-                    height = (size.height.value * 2f * density.density).toInt(),
-                )
+            IntSize(
+                width = (size.width.value * 2f * density).toInt(),
+                height = (size.height.value * 2f * density).toInt(),
             )
         }
     }

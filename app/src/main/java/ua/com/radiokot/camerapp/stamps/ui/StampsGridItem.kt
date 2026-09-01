@@ -26,7 +26,6 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -36,18 +35,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.skydoves.landscapist.image.LandscapistImage
 import kotlinx.collections.immutable.ImmutableList
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
-import ua.com.radiokot.camerapp.ui.LocalColors
-import ua.com.radiokot.camerapp.util.EmptyImageComponent
+import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.util.StableHolder
 import kotlin.math.absoluteValue
 
@@ -93,7 +84,6 @@ fun LazyGridScope.stampItems(
     ) {
         val rotation =
             (StampGridItemRotationAngles[stamp.key.hashCode().absoluteValue % StampGridItemRotationAngles.size])
-        val shadowColor = LocalColors.current.stampShadow
         val selectionAnimationProgressState = animateFloatAsState(
             targetValue =
                 if (stamp.isSelected)
@@ -102,15 +92,13 @@ fun LazyGridScope.stampItems(
                     0f,
             animationSpec = selectionAnimationSpec,
         )
-        val stampImageOptions =
-            stamp
-                .shape
-                .rememberListImageOptions()
 
-        LandscapistImage(
-            imageModel = stamp.imageUri::value,
-            imageOptions = stampImageOptions,
-            component = EmptyImageComponent,
+        StampImage(
+            uri = stamp.imageUri,
+            decodeSize = stamp.shape.rememberGridImageDecodeSize(),
+            shadowRadiusDp = 4f,
+            rotationDegrees = rotation,
+            scale = { 1f - 0.1f * selectionAnimationProgressState.value },
             modifier = Modifier
                 .size(stamp.shape.size * stamp.shape.fitContainerSizeScale)
                 .run {
@@ -124,26 +112,6 @@ fun LazyGridScope.stampItems(
                             animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
-                }
-                .graphicsLayer {
-                    scaleX = 1f - 0.1f * selectionAnimationProgressState.value
-                    scaleY = scaleX
-                    rotationZ = rotation
-
-                }
-                .dropShadow(
-                    shape = RectangleShape,
-                    shadow = Shadow(
-                        radius = 4.dp,
-                        color = shadowColor,
-                    )
-                )
-                .run {
-                    if (stamp.imageUri.value !== Uri.EMPTY) {
-                        return@run this
-                    }
-
-                    background(Color.Yellow)
                 }
                 .selectionEnvelope(
                     animationProgressState = selectionAnimationProgressState,
