@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Stamp image blink while being opened or closed
+- Missing shadows on posters on Android older than 9
 
 ### Changed
 

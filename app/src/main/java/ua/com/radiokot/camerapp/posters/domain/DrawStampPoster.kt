@@ -36,18 +36,13 @@ import androidx.compose.ui.util.fastRoundToInt
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.drawPaperBackground
-import ua.com.radiokot.camerapp.ui.getStampShadowPaint
+import ua.com.radiokot.camerapp.ui.drawRectangleShadow
 
 fun DrawScope.drawStampPoster(
     layers: Collection<StampPosterLayer>,
     isDark: Boolean,
 ) {
     val colors = if (isDark) DarkAppColors else LightAppColors
-    val shadowPaint =
-        getStampShadowPaint(
-            color = colors.stampShadow,
-            radiusPx = 48f * density,
-        )
 
     drawPaperBackground(
         lineColor = colors.paperBackgroundLine,
@@ -69,28 +64,28 @@ fun DrawScope.drawStampPoster(
 
         when (layer) {
             is StampPosterLayer.Stamp -> {
-                val rect = layer.rect
+                val size = layer.rect.size * density
+                val topLeft = layer.rect.topLeft * density
                 val imageBitmap = layer.imageBitmap
 
-                drawContext.canvas.nativeCanvas.drawRect(
-                    rect.left * density,
-                    rect.top * density,
-                    rect.right * density,
-                    rect.bottom * density,
-                    shadowPaint,
+                drawRectangleShadow(
+                    color = colors.stampShadow,
+                    topLeft = topLeft,
+                    size = size,
+                    radiusDp = 48f,
                 )
 
                 if (imageBitmap != null) {
                     drawImage(
                         image = imageBitmap,
-                        dstOffset = (rect.topLeft * density).round(),
-                        dstSize = (rect.size * density).roundToIntSize(),
+                        dstOffset = topLeft.round(),
+                        dstSize = size.roundToIntSize(),
                     )
                 } else {
                     drawRect(
                         color = Color.Yellow,
-                        topLeft = rect.topLeft * density,
-                        size = rect.size * density,
+                        topLeft = topLeft,
+                        size = size,
                     )
                 }
             }

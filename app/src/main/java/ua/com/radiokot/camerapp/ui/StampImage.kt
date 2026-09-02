@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rotate
 import androidx.compose.ui.graphics.scale
 import androidx.compose.ui.platform.LocalDensity
@@ -62,8 +61,8 @@ fun StampImage(
         shape = shape,
         density = density,
     )
+    val shadowColor = LocalColors.current.stampShadow
     val landscapist = LocalLandscapist.current
-
 
     // If there's the exact bitmap in the cache – render it from the first frame,
     // do not start async loading.
@@ -147,11 +146,6 @@ fun StampImage(
         )
     }
 
-    val shadowPaint = getStampShadowPaint(
-        color = LocalColors.current.stampShadow,
-        radiusPx = shadowRadiusDp * density,
-    )
-
     LaunchedEffect(exactCachedBitmap, uri, decodeSize) {
         if (uri == Uri.EMPTY || exactCachedBitmap != null) {
             return@LaunchedEffect
@@ -210,12 +204,9 @@ fun StampImage(
             pivotY = center.y,
         )
 
-        drawContext.canvas.nativeCanvas.drawRect(
-            0f,
-            0f,
-            size.width,
-            size.height,
-            shadowPaint,
+        drawRectangleShadow(
+            color = shadowColor,
+            radiusDp = shadowRadiusDp,
         )
 
         if (drawBitmap != null) {
