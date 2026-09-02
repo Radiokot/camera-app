@@ -39,15 +39,15 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          java-version: ${{env.java_version}}
+          java-version: ${{ env.java_version }}
           distribution: temurin
 
       - name: Build ${{ matrix.name }}
         run: ./gradlew ${{ matrix.gradle-command }} --stacktrace
 
       - name: Upload the packages
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.name }}
           path: ${{ matrix.result }}
           if-no-files-found: error
+          archive: false
