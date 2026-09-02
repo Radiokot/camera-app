@@ -1,5 +1,0 @@
-Fixed:
-- Too much horizontal space around the content when the gesture navigation is used
-
-Changed:
-- Made the image adjustments faster
