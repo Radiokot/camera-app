@@ -36,12 +36,18 @@ import androidx.compose.ui.util.fastRoundToInt
 import ua.com.radiokot.camerapp.ui.DarkAppColors
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.drawPaperBackground
+import ua.com.radiokot.camerapp.ui.getStampShadowPaint
 
 fun DrawScope.drawStampPoster(
     layers: Collection<StampPosterLayer>,
     isDark: Boolean,
 ) {
     val colors = if (isDark) DarkAppColors else LightAppColors
+    val shadowPaint =
+        getStampShadowPaint(
+            color = colors.stampShadow,
+            radiusPx = 48f * density,
+        )
 
     drawPaperBackground(
         lineColor = colors.paperBackgroundLine,
@@ -49,13 +55,6 @@ fun DrawScope.drawStampPoster(
         gridSizePx = (57 * density).fastRoundToInt(),
         gridThicknessPx = 3.6f * density,
         verticalOffsetPx = 0,
-    )
-
-    stampPosterShadowPaint.setShadowLayer(
-        48f * density,
-        0f,
-        0f,
-        colors.stampShadow.toArgb()
     )
 
     for (layer in layers) {
@@ -78,7 +77,7 @@ fun DrawScope.drawStampPoster(
                     rect.top * density,
                     rect.right * density,
                     rect.bottom * density,
-                    stampPosterShadowPaint,
+                    shadowPaint,
                 )
 
                 if (imageBitmap != null) {
@@ -152,10 +151,6 @@ fun DrawScope.drawStampPosterTextBackground(
     )
 }
 
-private val stampPosterShadowPaint = Paint().apply {
-    style = Paint.Style.FILL
-    color = android.graphics.Color.TRANSPARENT
-}
 private val stampPosterTextBackgroundPaint = Paint().apply {
     style = Paint.Style.FILL
 }

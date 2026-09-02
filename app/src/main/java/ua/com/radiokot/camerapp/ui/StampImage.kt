@@ -20,7 +20,6 @@
 package ua.com.radiokot.camerapp.ui
 
 import android.graphics.Bitmap
-import android.graphics.Paint
 import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
@@ -36,7 +35,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.rotate
 import androidx.compose.ui.graphics.scale
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toIntSize
@@ -149,19 +147,10 @@ fun StampImage(
         )
     }
 
-    val shadowColor = LocalColors.current.stampShadow
-    val shadowPaint = remember(density, shadowColor) {
-        Paint().apply {
-            style = Paint.Style.FILL
-            color = android.graphics.Color.TRANSPARENT
-            setShadowLayer(
-                shadowRadiusDp * density,
-                0f,
-                0f,
-                shadowColor.toArgb()
-            )
-        }
-    }
+    val shadowPaint = getStampShadowPaint(
+        color = LocalColors.current.stampShadow,
+        radiusPx = shadowRadiusDp * density,
+    )
 
     LaunchedEffect(exactCachedBitmap, uri, decodeSize) {
         if (uri == Uri.EMPTY || exactCachedBitmap != null) {
