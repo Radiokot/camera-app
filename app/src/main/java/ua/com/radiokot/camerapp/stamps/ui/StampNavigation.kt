@@ -26,6 +26,10 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
@@ -61,6 +65,7 @@ fun NavGraphBuilder.stampDestination(
             )
         )
     }
+    var isSwipedToExit by remember { mutableStateOf(false) }
 
     StampScreen(
         stampId = viewModel.stampId,
@@ -74,7 +79,13 @@ fun NavGraphBuilder.stampDestination(
         imageUri = viewModel.imageUri,
         shape = viewModel.shape,
         takenAt = viewModel.takenAt,
-        onSwipedToExit = onDone,
+        onSwipedToExit = {
+            // Prevent firing multiple times during transition.
+            if (!isSwipedToExit) {
+                isSwipedToExit = true
+                onDone()
+            }
+        },
         sharedTransitionScope = sharedTransitionScope,
         animatedVisibilityScope = this@composable,
         modifier = Modifier
