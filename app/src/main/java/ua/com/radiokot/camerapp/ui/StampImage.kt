@@ -42,20 +42,18 @@ import com.skydoves.landscapist.core.cache.CacheKey
 import com.skydoves.landscapist.core.model.ImageResult
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.util.LocalLandscapist
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.memoryCache
 
 @Composable
 fun StampImage(
     modifier: Modifier = Modifier,
-    uri: StableHolder<Uri>,
+    uri: Uri,
     shape: UiStampShape,
     use: StampImageUse,
     shadowRadiusDp: Float,
     rotationDegrees: Float = 0f,
     scale: (() -> Float)? = null,
 ) {
-    val uri = uri.value
     val density = LocalDensity.current.density
     val decodeSize = use.getImageDecodeSize(
         shape = shape,

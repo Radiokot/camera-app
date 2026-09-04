@@ -36,7 +36,6 @@ import kotlinx.coroutines.runBlocking
 import ua.com.radiokot.camerapp.stamps.domain.CreateSendStampIntentUseCase
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.stamps.domain.StampRepository
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.eventSharedFlow
 import ua.com.radiokot.camerapp.util.lazyLogger
 import java.time.LocalDate
@@ -58,12 +57,12 @@ class StampScreenViewModel(
 
     val stampId: String =
         stamp.id
-    val imageUri: StableHolder<Uri> =
-        StableHolder(stamp.imageUri.toUri())
+    val imageUri: Uri =
+        stamp.imageUri.toUri()
     val shape: UiStampShape =
         UiStampShape.fromShape(stamp.shape)
-    val takenAt: StableHolder<LocalDate> =
-        StableHolder(stamp.takenAtLocal.toLocalDate())
+    val takenAt: LocalDate =
+        stamp.takenAtLocal.toLocalDate()
 
     val caption: TextFieldState = TextFieldState(initialText = stamp.caption ?: "")
     val isCaptionInputEnabled: StateFlow<Boolean>
@@ -207,7 +206,6 @@ class StampScreenViewModel(
                 saveUpdates()
             }
         }
-        super.onCleared()
     }
 
     data class Parameters(

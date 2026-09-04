@@ -54,7 +54,6 @@ import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
@@ -140,17 +139,17 @@ private fun SendEnvelopeScreenPreview() {
             messageInputState = TextFieldState("My message for the receiver"),
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "2",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "3",
                 ),

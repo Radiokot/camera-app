@@ -89,7 +89,6 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutout
 import ua.com.radiokot.camerapp.util.plus
 
@@ -647,49 +646,40 @@ private fun SelectionActionsPreview() {
     }
 }
 
-@Composable
-fun StampsScreenDummy(
-    modifier: Modifier = Modifier,
-) {
-    val stamps = remember {
-        (1..6)
-            .map { i ->
-                StampsGridItem(
-                    imageUri = StableHolder(Uri.EMPTY),
-                    shape = UiStampShapeA,
-                    isSelected = false,
-                    key = i.toString(),
-                )
-            }
-            .toPersistentList()
-    }
-
-    StampsScreen(
-        collectionId = "",
-        collectionNameInputState = TextFieldState("My stamps"),
-        focusCollectionNameInput = false,
-        showGiftMessage = true,
-        stamps = stamps.let(::mutableStateOf),
-        onStampClicked = { },
-        onStampLongClicked = { },
-        selectedCountState = 0.let(::mutableIntStateOf),
-        onMoveSelectedAction = { },
-        onSendSelectedAsEnvelopeAction = { },
-        onSendSelectedAsPosterAction = { },
-        onDeleteSelectedAction = { },
-        onNewStampAction = { },
-        sharedTransitionScope = null,
-        animatedVisibilityScope = null,
-        modifier = modifier
-    )
-}
-
 @PreviewLightDark
 @Composable
 private fun StampsScreenPreview() {
     AppTheme {
-        StampsScreenDummy(
-            modifier = Modifier
+        val stamps = remember {
+            (1..6)
+                .map { i ->
+                    StampsGridItem(
+                        imageUri = Uri.EMPTY,
+                        shape = UiStampShapeA,
+                        isSelected = false,
+                        key = i.toString(),
+                    )
+                }
+                .toPersistentList()
+        }
+
+        StampsScreen(
+            collectionId = "",
+            collectionNameInputState = TextFieldState("My stamps"),
+            focusCollectionNameInput = false,
+            showGiftMessage = true,
+            stamps = stamps.let(::mutableStateOf),
+            onStampClicked = { },
+            onStampLongClicked = { },
+            selectedCountState = 0.let(::mutableIntStateOf),
+            onMoveSelectedAction = { },
+            onSendSelectedAsEnvelopeAction = { },
+            onSendSelectedAsPosterAction = { },
+            onDeleteSelectedAction = { },
+            onNewStampAction = { },
+            sharedTransitionScope = null,
+            animatedVisibilityScope = null,
+            modifier =  Modifier
                 .fillMaxSize()
                 .paperBackground(
                     drawBackgroundColor = true,

@@ -40,12 +40,11 @@ import kotlinx.collections.immutable.ImmutableList
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
-import ua.com.radiokot.camerapp.util.StableHolder
 import kotlin.math.absoluteValue
 
 @Immutable
 data class StampsGridItem(
-    val imageUri: StableHolder<Uri>,
+    val imageUri: Uri,
     val shape: UiStampShape,
     val isSelected: Boolean,
     val key: String,
@@ -54,7 +53,7 @@ data class StampsGridItem(
         stamp: Stamp,
         selectedStampIds: Set<String>,
     ) : this(
-        imageUri = StableHolder(stamp.imageUri.toUri()),
+        imageUri = stamp.imageUri.toUri(),
         shape = UiStampShape.fromShape(stamp.shape),
         isSelected = stamp.id in selectedStampIds,
         key = stamp.id,

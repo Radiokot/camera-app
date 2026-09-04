@@ -69,6 +69,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -116,7 +117,6 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -130,9 +130,9 @@ fun StampScreen(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: StableHolder<Uri>,
+    imageUri: Uri,
     shape: UiStampShape,
-    takenAt: StableHolder<LocalDate>,
+    takenAt: LocalDate,
     onAddCaptionAction: () -> Unit,
     onDeleteAction: () -> Unit,
     onMoveAction: () -> Unit,
@@ -235,9 +235,9 @@ private fun StampScreenPortrait(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: StableHolder<Uri>,
+    imageUri: Uri,
     shape: UiStampShape,
-    takenAt: StableHolder<LocalDate>,
+    takenAt: LocalDate,
     areActionsVisible: MutableState<Boolean>,
     onAddCaptionAction: () -> Unit,
     onDeleteAction: () -> Unit,
@@ -395,9 +395,9 @@ fun StampScreenLandscape(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: StableHolder<Uri>,
+    imageUri: Uri,
     shape: UiStampShape,
-    takenAt: StableHolder<LocalDate>,
+    takenAt: LocalDate,
     areActionsVisible: MutableState<Boolean>,
     onAddCaptionAction: () -> Unit,
     onDeleteAction: () -> Unit,
@@ -543,9 +543,9 @@ private fun StampScreenLayoutContent(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: StableHolder<Uri>,
+    imageUri: Uri,
     shape: UiStampShape,
-    takenAt: StableHolder<LocalDate>,
+    takenAt: LocalDate,
     areDateAndMoreVisible: State<Boolean>,
     areActionsVisible: MutableState<Boolean>,
     onAddCaptionAction: () -> Unit,
@@ -687,7 +687,7 @@ private fun StampScreenLayoutContent(
             }
 
             BasicText(
-                text = takenAt.value.format(takenAtFormat),
+                text = takenAt.format(takenAtFormat),
                 style = TextStyle(
                     fontFamily = PodkovaFamily,
                     fontSize = 16.sp,
@@ -960,11 +960,11 @@ private fun StampScreenPreview() {
     AppTheme {
         StampScreen(
             stampId = "",
-            captionState = TextFieldState("My stamp"),
+            captionState = rememberTextFieldState("My stamp"),
             isCaptionInputEnabled = false.let(::mutableStateOf),
-            imageUri = StableHolder(Uri.EMPTY),
+            imageUri = Uri.EMPTY,
             shape = UiStampShapeA,
-            takenAt = StableHolder(LocalDate.now()),
+            takenAt = remember { LocalDate.now() },
             onAddCaptionAction = { },
             onDeleteAction = { },
             onMoveAction = { },

@@ -51,7 +51,6 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 
 @Composable
@@ -174,17 +173,17 @@ private fun EnvelopePreviewScreenPreview() {
             stampCount = 10,
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "2",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "3",
                 ),

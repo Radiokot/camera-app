@@ -45,7 +45,6 @@ import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.LocalLandscapist
-import ua.com.radiokot.camerapp.util.StableHolder
 
 @Immutable
 class OpenEnvelopeActivity : ComponentActivity() {
@@ -63,8 +62,6 @@ class OpenEnvelopeActivity : ComponentActivity() {
             return
         }
 
-        val oneStampEnvelopeContentUri = StableHolder(intentData)
-
         setContent {
             AppTheme(
                 LocalLandscapist provides koinInject(),
@@ -72,7 +69,7 @@ class OpenEnvelopeActivity : ComponentActivity() {
                 val colors = LocalColors.current
 
                 OpenEnvelopeNavHost(
-                    oneStampEnvelopeContentUri = oneStampEnvelopeContentUri,
+                    oneStampEnvelopeContentUri = intentData,
                     onDone = {
                         showToast(
                             context = this@OpenEnvelopeActivity,
@@ -103,7 +100,7 @@ class OpenEnvelopeActivity : ComponentActivity() {
 @Composable
 private fun OpenEnvelopeNavHost(
     modifier: Modifier = Modifier,
-    oneStampEnvelopeContentUri: StableHolder<Uri>,
+    oneStampEnvelopeContentUri: Uri,
     onDone: () -> Unit,
     onErrorAcknowledged: () -> Unit,
 ) {
@@ -120,7 +117,7 @@ private fun OpenEnvelopeNavHost(
         navController = navController,
         startDestination =
             EnvelopePreviewRoute(
-                oneStampEnvelopeContentUri = oneStampEnvelopeContentUri.value,
+                oneStampEnvelopeContentUri = oneStampEnvelopeContentUri,
             ),
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },

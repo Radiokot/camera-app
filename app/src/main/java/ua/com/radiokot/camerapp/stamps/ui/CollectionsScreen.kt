@@ -71,7 +71,6 @@ import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.barsAndCutout
 import ua.com.radiokot.camerapp.util.plus
 
@@ -296,7 +295,7 @@ private fun CollectionsScreenPreview() {
             name = "My stamps",
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "",
                 ),
@@ -307,12 +306,12 @@ private fun CollectionsScreenPreview() {
             name = "RED",
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "2",
                 ),
@@ -323,17 +322,17 @@ private fun CollectionsScreenPreview() {
             name = "Food",
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "2",
                 ),
                 StampSampleItem(
-                    imageUri = StableHolder(Uri.EMPTY),
+                    imageUri = Uri.EMPTY,
                     shape = UiStampShapeA,
                     key = "3",
                 ),

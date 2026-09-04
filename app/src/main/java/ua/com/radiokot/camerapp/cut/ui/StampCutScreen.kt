@@ -86,7 +86,6 @@ import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.stamps.ui.StampCutter
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
-import ua.com.radiokot.camerapp.util.StableHolder
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 import kotlin.random.Random
@@ -95,7 +94,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun StampCutScreen(
-    useCaseGroup: StableHolder<UseCaseGroup>,
+    useCaseGroup: UseCaseGroup,
     surfaceRequest: SurfaceRequest?,
     cutImage: ImageBitmap?,
     onCutAction: (
@@ -119,7 +118,7 @@ fun StampCutScreen(
             camera = it.bindToLifecycle(
                 lifecycleOwner = lifecycleOwner,
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-                useCaseGroup = useCaseGroup.value,
+                useCaseGroup = useCaseGroup,
             )
         }
     }
@@ -466,7 +465,7 @@ private fun StampCutScreenPreview(
 
 ) {
     StampCutScreen(
-        useCaseGroup = StableHolder(UseCaseGroup.Builder().build()),
+        useCaseGroup = remember { UseCaseGroup.Builder().build() },
         surfaceRequest = null,
         cutImage = null,
         onCutAction = { _, _ -> },

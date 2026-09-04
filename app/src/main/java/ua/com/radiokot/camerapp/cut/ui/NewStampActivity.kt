@@ -59,7 +59,6 @@ import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.LightAppColors
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
-import ua.com.radiokot.camerapp.util.StableHolder
 import ua.com.radiokot.camerapp.util.fadeOutExit
 import ua.com.radiokot.camerapp.util.lazyLogger
 
@@ -200,7 +199,7 @@ private fun SharedTransitionScope.StampCutNavHost(
                 LocalColors provides LightAppColors
             ) {
                 StampCutScreen(
-                    useCaseGroup = StableHolder(viewModel.useCaseGroup),
+                    useCaseGroup = viewModel.useCaseGroup,
                     surfaceRequest = surfaceRequest,
                     cutImage = cutImage,
                     onCutAction = viewModel::onCutAction,
