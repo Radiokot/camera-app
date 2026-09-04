@@ -23,10 +23,8 @@
 # The app is opensource, no need to obsfucate
 -dontobfuscate
 
-# R8 optimization for Kotlin null checks
--assumenosideeffects class kotlin.jvm.internal.Intrinsics {
-  public static void checkNotNull(...);
-}
+# Remove runtime Kotlin null checks
+-processkotlinnullchecks remove
 
 # Logging stack
 -keep class ch.qos.logback.** { *; }
