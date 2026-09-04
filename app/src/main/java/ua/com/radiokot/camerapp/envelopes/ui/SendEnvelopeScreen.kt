@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.envelopes.ui
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -139,17 +138,17 @@ private fun SendEnvelopeScreenPreview() {
             messageInputState = TextFieldState("My message for the receiver"),
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "2",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "3",
                 ),

@@ -19,19 +19,17 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
-import android.net.Uri
 import androidx.compose.runtime.Immutable
-import androidx.core.net.toUri
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 
 @Immutable
 data class StampSampleItem(
-    val imageUri: Uri,
+    val imageUri: String,
     val shape: UiStampShape,
     val key: String,
 ) {
     constructor(stamp: Stamp) : this(
-        imageUri = stamp.imageUri.toUri(),
+        imageUri = stamp.imageUri,
         shape = UiStampShape.fromShape(stamp.shape),
         key = stamp.id,
     )

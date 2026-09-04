@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
@@ -295,7 +294,7 @@ private fun CollectionsScreenPreview() {
             name = "My stamps",
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "",
                 ),
@@ -306,12 +305,12 @@ private fun CollectionsScreenPreview() {
             name = "RED",
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "2",
                 ),
@@ -322,17 +321,17 @@ private fun CollectionsScreenPreview() {
             name = "Food",
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "2",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "3",
                 ),

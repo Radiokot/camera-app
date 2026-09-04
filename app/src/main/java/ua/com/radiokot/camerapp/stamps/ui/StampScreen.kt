@@ -23,7 +23,6 @@ package ua.com.radiokot.camerapp.stamps.ui
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.net.Uri
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -130,7 +129,7 @@ fun StampScreen(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: Uri,
+    imageUri: String,
     shape: UiStampShape,
     takenAt: LocalDate,
     onAddCaptionAction: () -> Unit,
@@ -235,7 +234,7 @@ private fun StampScreenPortrait(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: Uri,
+    imageUri: String,
     shape: UiStampShape,
     takenAt: LocalDate,
     areActionsVisible: MutableState<Boolean>,
@@ -395,7 +394,7 @@ fun StampScreenLandscape(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: Uri,
+    imageUri: String,
     shape: UiStampShape,
     takenAt: LocalDate,
     areActionsVisible: MutableState<Boolean>,
@@ -543,7 +542,7 @@ private fun StampScreenLayoutContent(
     stampId: String,
     captionState: TextFieldState,
     isCaptionInputEnabled: State<Boolean>,
-    imageUri: Uri,
+    imageUri: String,
     shape: UiStampShape,
     takenAt: LocalDate,
     areDateAndMoreVisible: State<Boolean>,
@@ -962,7 +961,7 @@ private fun StampScreenPreview() {
             stampId = "",
             captionState = rememberTextFieldState("My stamp"),
             isCaptionInputEnabled = false.let(::mutableStateOf),
-            imageUri = Uri.EMPTY,
+            imageUri = "",
             shape = UiStampShapeA,
             takenAt = remember { LocalDate.now() },
             onAddCaptionAction = { },

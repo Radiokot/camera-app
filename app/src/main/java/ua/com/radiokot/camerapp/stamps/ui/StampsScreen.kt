@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -656,7 +655,7 @@ private fun StampsScreenPreview() {
             (1..6)
                 .map { i ->
                     StampsGridItem(
-                        imageUri = Uri.EMPTY,
+                        imageUri = "",
                         shape = UiStampShapeA,
                         key = i.toString(),
                     )

@@ -20,10 +20,8 @@
 package ua.com.radiokot.camerapp.stamps.ui
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
@@ -57,8 +55,8 @@ class StampScreenViewModel(
 
     val stampId: String =
         stamp.id
-    val imageUri: Uri =
-        stamp.imageUri.toUri()
+    val imageUri: String =
+        stamp.imageUri
     val shape: UiStampShape =
         UiStampShape.fromShape(stamp.shape)
     val takenAt: LocalDate =

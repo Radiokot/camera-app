@@ -1,9 +1,7 @@
 package ua.com.radiokot.camerapp.util
 
-import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.compositionLocalOf
@@ -111,14 +109,11 @@ class FileUriDecodingImageFetcher : ImageFetcher {
     override suspend fun fetch(
         request: ImageRequest,
     ): FetchResult {
-        val uriPath = (request.model as Uri).path
-            ?: return FetchResult.Error(
-                IllegalStateException("The URI has no path")
-            )
-
         val decoded = try {
             fileDecoder(
-                filePath = uriPath,
+                filePath =
+                    (request.model as String)
+                        .substring(URI_PATH_PREFIX.length),
                 targetWidth = request.targetWidth,
                 targetHeight = request.targetHeight,
             )
@@ -135,7 +130,11 @@ class FileUriDecodingImageFetcher : ImageFetcher {
     }
 
     override fun canHandle(model: Any?): Boolean {
-        return model is Uri && model.scheme == ContentResolver.SCHEME_FILE
+        return model is String && model.startsWith(URI_PATH_PREFIX)
+    }
+
+    private companion object {
+        private const val URI_PATH_PREFIX = "file://"
     }
 }
 

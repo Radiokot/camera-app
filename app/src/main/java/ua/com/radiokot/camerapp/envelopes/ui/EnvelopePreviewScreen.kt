@@ -173,17 +173,17 @@ private fun EnvelopePreviewScreenPreview() {
             stampCount = 10,
             someStamps = persistentListOf(
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "1",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "2",
                 ),
                 StampSampleItem(
-                    imageUri = Uri.EMPTY,
+                    imageUri = "",
                     shape = UiStampShapeA,
                     key = "3",
                 ),

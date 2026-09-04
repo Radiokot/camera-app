@@ -25,7 +25,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontFamily
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skydoves.landscapist.core.ImageRequest
@@ -521,7 +520,7 @@ class CreateStampPosterScreenViewModel(
             .load(
                 ImageRequest
                     .builder()
-                    .model(imageUri.toUri())
+                    .model(imageUri)
                     .progressiveEnabled(false)
                     .build()
             )

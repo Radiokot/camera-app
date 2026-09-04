@@ -20,7 +20,6 @@
 package ua.com.radiokot.camerapp.ui
 
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +46,7 @@ import ua.com.radiokot.camerapp.util.memoryCache
 @Composable
 fun StampImage(
     modifier: Modifier = Modifier,
-    uri: Uri,
+    uri: String,
     shape: UiStampShape,
     use: StampImageUse,
     shadowRadiusDp: Float,
@@ -71,7 +70,7 @@ fun StampImage(
     // Otherwise, just start the async loading.
 
     val exactCachedBitmap: ImageBitmap? = remember(decodeSize, uri) {
-        if (uri == Uri.EMPTY) {
+        if (uri.isEmpty()) {
             return@remember null
         }
 
@@ -85,7 +84,7 @@ fun StampImage(
                 .memoryCache
                 .get(
                     CacheKey(
-                        url = uri.toString(),
+                        url = uri,
                         width = decodeSize.width,
                         height = decodeSize.height,
                     )
@@ -95,7 +94,7 @@ fun StampImage(
         cachedBitmap?.asImageBitmap()
     }
     val alternativeSizeCachedBitmap: ImageBitmap? = remember(uri, use, density) {
-        if (uri == Uri.EMPTY || exactCachedBitmap != null) {
+        if (uri.isEmpty() || exactCachedBitmap != null) {
             return@remember null
         }
 
@@ -123,7 +122,7 @@ fun StampImage(
                 .memoryCache
                 .get(
                     CacheKey(
-                        url = uri.toString(),
+                        url = uri,
                         width = suitableAlternativeDecodeSize.width,
                         height = suitableAlternativeDecodeSize.height,
                     )
@@ -137,7 +136,7 @@ fun StampImage(
     }
     var drawColor: Color? by remember(uri) {
         mutableStateOf(
-            if (uri == Uri.EMPTY)
+            if (uri.isEmpty())
                 Color.Yellow
             else
                 null
@@ -145,7 +144,7 @@ fun StampImage(
     }
 
     LaunchedEffect(exactCachedBitmap, uri, decodeSize) {
-        if (uri == Uri.EMPTY || exactCachedBitmap != null) {
+        if (uri.isEmpty() || exactCachedBitmap != null) {
             return@LaunchedEffect
         }
 

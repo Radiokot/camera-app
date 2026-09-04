@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.stamps.ui
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.AnimationSpec
@@ -35,7 +34,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.core.net.toUri
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
@@ -45,14 +43,14 @@ import kotlin.math.absoluteValue
 
 @Immutable
 data class StampsGridItem(
-    val imageUri: Uri,
+    val imageUri: String,
     val shape: UiStampShape,
     val key: String,
 ) {
     constructor(
         stamp: Stamp,
     ) : this(
-        imageUri = stamp.imageUri.toUri(),
+        imageUri = stamp.imageUri,
         shape = UiStampShape.fromShape(stamp.shape),
         key = stamp.id,
     )
