@@ -39,6 +39,7 @@ import kotlinx.collections.immutable.ImmutableSet
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 import kotlin.math.absoluteValue
 
 @Immutable
@@ -99,18 +100,11 @@ fun LazyGridScope.stampItems(
             scale = { 1f - 0.1f * selectionAnimationProgressState.value },
             modifier = Modifier
                 .size(stamp.shape.size * stamp.shape.fitContainerSizeScale)
-                .run {
-                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                        return@run this
-                    }
-
-                    with(sharedTransitionScope) {
-                        sharedElement(
-                            sharedContentState = rememberSharedContentState(stamp.key),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
-                    }
-                }
+                .optionalSharedElement(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    contentKey = stamp.key,
+                )
                 .selectionEnvelope(
                     animationProgressState = selectionAnimationProgressState,
                     heightFraction = when (stamp.shape) {

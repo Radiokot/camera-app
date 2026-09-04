@@ -64,6 +64,7 @@ import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 
 @Composable
 fun StampSaveScreen(
@@ -138,18 +139,11 @@ fun StampSaveScreen(
             contentDescription = null,
             modifier = Modifier
                 .size(imageSize)
-                .run {
-                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                        return@run this
-                    }
-
-                    with(sharedTransitionScope) {
-                        sharedElement(
-                            sharedContentState = rememberSharedContentState("image"),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
-                    }
-                }
+                .optionalSharedElement(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    contentKey = "image",
+                )
                 .dropShadow(
                     shape = RectangleShape,
                     shadow = Shadow(

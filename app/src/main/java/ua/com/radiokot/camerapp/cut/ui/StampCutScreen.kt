@@ -74,6 +74,7 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -86,6 +87,7 @@ import kotlinx.coroutines.withContext
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.stamps.ui.StampCutter
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShapeA
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 import kotlin.random.Random
@@ -389,18 +391,11 @@ fun StampCutScreen(
                     scaleX = scale.value
                     scaleY = scale.value
                 }
-                .run {
-                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                        return@run this
-                    }
-
-                    with(sharedTransitionScope) {
-                        sharedElement(
-                            sharedContentState = rememberSharedContentState("image"),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
-                    }
-                }
+                .optionalSharedElement(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    contentKey = "image",
+                )
                 .graphicsLayer {
                     rotationZ = rotation.value
                 }
@@ -459,7 +454,7 @@ fun StampCutScreen(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@Preview
 @Composable
 private fun StampCutScreenPreview(
 

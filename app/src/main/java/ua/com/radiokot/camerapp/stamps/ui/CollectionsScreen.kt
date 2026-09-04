@@ -71,6 +71,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutout
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 import ua.com.radiokot.camerapp.util.plus
 
 @Composable
@@ -168,19 +169,11 @@ fun CollectionsScreen(
             .padding(24.dp)
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
-            .run {
-                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                    return@run this
-                }
-
-                with(sharedTransitionScope) {
-                    sharedElement(
-                        sharedContentState = rememberSharedContentState("new-stamp-button"),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        zIndexInOverlay = 30f,
-                    )
-                }
-            }
+            .optionalSharedElement(
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                contentKey = "new-stamp-button",
+            )
     )
 }
 

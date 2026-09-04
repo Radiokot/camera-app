@@ -49,6 +49,8 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
+import ua.com.radiokot.camerapp.util.optionalSharedBounds
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 import kotlin.math.absoluteValue
 
 @Composable
@@ -69,18 +71,11 @@ fun StampBoxView(
         modifier = Modifier
             .fillMaxWidth()
             .height(CollectionViewSize.height * 0.7f)
-            .run {
-                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                    return@run this
-                }
-
-                with(sharedTransitionScope) {
-                    sharedElement(
-                        sharedContentState = rememberSharedContentState("${key}-box-back"),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                    )
-                }
-            }
+            .optionalSharedElement(
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                contentKey = "${key}-box-back",
+            )
             .background(
                 color = colors.stampBoxBack,
                 shape = CollectionViewShape,
@@ -186,22 +181,15 @@ fun StampBoxView(
             .fillMaxWidth()
             .height(StampContainerBaseSize.height * 0.5f)
             .align(Alignment.BottomCenter)
-            .run {
-                if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                    return@run this
-                }
-
-                with(sharedTransitionScope) {
-                    sharedBounds(
-                        sharedContentState = rememberSharedContentState("${key}-box-front"),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        exit = fadeOut(
-                            animationSpec = snap(),
-                        ),
-                        zIndexInOverlay = 10f,
-                    )
-                }
-            }
+            .optionalSharedBounds(
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
+                contentKey = "${key}-box-front",
+                exit = fadeOut(
+                    animationSpec = snap(),
+                ),
+                zIndexInOverlay = 10f,
+            )
             .background(
                 color = colors.componentBackground,
                 shape = CollectionViewShape,
@@ -223,19 +211,12 @@ fun StampBoxView(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .run {
-                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                        return@run this
-                    }
-
-                    with(sharedTransitionScope) {
-                        sharedElement(
-                            sharedContentState = rememberSharedContentState("${key}-name"),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            zIndexInOverlay = 20f,
-                        )
-                    }
-                }
+                .optionalSharedElement(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    contentKey = "${key}-name",
+                    zIndexInOverlay = 20f,
+                )
         )
     }
 }
@@ -267,17 +248,10 @@ private fun StampSampleView(
         possibleRotationAngles[sample.key.hashCode().absoluteValue % possibleRotationAngles.size],
     modifier = modifier
         .size(sample.shape.size * 0.85f)
-        .run {
-            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                return@run this
-            }
-
-            with(sharedTransitionScope) {
-                sharedElement(
-                    sharedContentState = rememberSharedContentState(sample.key),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    zIndexInOverlay = 1f + order,
-                )
-            }
-        }
+        .optionalSharedElement(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope,
+            contentKey = sample.key,
+            zIndexInOverlay = 1f + order,
+        )
 )

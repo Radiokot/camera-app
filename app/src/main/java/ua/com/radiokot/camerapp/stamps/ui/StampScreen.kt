@@ -117,6 +117,7 @@ import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -641,18 +642,11 @@ private fun StampScreenLayoutContent(
             shadowRadiusDp = 16f,
             modifier = Modifier
                 .size(size)
-                .run {
-                    if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                        return@run this
-                    }
-
-                    with(sharedTransitionScope) {
-                        sharedElement(
-                            sharedContentState = rememberSharedContentState(stampId),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
-                    }
-                }
+                .optionalSharedElement(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    contentKey = stampId,
+                )
         )
     }
 

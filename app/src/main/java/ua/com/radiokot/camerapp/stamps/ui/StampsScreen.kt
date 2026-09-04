@@ -90,6 +90,8 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutout
+import ua.com.radiokot.camerapp.util.optionalSharedBounds
+import ua.com.radiokot.camerapp.util.optionalSharedElement
 import ua.com.radiokot.camerapp.util.plus
 
 @Composable
@@ -112,19 +114,12 @@ fun StampsScreen(
     animatedVisibilityScope: AnimatedVisibilityScope?,
 ) = Box(
     modifier
-        .run {
-            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                return@run this
-            }
-
-            with(sharedTransitionScope) {
-                sharedBounds(
-                    sharedContentState = rememberSharedContentState("$collectionId-box-front"),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    zIndexInOverlay = 10f,
-                )
-            }
-        }
+        .optionalSharedBounds(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope,
+            contentKey = "$collectionId-box-front",
+            zIndexInOverlay = 10f,
+        )
 ) {
     val barsAndCutoutPadding =
         WindowInsets.barsAndCutout.asPaddingValues()
@@ -167,19 +162,12 @@ fun StampsScreen(
                     inputState = collectionNameInputState,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .run {
-                            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                                return@run this
-                            }
-
-                            with(sharedTransitionScope) {
-                                sharedElement(
-                                    sharedContentState = rememberSharedContentState("$collectionId-name"),
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    zIndexInOverlay = 20f,
-                                )
-                            }
-                        }
+                        .optionalSharedElement(
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            contentKey = "$collectionId-name",
+                            zIndexInOverlay = 20f,
+                        )
                 )
 
                 Vignette(
@@ -313,19 +301,12 @@ fun StampsScreen(
                     onClick = onNewStampAction,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .run {
-                            if (sharedTransitionScope == null || animatedVisibilityScope == null) {
-                                return@run this
-                            }
-
-                            with(sharedTransitionScope) {
-                                sharedElement(
-                                    sharedContentState = rememberSharedContentState("new-stamp-button"),
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    zIndexInOverlay = 30f,
-                                )
-                            }
-                        }
+                        .optionalSharedElement(
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            contentKey = "new-stamp-button",
+                            zIndexInOverlay = 30f,
+                        )
                 )
             }
         }
