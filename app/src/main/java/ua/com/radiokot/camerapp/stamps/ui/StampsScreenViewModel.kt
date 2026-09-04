@@ -24,6 +24,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentList
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -49,7 +49,6 @@ import ua.com.radiokot.camerapp.stamps.domain.StampRepository
 import ua.com.radiokot.camerapp.stamps.domain.StampSelections
 import ua.com.radiokot.camerapp.util.eventSharedFlow
 import ua.com.radiokot.camerapp.util.lazyLogger
-import ua.com.radiokot.camerapp.util.map
 import kotlin.time.Duration.Companion.seconds
 
 @Immutable
@@ -81,9 +80,6 @@ class StampsScreenViewModel(
     private val isSelecting: Boolean
         get() = selectedStampIds.value.isNotEmpty()
 
-    val selectedStampCount: StateFlow<Int> =
-        selectedStampIds.map(viewModelScope, Set<*>::size)
-
     private val collectionStamps: StateFlow<List<Stamp>> = runBlocking {
         stampRepository
             .getStampsFlow()
@@ -97,24 +93,17 @@ class StampsScreenViewModel(
     }
 
     val items: StateFlow<ImmutableList<StampsGridItem>> = runBlocking {
-        combine(
-            collectionStamps,
-            selectedStampIds,
-            ::Pair
-        )
-            .map { (collectionStamps, selectedStampIds) ->
+        collectionStamps
+            .map { collectionStamps ->
                 collectionStamps
-                    .map { stamp ->
-                        StampsGridItem(
-                            stamp = stamp,
-                            selectedStampIds = selectedStampIds,
-                        )
-                    }
+                    .map(::StampsGridItem)
                     .toPersistentList()
             }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope)
     }
+    val selectedItemKeys: StateFlow<ImmutableSet<String>> =
+        selectedStampIds
 
     val events: SharedFlow<Event>
         field = eventSharedFlow()

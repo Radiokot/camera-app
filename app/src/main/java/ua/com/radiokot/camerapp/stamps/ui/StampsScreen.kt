@@ -54,7 +54,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.IntState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -79,6 +78,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentList
 import ua.com.radiokot.camerapp.R
 import ua.com.radiokot.camerapp.posters.domain.StampPosterMaxStamps
@@ -100,9 +101,9 @@ fun StampsScreen(
     focusCollectionNameInput: Boolean,
     showGiftMessage: Boolean,
     stamps: State<ImmutableList<StampsGridItem>>,
+    selectedStampKeys: State<ImmutableSet<String>>,
     onStampClicked: (StampsGridItem) -> Unit,
     onStampLongClicked: (StampsGridItem) -> Unit,
-    selectedCountState: IntState,
     onMoveSelectedAction: () -> Unit,
     onSendSelectedAsEnvelopeAction: () -> Unit,
     onSendSelectedAsPosterAction: () -> Unit,
@@ -213,6 +214,7 @@ fun StampsScreen(
 
         stampItems(
             items = stamps.value,
+            selectedItemKeys = selectedStampKeys.value,
             onClicked = onStampClicked,
             onLongClicked = onStampLongClicked,
             sharedTransitionScope = sharedTransitionScope,
@@ -228,8 +230,8 @@ fun StampsScreen(
     }
     val isSelectionVisible by remember {
         derivedStateOf {
-            if (selectedCountState.intValue > 0) {
-                visibleSelectedCount = selectedCountState.intValue
+            if (selectedStampKeys.value.isNotEmpty()) {
+                visibleSelectedCount = selectedStampKeys.value.size
                 true
             } else {
                 areSelectionActionsVisible = false
@@ -656,7 +658,6 @@ private fun StampsScreenPreview() {
                     StampsGridItem(
                         imageUri = Uri.EMPTY,
                         shape = UiStampShapeA,
-                        isSelected = false,
                         key = i.toString(),
                     )
                 }
@@ -669,9 +670,9 @@ private fun StampsScreenPreview() {
             focusCollectionNameInput = false,
             showGiftMessage = true,
             stamps = stamps.let(::mutableStateOf),
+            selectedStampKeys = remember { mutableStateOf(persistentSetOf()) },
             onStampClicked = { },
             onStampLongClicked = { },
-            selectedCountState = 0.let(::mutableIntStateOf),
             onMoveSelectedAction = { },
             onSendSelectedAsEnvelopeAction = { },
             onSendSelectedAsPosterAction = { },
@@ -679,7 +680,7 @@ private fun StampsScreenPreview() {
             onNewStampAction = { },
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
-            modifier =  Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .paperBackground(
                     drawBackgroundColor = true,

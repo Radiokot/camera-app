@@ -76,6 +76,7 @@ fun NavGraphBuilder.selectStampsForPosterDestination(
     ) {
         SelectStampsForPosterDialog(
             stamps = viewModel.items.collectAsState(),
+            selectedStampKeys = viewModel.selectedItemKeys.collectAsState(),
             onStampClicked = viewModel::onStampClicked,
             onAddSelectedAction = viewModel::onAddSelectedAction,
         )

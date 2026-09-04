@@ -23,6 +23,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentList
@@ -30,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -59,25 +59,19 @@ class SelectStampsForPosterDialogViewModel(
         field = eventSharedFlow()
 
     val items: StateFlow<ImmutableList<StampsGridItem>> = runBlocking {
-        combine(
-            stampRepository.getStampsFlow(),
-            selectedStampIds,
-            ::Pair
-        )
-            .map { (stamps, selectedStampIds) ->
+        stampRepository
+            .getStampsFlow()
+            .map { stamps ->
                 stamps
                     .sortedWith(stampComparator)
-                    .map { stamp ->
-                        StampsGridItem(
-                            stamp = stamp,
-                            selectedStampIds = selectedStampIds,
-                        )
-                    }
+                    .map(::StampsGridItem)
                     .toPersistentList()
             }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope)
     }
+    val selectedItemKeys: StateFlow<ImmutableSet<String>> =
+        selectedStampIds
 
     fun onStampClicked(
         item: StampsGridItem,

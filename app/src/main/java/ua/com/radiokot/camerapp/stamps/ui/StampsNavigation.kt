@@ -25,7 +25,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.asIntState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
@@ -72,7 +71,6 @@ fun NavGraphBuilder.stampsDestination(
             )
         )
     }
-    val stamps = viewModel.items.collectAsState()
     val focusCollectionNameInput =
         navEntry
             .arguments
@@ -84,14 +82,10 @@ fun NavGraphBuilder.stampsDestination(
         collectionNameInputState = viewModel.collectionNameInput,
         focusCollectionNameInput = focusCollectionNameInput,
         showGiftMessage = viewModel.showGiftMessage,
-        stamps = stamps,
+        stamps = viewModel.items.collectAsState(),
+        selectedStampKeys = viewModel.selectedItemKeys.collectAsState(),
         onStampClicked = viewModel::onStampClicked,
         onStampLongClicked = viewModel::onStampLongClicked,
-        selectedCountState =
-            viewModel
-                .selectedStampCount
-                .collectAsState()
-                .asIntState(),
         onMoveSelectedAction = viewModel::onMoveSelectedAction,
         onSendSelectedAsEnvelopeAction = viewModel::onSendSelectedAsEnvelopeAction,
         onSendSelectedAsPosterAction = viewModel::onSendSelectedAsPosterAction,

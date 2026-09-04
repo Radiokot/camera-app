@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import ua.com.radiokot.camerapp.stamps.domain.Stamp
 import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
@@ -46,16 +47,13 @@ import kotlin.math.absoluteValue
 data class StampsGridItem(
     val imageUri: Uri,
     val shape: UiStampShape,
-    val isSelected: Boolean,
     val key: String,
 ) {
     constructor(
         stamp: Stamp,
-        selectedStampIds: Set<String>,
     ) : this(
         imageUri = stamp.imageUri.toUri(),
         shape = UiStampShape.fromShape(stamp.shape),
-        isSelected = stamp.id in selectedStampIds,
         key = stamp.id,
     )
 }
@@ -64,6 +62,7 @@ val StampGridItemRotationAngles = floatArrayOf(4f, 3f, 2f, -2f, -3f, -4f)
 
 fun LazyGridScope.stampItems(
     items: ImmutableList<StampsGridItem>,
+    selectedItemKeys: ImmutableSet<String>,
     onClicked: (StampsGridItem) -> Unit,
     onLongClicked: (StampsGridItem) -> Unit,
     selectionAnimationSpec: AnimationSpec<Float> = spring(
@@ -86,7 +85,7 @@ fun LazyGridScope.stampItems(
             (StampGridItemRotationAngles[stamp.key.hashCode().absoluteValue % StampGridItemRotationAngles.size])
         val selectionAnimationProgressState = animateFloatAsState(
             targetValue =
-                if (stamp.isSelected)
+                if (stamp.key in selectedItemKeys)
                     1f
                 else
                     0f,

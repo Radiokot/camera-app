@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import ua.com.radiokot.camerapp.stamps.ui.StampContainerBaseSize
 import ua.com.radiokot.camerapp.stamps.ui.StampsGridItem
 import ua.com.radiokot.camerapp.stamps.ui.stampItems
@@ -45,6 +46,7 @@ import ua.com.radiokot.camerapp.util.plus
 @Composable
 fun SelectStampsForPosterDialog(
     stamps: State<ImmutableList<StampsGridItem>>,
+    selectedStampKeys: State<ImmutableSet<String>>,
     onStampClicked: (StampsGridItem) -> Unit,
     onAddSelectedAction: () -> Unit,
 ) = Box(
@@ -68,6 +70,7 @@ fun SelectStampsForPosterDialog(
     ) {
         stampItems(
             items = stamps.value,
+            selectedItemKeys = selectedStampKeys.value,
             onClicked = onStampClicked,
             onLongClicked = {},
         )
