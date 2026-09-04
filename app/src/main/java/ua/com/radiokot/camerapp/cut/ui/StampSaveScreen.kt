@@ -64,6 +64,7 @@ import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 import ua.com.radiokot.camerapp.util.optionalSharedElement
 
 @Composable
@@ -227,8 +228,8 @@ private fun StampSaveScreenPreview() {
         StampSaveScreen(
             captionInputState = captionState,
             imageState = frameImage.let(::mutableStateOf),
-            onImagePreviewSizeChanged = { },
-            onSaveAction = { },
+            onImagePreviewSizeChanged = ::doNothing,
+            onSaveAction = ::doNothing,
             adjustmentsControllerItems = adjustmentsControllerItems,
             sharedTransitionScope = null,
             animatedVisibilityScope = null,

@@ -117,6 +117,7 @@ import ua.com.radiokot.camerapp.ui.StampImage
 import ua.com.radiokot.camerapp.ui.StampImageUse
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 import ua.com.radiokot.camerapp.util.optionalSharedElement
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -958,12 +959,12 @@ private fun StampScreenPreview() {
             imageUri = "",
             shape = UiStampShapeA,
             takenAt = remember { LocalDate.now() },
-            onAddCaptionAction = { },
-            onDeleteAction = { },
-            onMoveAction = { },
-            onSendAsImageAction = { },
-            onSendAsPosterAction = { },
-            onSwipedToExit = { },
+            onAddCaptionAction = ::doNothing,
+            onDeleteAction = ::doNothing,
+            onMoveAction = ::doNothing,
+            onSendAsImageAction = ::doNothing,
+            onSendAsPosterAction = ::doNothing,
+            onSwipedToExit = ::doNothing,
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
             modifier = Modifier
@@ -981,11 +982,11 @@ private fun ActionsPreview() {
     AppTheme {
         Actions(
             canAddCaption = false,
-            onAddCaption = {},
-            onDelete = {},
-            onMove = {},
-            onSendAsImage = {},
-            onSendAsPoster = {},
+            onAddCaption = ::doNothing,
+            onDelete = ::doNothing,
+            onMove = ::doNothing,
+            onSendAsImage = ::doNothing,
+            onSendAsPoster = ::doNothing,
             modifier = Modifier
                 .width(350.dp)
                 .paperBackground(

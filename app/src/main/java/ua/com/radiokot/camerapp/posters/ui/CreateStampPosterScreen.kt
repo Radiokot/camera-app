@@ -83,6 +83,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
 import ua.com.radiokot.camerapp.util.detectTransformGestures
+import ua.com.radiokot.camerapp.util.doNothing
 import ua.com.radiokot.camerapp.util.rotateBy
 import kotlin.math.abs
 import kotlin.math.min
@@ -542,15 +543,15 @@ private fun CreateStampPosterScreenPreview() {
     AppTheme {
         CreateStampPosterScreen(
             layersState = layersState,
-            onSendAction = {},
+            onSendAction = ::doNothing,
             isDarkState = false.let(::mutableStateOf),
-            onBeginInteractionWithLayer = {},
-            onEndInteractionWithLayer = {},
-            onToggleIsDarkAction = {},
-            onAddTextAction = {},
+            onBeginInteractionWithLayer = ::doNothing,
+            onEndInteractionWithLayer = ::doNothing,
+            onToggleIsDarkAction = ::doNothing,
+            onAddTextAction = ::doNothing,
             canAddStamps = true,
-            onAddStampsAction = {},
-            onLayerTap = {},
+            onAddStampsAction = ::doNothing,
+            onLayerTap = ::doNothing,
             modifier = Modifier
                 .fillMaxSize()
         )

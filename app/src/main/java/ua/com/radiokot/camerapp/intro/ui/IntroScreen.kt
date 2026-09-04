@@ -55,6 +55,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 
 @Composable
 fun IntroScreen(
@@ -214,7 +215,7 @@ fun IntroScreen(
 private fun IntroScreenPreview() {
     AppTheme {
         IntroScreen(
-            onDone = {},
+            onDone = ::doNothing,
             modifier = Modifier
                 .fillMaxSize()
                 .paperBackground(

@@ -90,6 +90,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutout
+import ua.com.radiokot.camerapp.util.doNothing
 import ua.com.radiokot.camerapp.util.optionalSharedBounds
 import ua.com.radiokot.camerapp.util.optionalSharedElement
 import ua.com.radiokot.camerapp.util.plus
@@ -412,7 +413,7 @@ private fun SelectionControllerPreview() {
         ) {
             SelectionController(
                 selectedCount = 24,
-                onActionsClicked = {}
+                onActionsClicked = ::doNothing,
             )
         }
     }
@@ -618,11 +619,11 @@ private fun SelectionActionsPreview() {
                 .padding(24.dp)
         ) {
             SelectionActions(
-                onMove = {},
-                onSendAsEnvelope = {},
-                onSendAsPoster = {},
+                onMove = ::doNothing,
+                onSendAsEnvelope = ::doNothing,
+                onSendAsPoster = ::doNothing,
                 selectedCount = 24,
-                onDelete = {},
+                onDelete = ::doNothing,
             )
         }
     }
@@ -651,13 +652,13 @@ private fun StampsScreenPreview() {
             showGiftMessage = true,
             stamps = stamps.let(::mutableStateOf),
             selectedStampKeys = remember { mutableStateOf(persistentSetOf()) },
-            onStampClicked = { },
-            onStampLongClicked = { },
-            onMoveSelectedAction = { },
-            onSendSelectedAsEnvelopeAction = { },
-            onSendSelectedAsPosterAction = { },
-            onDeleteSelectedAction = { },
-            onNewStampAction = { },
+            onStampClicked = ::doNothing,
+            onStampLongClicked = ::doNothing,
+            onMoveSelectedAction = ::doNothing,
+            onSendSelectedAsEnvelopeAction = ::doNothing,
+            onSendSelectedAsPosterAction = ::doNothing,
+            onDeleteSelectedAction = ::doNothing,
+            onNewStampAction = ::doNothing,
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
             modifier = Modifier

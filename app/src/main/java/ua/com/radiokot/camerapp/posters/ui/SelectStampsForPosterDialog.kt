@@ -41,6 +41,7 @@ import ua.com.radiokot.camerapp.stamps.ui.stampItems
 import ua.com.radiokot.camerapp.ui.LeTextButton
 import ua.com.radiokot.camerapp.util.barsAndCutout
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 import ua.com.radiokot.camerapp.util.plus
 
 @Composable
@@ -72,7 +73,7 @@ fun SelectStampsForPosterDialog(
             items = stamps.value,
             selectedItemKeys = selectedStampKeys.value,
             onClicked = onStampClicked,
-            onLongClicked = {},
+            onLongClicked = ::doNothing,
         )
     }
 

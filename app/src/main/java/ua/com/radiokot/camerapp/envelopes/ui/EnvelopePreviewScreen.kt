@@ -19,7 +19,6 @@
 
 package ua.com.radiokot.camerapp.envelopes.ui
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +51,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 
 @Composable
 fun EnvelopePreviewScreen(
@@ -190,8 +190,8 @@ private fun EnvelopePreviewScreenPreview() {
             ),
             message = "From Oleg",
             errorMessage = null,
-            onSaveAction = {},
-            onErrorAcknowledged = {},
+            onSaveAction = ::doNothing,
+            onErrorAcknowledged = ::doNothing,
             modifier = Modifier
                 .fillMaxSize()
                 .paperBackground(

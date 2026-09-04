@@ -55,6 +55,7 @@ import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.Vignette
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 
 @Composable
 fun PermissionsScreen(
@@ -228,7 +229,7 @@ private fun PermissionsScreenPreview() {
                     Manifest.permission.READ_MEDIA_IMAGES,
                 ),
             isDocumentTreeAccessRequired = true,
-            onGrantAction = {},
+            onGrantAction = ::doNothing,
             modifier = Modifier
                 .fillMaxSize()
                 .paperBackground(

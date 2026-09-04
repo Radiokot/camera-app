@@ -68,6 +68,7 @@ import ua.com.radiokot.camerapp.ui.LeField
 import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.rememberLeFieldTextStyle
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -329,9 +330,9 @@ private fun EditStampPosterTextDialogPreview() {
                 background = null,
                 alignment = StampPosterLayer.Text.Alignment.Center,
             ),
-            onChangeBackgroundAction = {},
-            onChangeAlignmentAction = {},
-            onDone = {},
+            onChangeBackgroundAction = ::doNothing,
+            onChangeAlignmentAction = ::doNothing,
+            onDone = ::doNothing,
         )
     }
 }

@@ -71,6 +71,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutout
+import ua.com.radiokot.camerapp.util.doNothing
 import ua.com.radiokot.camerapp.util.optionalSharedElement
 import ua.com.radiokot.camerapp.util.plus
 
@@ -335,11 +336,11 @@ private fun CollectionsScreenPreview() {
     AppTheme {
         CollectionsScreen(
             itemsState = items.let(::mutableStateOf),
-            onItemClicked = {},
-            onNewStampAction = {},
-            onItemLongClicked = {},
-            onNewCollectionAction = {},
-            onMoreClicked = {},
+            onItemClicked = ::doNothing,
+            onNewStampAction = ::doNothing,
+            onItemLongClicked = ::doNothing,
+            onNewCollectionAction = ::doNothing,
+            onMoreClicked = ::doNothing,
             sharedTransitionScope = null,
             animatedVisibilityScope = null,
             modifier = Modifier

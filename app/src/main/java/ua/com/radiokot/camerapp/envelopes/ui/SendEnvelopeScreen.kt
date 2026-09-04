@@ -54,6 +54,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.ui.PodkovaFamily
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.barsAndCutoutPadding
+import ua.com.radiokot.camerapp.util.doNothing
 
 @Composable
 fun SendEnvelopeScreen(
@@ -154,7 +155,7 @@ private fun SendEnvelopeScreenPreview() {
                 ),
             ),
             stampCount = 1,
-            onSendAction = {},
+            onSendAction = ::doNothing,
             modifier = Modifier
                 .fillMaxSize()
                 .paperBackground(
