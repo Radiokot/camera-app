@@ -21,9 +21,12 @@
 
 package ua.com.radiokot.camerapp.util
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
@@ -62,6 +65,26 @@ class NavResultContract<in Request, Result>(
         requestor
             .savedStateHandle
             .getResultFlow(resultKey)
+
+
+    private fun <T> SavedStateHandle.setResult(
+        key: String,
+        value: T,
+    ) =
+        set(key, value to System.currentTimeMillis())
+
+    private fun <T> SavedStateHandle.getResultFlow(
+        key: String,
+    ): Flow<T> =
+        getStateFlow<Pair<T, Long>?>(
+            key = key,
+            initialValue = null
+        )
+            .filterNotNull()
+            .map { (value, _) ->
+                set<Pair<T, Long>>(key, null)
+                value
+            }
 
     private companion object {
         private val resultKeyCounter = AtomicInt(0)
