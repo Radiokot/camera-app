@@ -62,6 +62,7 @@ fun NavGraphBuilder.collectionActionsDestination(
     CollectionActionsScreen(
         collection = viewModel.collectionItem,
         canDelete = viewModel.canDelete,
+        canMoveStamps = viewModel.canMoveStamps,
         onMoveStampsAction = viewModel::onMoveStampsAction,
         onDeleteAction = viewModel::onDeleteAction,
         sharedTransitionScope = sharedTransitionScope,

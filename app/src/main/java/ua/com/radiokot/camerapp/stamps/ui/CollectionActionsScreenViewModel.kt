@@ -58,6 +58,9 @@ class CollectionActionsScreenViewModel(
     val canDelete: Boolean =
         !collection.isPrimary
 
+    val canMoveStamps: Boolean =
+        collectionWithSamples.samples.isNotEmpty()
+
     val events: SharedFlow<Event>
         field = eventSharedFlow()
 
@@ -95,6 +98,10 @@ class CollectionActionsScreenViewModel(
     }
 
     fun onMoveStampsAction() {
+        check(canMoveStamps) {
+            "Can't move stamps when it's not allowed"
+        }
+
         log.debug {
             "onMoveStampsAction(): proceeding to destination collection selection"
         }

@@ -67,6 +67,7 @@ fun CollectionActionsScreen(
     modifier: Modifier = Modifier,
     collection: CollectionListItem,
     canDelete: Boolean,
+    canMoveStamps: Boolean,
     onMoveStampsAction: () -> Unit,
     onDeleteAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
@@ -96,6 +97,7 @@ fun CollectionActionsScreen(
                 detailsAlpha = detailsAlpha,
                 collection = collection,
                 canDelete = canDelete,
+                canMoveStamps = canMoveStamps,
                 onMoveStampsAction = onMoveStampsAction,
                 onDeleteAction = onDeleteAction,
                 sharedTransitionScope = sharedTransitionScope,
@@ -117,6 +119,7 @@ fun CollectionActionsScreen(
                 detailsAlpha = detailsAlpha,
                 collection = collection,
                 canDelete = canDelete,
+                canMoveStamps = canMoveStamps,
                 onMoveStampsAction = onMoveStampsAction,
                 onDeleteAction = onDeleteAction,
                 sharedTransitionScope = sharedTransitionScope,
@@ -133,6 +136,7 @@ private fun CollectionActionsScreenLayoutContent(
     detailsAlpha: Animatable<Float, AnimationVector1D>,
     collection: CollectionListItem,
     canDelete: Boolean,
+    canMoveStamps: Boolean,
     onMoveStampsAction: () -> Unit,
     onDeleteAction: () -> Unit,
     sharedTransitionScope: SharedTransitionScope?,
@@ -148,16 +152,19 @@ private fun CollectionActionsScreenLayoutContent(
 
     Spacer(modifier = Modifier.size(24.dp))
 
-    Actions(
-        canDelete = canDelete,
-        onMoveStamps = onMoveStampsAction,
-        onDelete = onDeleteAction,
-        modifier = Modifier
-            .width(StampContainerBaseSize.width * 2.5f)
-            .graphicsLayer {
-                alpha = detailsAlpha.value
-            }
-    )
+    if (canDelete || canMoveStamps) {
+        Actions(
+            canDelete = canDelete,
+            canMoveStamps = canMoveStamps,
+            onMoveStamps = onMoveStampsAction,
+            onDelete = onDeleteAction,
+            modifier = Modifier
+                .width(StampContainerBaseSize.width * 2.5f)
+                .graphicsLayer {
+                    alpha = detailsAlpha.value
+                }
+        )
+    }
 }
 
 @Composable
@@ -165,6 +172,7 @@ private fun Actions(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 10.dp,
     canDelete: Boolean,
+    canMoveStamps: Boolean,
     onMoveStamps: () -> Unit,
     onDelete: () -> Unit,
 ) = Column(
@@ -191,27 +199,31 @@ private fun Actions(
         )
     }
 
-    BasicText(
-        text = "Move stamps",
-        style = textStyle,
-        modifier = Modifier
-            .clickable(
-                onClick = onMoveStamps,
-            )
-            .padding(
-                vertical = 20.dp,
-            )
-            .fillMaxWidth()
-    )
+    if (canMoveStamps) {
+        BasicText(
+            text = "Move stamps",
+            style = textStyle,
+            modifier = Modifier
+                .clickable(
+                    onClick = onMoveStamps,
+                )
+                .padding(
+                    vertical = 20.dp,
+                )
+                .fillMaxWidth()
+        )
+    }
 
-    if (canDelete) {
+    if (canDelete && canMoveStamps) {
         Spacer(
             modifier = Modifier
                 .height(1.dp)
                 .fillMaxWidth()
                 .background(colors.componentDivider)
         )
+    }
 
+    if (canDelete) {
         BasicText(
             text = "Hold to delete",
             style = textStyle.copy(
@@ -220,7 +232,7 @@ private fun Actions(
             modifier = Modifier
                 .holdToDeleteAction(
                     roundedCornerRadius = cornerRadius,
-                    areTopCornersRounded = false,
+                    areTopCornersRounded = !canMoveStamps,
                     onDelete = onDelete,
                 )
                 .padding(
