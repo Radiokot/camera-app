@@ -39,7 +39,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.util.DarkStatusAndNavigationBars
 
 fun NavGraphBuilder.editPosterTextDestination(
-    contract: EditStampPosterTextContract,
+    onDone: (EditStampPosterTextResult) -> Unit,
 ) = dialog(
     route = EditPosterTextRoute,
     arguments = listOf(
@@ -116,13 +116,15 @@ fun NavGraphBuilder.editPosterTextDestination(
                 )
             },
             onDone = {
-                contract.onDoneEditing(
-                    text =
-                        inputState
-                            .text
-                            .takeIf(CharSequence::isNotEmpty)
-                            ?.toString(),
-                    appearance = appearance,
+                onDone(
+                    EditStampPosterTextResult(
+                        text =
+                            inputState
+                                .text
+                                .takeIf(CharSequence::isNotEmpty)
+                                ?.toString(),
+                        appearance = appearance,
+                    )
                 )
             },
         )

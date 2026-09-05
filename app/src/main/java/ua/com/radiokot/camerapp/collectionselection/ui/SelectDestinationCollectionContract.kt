@@ -17,20 +17,18 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
+@file:Suppress("FunctionName")
+
 package ua.com.radiokot.camerapp.collectionselection.ui
 
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import kotlinx.coroutines.flow.Flow
-import ua.com.radiokot.camerapp.util.getResultFlow
-import ua.com.radiokot.camerapp.util.setResult
+import ua.com.radiokot.camerapp.util.NavResultContract
 
-class SelectDestinationCollectionContract(
-    private val navController: NavController,
-) {
-    fun proceedToCollectionSelection(
-        request: SelectDestinationCollectionRequest,
-    ) {
+fun SelectDestinationCollectionContract(
+    navController: NavController,
+) = NavResultContract<SelectDestinationCollectionRequest, String>(
+    navController = navController,
+    launcher = { request ->
         navController
             .navigate(
                 route = SelectDestinationCollectionRoute(
@@ -39,33 +37,5 @@ class SelectDestinationCollectionContract(
             ) {
                 launchSingleTop = true
             }
-    }
-
-    fun onCollectionSelected(
-        collectionId: String,
-    ) {
-        navController
-            .previousBackStackEntry
-            ?.savedStateHandle
-            ?.setResult(
-                key = SELECTED_COLLECTION_ID,
-                value = collectionId,
-            )
-        navController.navigateUp()
-    }
-
-    fun onCancel() {
-        navController.navigateUp()
-    }
-
-    fun getSelectedCollectionIdFlow(
-        requestor: NavBackStackEntry,
-    ): Flow<String> =
-        requestor
-            .savedStateHandle
-            .getResultFlow(SELECTED_COLLECTION_ID)
-
-    private companion object {
-        private const val SELECTED_COLLECTION_ID = "SDCCCollectionId"
-    }
-}
+    },
+)

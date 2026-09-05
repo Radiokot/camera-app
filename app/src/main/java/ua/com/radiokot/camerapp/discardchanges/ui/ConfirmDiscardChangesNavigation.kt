@@ -26,7 +26,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 
 fun NavGraphBuilder.confirmDiscardChangesDestination(
-    contract: ConfirmDiscardChangesContract,
+    onDecision: (toDiscard: Boolean) -> Unit,
 ) = dialog(
     route = ConfirmDiscardChangesRoute,
     arguments = listOf(
@@ -41,7 +41,7 @@ fun NavGraphBuilder.confirmDiscardChangesDestination(
                 .arguments
                 ?.getString(Message)
                 ?: error("No $Message argument passed"),
-        onDecision = contract::onDiscardChangesDecision,
+        onDecision = onDecision,
     )
 }
 

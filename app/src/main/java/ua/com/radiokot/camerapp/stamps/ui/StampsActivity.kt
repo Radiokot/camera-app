@@ -73,14 +73,17 @@ import ua.com.radiokot.camerapp.intro.ui.PermissionsScreenViewModel
 import ua.com.radiokot.camerapp.intro.ui.introDestination
 import ua.com.radiokot.camerapp.intro.ui.permissionsDestination
 import ua.com.radiokot.camerapp.posters.ui.CreatePosterRoute
-import ua.com.radiokot.camerapp.posters.ui.EditStampPosterTextContract
-import ua.com.radiokot.camerapp.posters.ui.SelectStampsForPosterContract
+import ua.com.radiokot.camerapp.posters.ui.EditPosterTextRoute
+import ua.com.radiokot.camerapp.posters.ui.EditStampPosterTextRequest
+import ua.com.radiokot.camerapp.posters.ui.EditStampPosterTextResult
+import ua.com.radiokot.camerapp.posters.ui.SelectStampsForPosterRoute
 import ua.com.radiokot.camerapp.posters.ui.createPosterDestination
 import ua.com.radiokot.camerapp.posters.ui.editPosterTextDestination
 import ua.com.radiokot.camerapp.posters.ui.selectStampsForPosterDestination
 import ua.com.radiokot.camerapp.ui.AppTheme
 import ua.com.radiokot.camerapp.ui.paperBackground
 import ua.com.radiokot.camerapp.util.LocalLandscapist
+import ua.com.radiokot.camerapp.util.NavResultContract
 import ua.com.radiokot.camerapp.util.fadeOutExit
 import ua.com.radiokot.camerapp.util.keepWhile
 import ua.com.radiokot.camerapp.util.lazyLogger
@@ -203,8 +206,19 @@ private fun SharedTransitionScope.StampsNavHost(
         )
     }
     val editStampPosterTextContract = remember(navController) {
-        EditStampPosterTextContract(
+        NavResultContract<EditStampPosterTextRequest, EditStampPosterTextResult>(
             navController = navController,
+            launcher = { request ->
+                navController
+                    .navigate(
+                        route = EditPosterTextRoute(
+                            currentText = request.currentText,
+                            currentAppearance = request.currentAppearance,
+                        )
+                    ) {
+                        launchSingleTop = true
+                    }
+            }
         )
     }
     val confirmDiscardChangesContract = remember(navController) {
@@ -213,8 +227,18 @@ private fun SharedTransitionScope.StampsNavHost(
         )
     }
     val selectStampsForPosterContract = remember(navController) {
-        SelectStampsForPosterContract(
+        NavResultContract<Int, Int>(
             navController = navController,
+            launcher = { maxCount: Int ->
+                navController
+                    .navigate(
+                        route = SelectStampsForPosterRoute(
+                            maxCount = maxCount,
+                        ),
+                    ) {
+                        launchSingleTop = true
+                    }
+            }
         )
     }
     val context = LocalContext.current
@@ -331,7 +355,8 @@ private fun SharedTransitionScope.StampsNavHost(
         )
 
         selectDestinationCollectionDestination(
-            contract = selectDestinationCollectionContract,
+            onDone = selectDestinationCollectionContract::setResultAndNavigateUp,
+            onCancel = navController::navigateUp,
         )
 
         moveStampsDestination(
@@ -399,15 +424,15 @@ private fun SharedTransitionScope.StampsNavHost(
         )
 
         editPosterTextDestination(
-            contract = editStampPosterTextContract,
+            onDone = editStampPosterTextContract::setResultAndNavigateUp,
         )
 
         selectStampsForPosterDestination(
-            contract = selectStampsForPosterContract,
+            onDone = selectStampsForPosterContract::setResultAndNavigateUp,
         )
 
         confirmDiscardChangesDestination(
-            contract = confirmDiscardChangesContract,
+            onDecision = confirmDiscardChangesContract::setResultAndNavigateUp,
         )
 
         stampDestination(

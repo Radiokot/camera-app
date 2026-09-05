@@ -303,14 +303,16 @@ class CreateStampPosterScreenViewModel(
 
         events.tryEmit(
             Event.ProceedToEditText(
-                currentText = null,
-                currentAppearance = StampPosterLayer.Text.Appearance(
-                    background =
-                        if (isDark.value)
-                            StampPosterLayer.Text.Background.Dark
-                        else
-                            StampPosterLayer.Text.Background.Light,
-                    alignment = StampPosterLayer.Text.Alignment.Center,
+                request = EditStampPosterTextRequest(
+                    currentText = null,
+                    currentAppearance = StampPosterLayer.Text.Appearance(
+                        background =
+                            if (isDark.value)
+                                StampPosterLayer.Text.Background.Dark
+                            else
+                                StampPosterLayer.Text.Background.Light,
+                        alignment = StampPosterLayer.Text.Alignment.Center,
+                    ),
                 ),
             )
         )
@@ -393,8 +395,10 @@ class CreateStampPosterScreenViewModel(
 
             events.tryEmit(
                 Event.ProceedToEditText(
-                    currentText = layer.text,
-                    currentAppearance = layer.appearance,
+                    request = EditStampPosterTextRequest(
+                        currentText = layer.text,
+                        currentAppearance = layer.appearance,
+                    ),
                 )
             )
         }
@@ -435,10 +439,11 @@ class CreateStampPosterScreenViewModel(
     }
 
     fun onDoneEditingText(
-        text: String?,
-        appearance: StampPosterLayer.Text.Appearance,
+        result: EditStampPosterTextResult,
     ) {
         val textLayerToEdit = this.textLayerToEdit
+        val text = result.text
+        val appearance = result.appearance
 
         when {
             // When adding text.
@@ -541,8 +546,7 @@ class CreateStampPosterScreenViewModel(
         ) : Event
 
         class ProceedToEditText(
-            val currentText: String?,
-            val currentAppearance: StampPosterLayer.Text.Appearance,
+            val request: EditStampPosterTextRequest,
         ) : Event
 
         class ProceedToSelectStampsToAdd(

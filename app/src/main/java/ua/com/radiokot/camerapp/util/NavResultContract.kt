@@ -17,51 +17,53 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ua.com.radiokot.camerapp.posters.ui
+@file:OptIn(ExperimentalAtomicApi::class)
+
+package ua.com.radiokot.camerapp.util
 
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
-import ua.com.radiokot.camerapp.util.getResultFlow
-import ua.com.radiokot.camerapp.util.setResult
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 
-class SelectStampsForPosterContract(
+fun interface NavRequestLauncher<in Request> {
+    fun launch(request: Request): Any?
+}
+
+class NavResultContract<in Request, Result>(
     private val navController: NavController,
-) {
-    fun proceedToSelectStamps(
-        maxCount: Int,
-    ) {
-        navController
-            .navigate(
-                route = SelectStampsForPosterRoute(
-                    maxCount = maxCount,
-                ),
-            ) {
-                launchSingleTop = true
-            }
-    }
+    private val launcher: NavRequestLauncher<Request>,
+) : NavRequestLauncher<Request> by launcher {
 
-    fun onDoneSelecting(
-        stampSelectionIndex: Int,
-    ) {
+    private val resultKey =
+        resultKeyCounter
+            .incrementAndFetch()
+            .toString()
+
+    fun setResult(result: Result) =
         navController
             .previousBackStackEntry
             ?.savedStateHandle
             ?.setResult(
-                key = SELECTION_INDEX,
-                value = stampSelectionIndex,
+                key = resultKey,
+                value = result,
             )
+
+    fun setResultAndNavigateUp(result: Result) {
+        setResult(result)
         navController.navigateUp()
     }
 
-    fun getStampSelectionIndexFlow(
+    fun getResultFlow(
         requestor: NavBackStackEntry,
-    ): Flow<Int> =
+    ): Flow<Result> =
         requestor
             .savedStateHandle
-            .getResultFlow(SELECTION_INDEX)
+            .getResultFlow(resultKey)
 
     private companion object {
-        private const val SELECTION_INDEX = "SSFPCSelectionIndex"
+        private val resultKeyCounter = AtomicInt(0)
     }
 }

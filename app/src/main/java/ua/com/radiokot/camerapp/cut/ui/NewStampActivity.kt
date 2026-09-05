@@ -282,14 +282,14 @@ private fun SharedTransitionScope.StampCutNavHost(
             BackHandler(
                 enabled = isDiscardConfirmationRequired,
             ) {
-                confirmDiscardChangesContract.proceedToConfirmDiscardChanges(
-                    message = "Discard this stamp?",
+                confirmDiscardChangesContract.launch(
+                    request = "Discard this stamp?",
                 )
             }
 
             LaunchedEffect(navEntry, navController, confirmDiscardChangesContract) {
                 confirmDiscardChangesContract
-                    .getDiscardChangesDecisionFlow(navEntry)
+                    .getResultFlow(navEntry)
                     .collect { toDiscard ->
                         if (toDiscard) {
                             navController.popBackStack(
@@ -302,7 +302,7 @@ private fun SharedTransitionScope.StampCutNavHost(
         }
 
         confirmDiscardChangesDestination(
-            contract = confirmDiscardChangesContract,
+            onDecision = confirmDiscardChangesContract::setResultAndNavigateUp,
         )
     }
 }

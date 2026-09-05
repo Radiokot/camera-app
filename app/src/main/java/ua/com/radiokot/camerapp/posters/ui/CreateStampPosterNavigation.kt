@@ -42,17 +42,16 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import kotlinx.coroutines.flow.combine
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ua.com.radiokot.camerapp.cut.ui.showToast
-import ua.com.radiokot.camerapp.discardchanges.ui.ConfirmDiscardChangesContract
 import ua.com.radiokot.camerapp.ui.LocalColors
+import ua.com.radiokot.camerapp.util.NavResultContract
 
 fun NavGraphBuilder.createPosterDestination(
-    editStampPosterTextContract: EditStampPosterTextContract,
-    confirmDiscardChangesContract: ConfirmDiscardChangesContract,
-    selectStampsForPosterContract: SelectStampsForPosterContract,
+    editStampPosterTextContract: NavResultContract<EditStampPosterTextRequest, EditStampPosterTextResult>,
+    confirmDiscardChangesContract: NavResultContract<String, Boolean>,
+    selectStampsForPosterContract: NavResultContract<Int, Int>,
     onDone: () -> Unit,
 ) = composable(
     route = CreatePosterRoute,
@@ -109,16 +108,11 @@ fun NavGraphBuilder.createPosterDestination(
                 }
 
                 is CreateStampPosterScreenViewModel.Event.ProceedToEditText -> {
-                    editStampPosterTextContract.proceedToEditText(
-                        currentText = event.currentText,
-                        currentAppearance = event.currentAppearance,
-                    )
+                    editStampPosterTextContract.launch(event.request)
                 }
 
                 is CreateStampPosterScreenViewModel.Event.ProceedToSelectStampsToAdd -> {
-                    selectStampsForPosterContract.proceedToSelectStamps(
-                        maxCount = event.maxCount,
-                    )
+                    selectStampsForPosterContract.launch(event.maxCount)
                 }
 
                 is CreateStampPosterScreenViewModel.Event.ShowLayerDeletedMessage -> {
@@ -166,37 +160,28 @@ fun NavGraphBuilder.createPosterDestination(
     )
 
     LaunchedEffect(editStampPosterTextContract, viewModel, navEntry) {
-        combine(
-            editStampPosterTextContract
-                .getEditedTextFlow(navEntry),
-            editStampPosterTextContract
-                .getEditedAppearanceFlow(navEntry),
-            transform = ::Pair,
-        ).collect { (text, appearance) ->
-            viewModel.onDoneEditingText(
-                text = text,
-                appearance = appearance,
-            )
-        }
+        editStampPosterTextContract
+            .getResultFlow(navEntry)
+            .collect(viewModel::onDoneEditingText)
     }
 
     LaunchedEffect(selectStampsForPosterContract, viewModel, navEntry) {
         selectStampsForPosterContract
-            .getStampSelectionIndexFlow(navEntry)
+            .getResultFlow(navEntry)
             .collect(viewModel::onSelectedStampsToAdd)
     }
 
     BackHandler(
         enabled = isDiscardConfirmationRequired,
     ) {
-        confirmDiscardChangesContract.proceedToConfirmDiscardChanges(
-            message = "Discard this poster?",
+        confirmDiscardChangesContract.launch(
+            request = "Discard this poster?",
         )
     }
 
     LaunchedEffect(navEntry, onDone, confirmDiscardChangesContract) {
         confirmDiscardChangesContract
-            .getDiscardChangesDecisionFlow(navEntry)
+            .getResultFlow(navEntry)
             .collect { toDiscard ->
                 if (toDiscard) {
                     onDone()

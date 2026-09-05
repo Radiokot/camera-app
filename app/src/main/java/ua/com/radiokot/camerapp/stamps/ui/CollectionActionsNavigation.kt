@@ -31,12 +31,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-import ua.com.radiokot.camerapp.collectionselection.ui.SelectDestinationCollectionContract
 import ua.com.radiokot.camerapp.collectionselection.ui.SelectDestinationCollectionRequest
+import ua.com.radiokot.camerapp.util.NavResultContract
 
 fun NavGraphBuilder.collectionActionsDestination(
     sharedTransitionScope: SharedTransitionScope?,
-    selectDestinationCollectionContract: SelectDestinationCollectionContract,
+    selectDestinationCollectionContract: NavResultContract<SelectDestinationCollectionRequest, String>,
     onProceedToMoveStamps: (sourceCollectionId: String, destinationCollectionId: String) -> Unit,
     onDone: () -> Unit,
 ) = composable(
@@ -74,7 +74,7 @@ fun NavGraphBuilder.collectionActionsDestination(
         viewModel.events.collect { event ->
             when (event) {
                 is CollectionActionsScreenViewModel.Event.ProceedToMoveDestinationCollectionSelection -> {
-                    selectDestinationCollectionContract.proceedToCollectionSelection(
+                    selectDestinationCollectionContract.launch(
                         request = SelectDestinationCollectionRequest.MoveStamps(
                             currentCollectionId = event.currentCollectionId,
                             isSingleStamp = false,
@@ -98,7 +98,7 @@ fun NavGraphBuilder.collectionActionsDestination(
 
     LaunchedEffect(viewModel, selectDestinationCollectionContract, navEntry) {
         selectDestinationCollectionContract
-            .getSelectedCollectionIdFlow(navEntry)
+            .getResultFlow(navEntry)
             .collect(viewModel::onMoveDestinationCollectionSelected)
     }
 }

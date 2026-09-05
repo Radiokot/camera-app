@@ -17,25 +17,11 @@
    along with Press-Cut. If not, see <http://www.gnu.org/licenses/>.
 */
 
-@file:Suppress("FunctionName")
+package ua.com.radiokot.camerapp.posters.ui
 
-package ua.com.radiokot.camerapp.discardchanges.ui
+import ua.com.radiokot.camerapp.posters.domain.StampPosterLayer
 
-import androidx.navigation.NavController
-import ua.com.radiokot.camerapp.util.NavResultContract
-
-fun ConfirmDiscardChangesContract(
-    navController: NavController,
-) = NavResultContract<String, Boolean>(
-    navController = navController,
-    launcher = { message ->
-        navController
-            .navigate(
-                route = ConfirmDiscardChangesRoute(
-                    message = message,
-                )
-            ) {
-                launchSingleTop = true
-            }
-    }
+class EditStampPosterTextResult(
+    val text: String?,
+    val appearance: StampPosterLayer.Text.Appearance,
 )

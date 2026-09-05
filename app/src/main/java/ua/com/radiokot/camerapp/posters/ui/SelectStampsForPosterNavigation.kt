@@ -38,7 +38,7 @@ import ua.com.radiokot.camerapp.ui.LocalColors
 import ua.com.radiokot.camerapp.util.DarkStatusAndNavigationBars
 
 fun NavGraphBuilder.selectStampsForPosterDestination(
-    contract: SelectStampsForPosterContract,
+    onDone: (selectionIndex: Int) -> Unit,
 ) = dialog(
     route = SelectStampsForPosterRoute,
     arguments = listOf(
@@ -86,9 +86,7 @@ fun NavGraphBuilder.selectStampsForPosterDestination(
         viewModel.events.collect { event ->
             when (event) {
                 is SelectStampsForPosterDialogViewModel.Event.Done -> {
-                    contract.onDoneSelecting(
-                        stampSelectionIndex = event.selectionIndex,
-                    )
+                    onDone(event.selectionIndex)
                 }
 
                 is SelectStampsForPosterDialogViewModel.Event.ShowTooManyStampsWarning -> {

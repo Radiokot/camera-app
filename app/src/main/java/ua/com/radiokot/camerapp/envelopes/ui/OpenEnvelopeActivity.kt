@@ -143,7 +143,8 @@ private fun OpenEnvelopeNavHost(
         )
 
         selectDestinationCollectionDestination(
-            contract = selectDestinationCollectionContract,
+            onDone = selectDestinationCollectionContract::setResultAndNavigateUp,
+            onCancel = navController::navigateUp,
         )
 
         saveEnvelopeStampsDestination(

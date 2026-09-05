@@ -32,7 +32,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 fun NavGraphBuilder.selectDestinationCollectionDestination(
-    contract: SelectDestinationCollectionContract,
+    onDone: (collectionId: String) -> Unit,
+    onCancel: () -> Unit,
 ) = dialog(
     route = SelectDestinationCollectionRoute,
     arguments = listOf(
@@ -61,14 +62,14 @@ fun NavGraphBuilder.selectDestinationCollectionDestination(
         collections = viewModel.collections,
         onCollectionSelected = viewModel::onCollectionSelected,
         onNewCollectionAction = viewModel::onNewCollectionAction,
-        onCancel = contract::onCancel,
+        onCancel = onCancel,
     )
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is SelectDestinationCollectionDialogViewModel.Event.CollectionSelected -> {
-                    contract.onCollectionSelected(event.collectionId)
+                    onDone(event.collectionId)
                 }
             }
         }
