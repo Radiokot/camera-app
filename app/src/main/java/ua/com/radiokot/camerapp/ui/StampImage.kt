@@ -184,7 +184,6 @@ fun StampImage(
 
     Canvas(
         modifier = modifier,
-        contentDescription = "Stamp",
     ) {
         val drawColor = drawColor
         val drawBitmap = drawBitmap
