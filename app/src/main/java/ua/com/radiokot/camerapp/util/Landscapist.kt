@@ -8,7 +8,6 @@ import androidx.compose.runtime.compositionLocalOf
 import com.skydoves.landscapist.core.ImageRequest
 import com.skydoves.landscapist.core.Landscapist
 import com.skydoves.landscapist.core.LandscapistConfig
-import com.skydoves.landscapist.core.cache.MemoryCache
 import com.skydoves.landscapist.core.decoder.DecodeResult
 import com.skydoves.landscapist.core.decoder.ImageDecoder
 import com.skydoves.landscapist.core.model.DataSource
@@ -153,11 +152,3 @@ class NoOpImageDecoder : ImageDecoder {
 }
 
 val LocalLandscapist = compositionLocalOf<Landscapist?> { null }
-
-private val landscapistMemoryCacheField by lazy {
-    Landscapist::class.java.getDeclaredField("memoryCache").apply {
-        isAccessible = true
-    }
-}
-val Landscapist.memoryCache: MemoryCache
-    get() = landscapistMemoryCacheField.get(this) as MemoryCache

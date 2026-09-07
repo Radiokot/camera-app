@@ -41,7 +41,6 @@ import com.skydoves.landscapist.core.cache.CacheKey
 import com.skydoves.landscapist.core.model.ImageResult
 import ua.com.radiokot.camerapp.stamps.ui.UiStampShape
 import ua.com.radiokot.camerapp.util.LocalLandscapist
-import ua.com.radiokot.camerapp.util.memoryCache
 
 @Composable
 fun StampImage(
@@ -64,7 +63,7 @@ fun StampImage(
     // If there's the exact bitmap in the cache – render it from the first frame,
     // do not start async loading.
     //
-    // If there's instead a bitmap of suitable alternative size, like grid size for standalone use,
+    // If there's instead a bitmap of an alternative size, like grid size for standalone use,
     // render it from the first frame and start async loading.
     //
     // Otherwise, just start the async loading.
@@ -98,40 +97,23 @@ fun StampImage(
             return@remember null
         }
 
-        val suitableAlternativeDecodeSize: IntSize? = when (use) {
-            StampImageUse.Standalone ->
-                StampImageUse.Grid.getImageDecodeSize(
-                    shape = shape,
-                    density = density,
-                )
-
-            StampImageUse.Grid -> null
-        }
-
-        if (suitableAlternativeDecodeSize == null) {
-            return@remember null
-        }
-
         checkNotNull(landscapist) {
             "Missing local Landscapist"
         }
 
-        @Suppress("ReplaceGetOrSet")
         val cachedBitmap =
             landscapist
                 .memoryCache
-                .get(
+                .getIgnoringSize(
                     CacheKey(
                         url = uri,
-                        width = suitableAlternativeDecodeSize.width,
-                        height = suitableAlternativeDecodeSize.height,
                     )
                 )
                 ?.data as? Bitmap
 
         cachedBitmap?.asImageBitmap()
     }
-    var drawBitmap: ImageBitmap? by remember {
+    var drawBitmap: ImageBitmap? by remember(exactCachedBitmap, alternativeSizeCachedBitmap) {
         mutableStateOf(exactCachedBitmap ?: alternativeSizeCachedBitmap)
     }
     var drawColor: Color? by remember(uri) {

@@ -171,7 +171,7 @@ dependencies {
     implementation "io.insert-koin:koin-core-viewmodel"
     implementation "io.insert-koin:koin-compose-viewmodel-navigation"
 
-    implementation("com.github.skydoves:landscapist-core:2.11.0") {
+    implementation("com.github.skydoves:landscapist-core:2.12.0") {
         exclude group: "io.ktor", module: "ktor-client-okhttp"
     }
 
